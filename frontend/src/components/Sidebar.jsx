@@ -28,6 +28,12 @@ const Sidebar = ({ isOpen, onClose }) => {
       ],
       'benh_vien': [
         { path: '/hospital/dashboard', label: 'Dashboard', icon: 'dashboard' },
+        { path: '/hospital/profile', label: 'Hồ sơ', icon: 'user' },
+        { path: '/hospital/event-approval', label: 'Duyệt sự kiện', icon: 'check' },
+        { path: '/hospital/registrations', label: 'Danh sách đăng ký', icon: 'list' },
+        { path: '/hospital/blood-type-confirmation', label: 'Xác thực nhóm máu', icon: 'droplet' },
+        { path: '/hospital/results', label: 'Cập nhật kết quả', icon: 'edit' },
+        { path: '/hospital/notifications', label: 'Tạo thông báo', icon: 'bell' },
       ],
       'nhom_tinh_nguyen': [
         { path: '/volunteer/dashboard', label: 'Dashboard', icon: 'dashboard' },

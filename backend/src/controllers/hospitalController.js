@@ -1,37 +1,28 @@
 import pool from '../config/database.js';
 
-// Get hospital id for user
-const getHospitalId = async (userId) => {
-  const [hospitals] = await pool.execute(
-    'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
-    [userId]
-  );
-  return hospitals.length > 0 ? hospitals[0].id_benh_vien : null;
-};
-
-// Get pending events
+// Get pending events for hospital approval
 export const getPendingEvents = async (req, res, next) => {
   try {
     const userId = req.user.id_nguoi_dung;
-    const hospitalId = await getHospitalId(userId);
 
-    if (!hospitalId) {
+    // Get hospital ID from user
+    const [hospital] = await pool.execute(
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      [userId]
+    );
+
+    if (hospital.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Không tìm thấy thông tin bệnh viện.'
       });
     }
 
+    const hospitalId = hospital[0].id_benh_vien;
+
+    // Get pending events
     const [events] = await pool.execute(
-      `SELECT 
-        sk.id_su_kien,
-        sk.ten_su_kien,
-        sk.ngay_bat_dau,
-        sk.ngay_ket_thuc,
-        sk.so_luong_du_kien,
-        tc.ten_don_vi,
-        dd.ten_dia_diem,
-        dd.dia_chi
+      `SELECT sk.*, tc.ten_don_vi, dd.ten_dia_diem, dd.dia_chi
       FROM sukien_hien_mau sk
       JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
       LEFT JOIN dia_diem dd ON sk.id_dia_diem = dd.id_dia_diem
@@ -49,40 +40,26 @@ export const getPendingEvents = async (req, res, next) => {
   }
 };
 
-// Approve/reject event
-export const updateEventStatus = async (req, res, next) => {
+// Approve event
+export const approveEvent = async (req, res, next) => {
   try {
-    const userId = req.user.id_nguoi_dung;
     const { id } = req.params;
-    const { action } = req.body; // 'approve' or 'reject'
+    const userId = req.user.id_nguoi_dung;
 
-    const hospitalId = await getHospitalId(userId);
-    if (!hospitalId) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy thông tin bệnh viện.'
-      });
-    }
-
-    // Get coordinator id
-    const [coords] = await pool.execute(
+    // Get coordinator ID
+    const [coordinator] = await pool.execute(
       'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
       [userId]
     );
-    const coordinatorId = coords[0]?.id_nguoi_phu_trach;
 
-    // Check if event belongs to hospital
-    const [events] = await pool.execute(
-      'SELECT id_su_kien FROM sukien_hien_mau WHERE id_su_kien = ? AND id_benh_vien = ?',
-      [id, hospitalId]
-    );
-
-    if (events.length === 0) {
+    if (coordinator.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'Sự kiện không tồn tại.'
+        message: 'Không tìm thấy thông tin người phụ trách.'
       });
     }
+
+    const coordinatorId = coordinator[0].id_nguoi_phu_trach;
 
     const status = action === 'approve' ? 'da_duyet' : 'tu_choi';
     await pool.execute(
@@ -92,36 +69,202 @@ export const updateEventStatus = async (req, res, next) => {
 
     res.json({
       success: true,
-      message: action === 'approve' ? 'Duyệt sự kiện thành công.' : 'Từ chối sự kiện thành công.'
+      message: 'Đã phê duyệt sự kiện.'
     });
   } catch (error) {
     next(error);
   }
 };
 
-// Get approved registrations for final approval
-export const getApprovedRegistrations = async (req, res, next) => {
+// Get event participants (approved donors)
+export const getEventParticipants = async (req, res, next) => {
   try {
+    const { id } = req.params;
     const userId = req.user.id_nguoi_dung;
-    const { id } = req.params; // event id
-    const hospitalId = await getHospitalId(userId);
 
-    if (!hospitalId) {
+    // Get hospital ID
+    const [hospital] = await pool.execute(
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      [userId]
+    );
+
+    if (hospital.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Không tìm thấy thông tin bệnh viện.'
       });
     }
 
+    const hospitalId = hospital[0].id_benh_vien;
+
+    // Get participants
+    const [participants] = await pool.execute(
+      `SELECT 
+        dk.id_dang_ky,
+        dk.ngay_dang_ky,
+        nd.id_nguoi_dung,
+        nd.ho_ten,
+        nd.email,
+        nd.so_dien_thoai,
+        nh.id_nguoi_hien,
+        nh.nhom_mau,
+        nh.nhom_mau_xac_nhan,
+        nh.tong_so_lan_hien,
+        sk.ten_su_kien
+      FROM dang_ky_hien_mau dk
+      JOIN nguoi_hien_mau nh ON dk.id_nguoi_hien = nh.id_nguoi_hien
+      JOIN nguoidung nd ON nh.id_nguoi_dung = nd.id_nguoi_dung
+      JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
+      WHERE dk.id_su_kien = ? AND dk.trang_thai = 'da_duyet' AND sk.id_benh_vien = ?
+      ORDER BY dk.ngay_dang_ky DESC`,
+      [id, hospitalId]
+    );
+
+    res.json({
+      success: true,
+      data: { participants }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Confirm blood type after donation
+export const confirmBloodType = async (req, res, next) => {
+  try {
+    const { id_nguoi_hien, nhom_mau, ghi_chu } = req.body;
+    const userId = req.user.id_nguoi_dung;
+
+    if (!id_nguoi_hien || !nhom_mau) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng cung cấp đầy đủ thông tin.'
+      });
+    }
+
+    // Validate blood type
+    const validBloodTypes = ['A', 'B', 'AB', 'O'];
+    if (!validBloodTypes.includes(nhom_mau)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nhóm máu không hợp lệ.'
+      });
+    }
+
+    // Get hospital ID
+    const [hospital] = await pool.execute(
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      [userId]
+    );
+
+    if (hospital.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin bệnh viện.'
+      });
+    }
+
+    const hospitalId = hospital[0].id_benh_vien;
+
+    // Update blood type with confirmation
+    await pool.execute(
+      `UPDATE nguoi_hien_mau 
+       SET nhom_mau = ?,
+           nhom_mau_xac_nhan = TRUE,
+           ngay_xac_nhan = CURDATE(),
+           id_benh_vien_xac_nhan = ?,
+           ghi_chu_xac_nhan = ?
+       WHERE id_nguoi_hien = ?`,
+      [nhom_mau, hospitalId, ghi_chu || 'Xác thực nhóm máu qua xét nghiệm', id_nguoi_hien]
+    );
+
+    // Get updated donor info
+    const [donor] = await pool.execute(
+      `SELECT nh.*, nd.ho_ten, bv.ten_benh_vien
+       FROM nguoi_hien_mau nh
+       JOIN nguoidung nd ON nh.id_nguoi_dung = nd.id_nguoi_dung
+       LEFT JOIN benh_vien bv ON nh.id_benh_vien_xac_nhan = bv.id_benh_vien
+       WHERE nh.id_nguoi_hien = ?`,
+      [id_nguoi_hien]
+    );
+
+    res.json({
+      success: true,
+      message: 'Xác thực nhóm máu thành công.',
+      data: { donor: donor[0] }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update event status (approve/reject)
+export const updateEventStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { trang_thai } = req.body;
+    const userId = req.user.id_nguoi_dung;
+
+    // Get coordinator ID
+    const [coordinator] = await pool.execute(
+      'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      [userId]
+    );
+
+    if (coordinator.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin người phụ trách.'
+      });
+    }
+
+    const coordinatorId = coordinator[0].id_nguoi_phu_trach;
+
+    await pool.execute(
+      'UPDATE sukien_hien_mau SET trang_thai = ?, id_phe_duyet_boi = ? WHERE id_su_kien = ?',
+      [trang_thai, coordinatorId, id]
+    );
+
+    res.json({
+      success: true,
+      message: 'Cập nhật trạng thái sự kiện thành công.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Get approved registrations for an event
+export const getApprovedRegistrations = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id_nguoi_dung;
+
+    // Get hospital ID
+    const [hospital] = await pool.execute(
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      [userId]
+    );
+
+    if (hospital.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin bệnh viện.'
+      });
+    }
+
+    const hospitalId = hospital[0].id_benh_vien;
+
+    // Get approved registrations
     const [registrations] = await pool.execute(
       `SELECT 
         dk.id_dang_ky,
-        dk.id_nguoi_hien,
         dk.ngay_dang_ky,
-        nh.nhom_mau,
         nd.ho_ten,
         nd.email,
-        nd.so_dien_thoai
+        nd.so_dien_thoai,
+        nh.nhom_mau,
+        nh.nhom_mau_xac_nhan
       FROM dang_ky_hien_mau dk
       JOIN nguoi_hien_mau nh ON dk.id_nguoi_hien = nh.id_nguoi_hien
       JOIN nguoidung nd ON nh.id_nguoi_dung = nd.id_nguoi_dung
@@ -140,45 +283,46 @@ export const getApprovedRegistrations = async (req, res, next) => {
   }
 };
 
-// Create result
+// Create donation result
 export const createResult = async (req, res, next) => {
   try {
+    const { id_nguoi_hien, id_su_kien, ngay_hien, luong_ml, ket_qua } = req.body;
     const userId = req.user.id_nguoi_dung;
-    const hospitalId = await getHospitalId(userId);
 
-    if (!hospitalId) {
+    // Get hospital ID
+    const [hospital] = await pool.execute(
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      [userId]
+    );
+
+    if (hospital.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Không tìm thấy thông tin bệnh viện.'
       });
     }
 
-    const { id_nguoi_hien, id_su_kien, ngay_hien, luong_ml, ket_qua } = req.body;
+    const hospitalId = hospital[0].id_benh_vien;
 
-    if (!id_nguoi_hien || !id_su_kien || !ngay_hien || !ket_qua) {
-      return res.status(400).json({
-        success: false,
-        message: 'Vui lòng điền đầy đủ thông tin.'
-      });
-    }
-
+    // Insert result
     await pool.execute(
-      `INSERT INTO ket_qua_hien_mau (id_nguoi_hien, id_su_kien, id_benh_vien, ngay_hien, luong_ml, ket_qua)
+      `INSERT INTO ket_qua_hien_mau (id_nguoi_hien, id_su_kien, id_benh_vien, ngay_hien, luong_ml, ket_qua) 
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [id_nguoi_hien, id_su_kien, hospitalId, ngay_hien, luong_ml || null, ket_qua]
+      [id_nguoi_hien, id_su_kien, hospitalId, ngay_hien, luong_ml, ket_qua]
     );
 
-    // Update donor's last donation date and count
+    // Update donor stats
     await pool.execute(
       `UPDATE nguoi_hien_mau 
-       SET lan_hien_gan_nhat = ?, tong_so_lan_hien = tong_so_lan_hien + 1
+       SET tong_so_lan_hien = tong_so_lan_hien + 1,
+           lan_hien_gan_nhat = ?
        WHERE id_nguoi_hien = ?`,
       [ngay_hien, id_nguoi_hien]
     );
 
     res.json({
       success: true,
-      message: 'Cập nhật kết quả thành công.'
+      message: 'Tạo kết quả hiến máu thành công.'
     });
   } catch (error) {
     next(error);
@@ -188,36 +332,95 @@ export const createResult = async (req, res, next) => {
 // Create notification
 export const createNotification = async (req, res, next) => {
   try {
+    const { id_nhom, tieu_de, noi_dung } = req.body;
     const userId = req.user.id_nguoi_dung;
-    const hospitalId = await getHospitalId(userId);
 
-    if (!hospitalId) {
+    // Get hospital ID
+    const [hospital] = await pool.execute(
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      [userId]
+    );
+
+    if (hospital.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Không tìm thấy thông tin bệnh viện.'
       });
     }
 
-    const { id_nhom, tieu_de, noi_dung } = req.body;
+    const hospitalId = hospital[0].id_benh_vien;
 
-    if (!id_nhom || !tieu_de || !noi_dung) {
-      return res.status(400).json({
-        success: false,
-        message: 'Vui lòng điền đầy đủ thông tin.'
-      });
-    }
-
+    // Insert notification
     await pool.execute(
-      'INSERT INTO thong_bao (id_benh_vien, id_nhom, tieu_de, noi_dung) VALUES (?, ?, ?, ?)',
+      `INSERT INTO thong_bao (id_benh_vien, id_nhom, tieu_de, noi_dung) 
+       VALUES (?, ?, ?, ?)`,
       [hospitalId, id_nhom, tieu_de, noi_dung]
     );
 
     res.json({
       success: true,
-      message: 'Gửi thông báo thành công.'
+      message: 'Tạo thông báo thành công.'
     });
   } catch (error) {
     next(error);
   }
 };
 
+// Get list of donors with unconfirmed blood type
+export const getUnconfirmedBloodTypes = async (req, res, next) => {
+  try {
+    const userId = req.user.id_nguoi_dung;
+
+    console.log('🔍 Getting unconfirmed blood types for user:', userId);
+
+    // Get hospital ID
+    const [hospital] = await pool.execute(
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      [userId]
+    );
+
+    if (hospital.length === 0) {
+      console.log('❌ Hospital not found for user:', userId);
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin bệnh viện.'
+      });
+    }
+
+    const hospitalId = hospital[0].id_benh_vien;
+    console.log('🏥 Hospital ID:', hospitalId);
+
+    // Get donors who have participated in hospital's approved events but blood type not confirmed
+    const [donors] = await pool.execute(
+      `SELECT DISTINCT
+        nh.id_nguoi_hien,
+        nh.nhom_mau,
+        nh.tong_so_lan_hien,
+        nd.ho_ten,
+        nd.email,
+        nd.so_dien_thoai,
+        nh.lan_hien_gan_nhat as ngay_hien_gan_nhat
+      FROM nguoi_hien_mau nh
+      JOIN nguoidung nd ON nh.id_nguoi_dung = nd.id_nguoi_dung
+      JOIN dang_ky_hien_mau dk ON nh.id_nguoi_hien = dk.id_nguoi_hien
+      JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
+      WHERE nh.nhom_mau_xac_nhan = FALSE 
+        AND nh.nhom_mau IS NOT NULL
+        AND sk.id_benh_vien = ?
+        AND dk.trang_thai = 'da_duyet'
+      GROUP BY nh.id_nguoi_hien, nh.nhom_mau, nh.tong_so_lan_hien, nd.ho_ten, nd.email, nd.so_dien_thoai, nh.lan_hien_gan_nhat
+      ORDER BY nh.lan_hien_gan_nhat DESC`,
+      [hospitalId]
+    );
+
+    console.log('👥 Found', donors.length, 'donors with unconfirmed blood type');
+    console.log('📋 Donors:', JSON.stringify(donors, null, 2));
+
+    res.json({
+      success: true,
+      data: { donors }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

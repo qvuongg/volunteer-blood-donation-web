@@ -52,7 +52,7 @@ const Dashboard = () => {
           <h3 className="card-title">Thao tác nhanh</h3>
         </div>
         <div className="card-body">
-          <div className="grid grid-cols-3">
+          <div className="grid grid-cols-4">
             <button
               className="btn btn-outline"
               style={{ flexDirection: 'column', height: '120px', gap: 'var(--spacing-md)' }}
@@ -82,7 +82,18 @@ const Dashboard = () => {
                 <path d="M24 10a8 8 0 00-16 0c0 5.333-2.667 8-2.667 8h21.334S24 15.333 24 10zM18.73 26a3 3 0 01-5.46 0"/>
               </svg>
               <span>Gửi thông báo</span>
-      </button>
+            </button>
+            <button
+              className="btn btn-outline"
+              style={{ flexDirection: 'column', height: '120px', gap: 'var(--spacing-md)' }}
+              onClick={() => navigate('/hospital/blood-type-confirmation')}
+            >
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M16 4s-10 11.667-10 16.667A10 10 0 0026 20.667C26 15.667 16 4 16 4z"/>
+                <path d="M11 20l3 3 7-7"/>
+              </svg>
+              <span>Xác thực nhóm máu</span>
+            </button>
           </div>
         </div>
     </div>

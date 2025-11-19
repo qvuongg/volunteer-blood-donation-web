@@ -33,14 +33,18 @@ CREATE TABLE nguoidung (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
--- 3. BẢNG NGƯỜI HIẾN MÁU
+-- 3. BẢNG NGƯỜI HIẾN MÁU (without FK to benh_vien for now)
 -- ============================================
 CREATE TABLE nguoi_hien_mau (
     id_nguoi_hien INT PRIMARY KEY AUTO_INCREMENT,
     id_nguoi_dung INT NOT NULL,
-    nhom_mau VARCHAR(5),
+    nhom_mau VARCHAR(5) COMMENT 'Nhóm máu tự khai báo hoặc đã xác thực',
     lan_hien_gan_nhat DATE,
     tong_so_lan_hien INT DEFAULT 0,
+    nhom_mau_xac_nhan BOOLEAN DEFAULT FALSE COMMENT 'Nhóm máu đã được bệnh viện xác thực',
+    ngay_xac_nhan DATE COMMENT 'Ngày xác thực nhóm máu',
+    id_benh_vien_xac_nhan INT COMMENT 'Bệnh viện xác thực nhóm máu',
+    ghi_chu_xac_nhan TEXT COMMENT 'Ghi chú từ bệnh viện khi xác thực',
     FOREIGN KEY (id_nguoi_dung) REFERENCES nguoidung(id_nguoi_dung)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -73,6 +77,11 @@ CREATE TABLE benh_vien (
     ten_benh_vien VARCHAR(150) NOT NULL,
     dia_chi TEXT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Add foreign key to nguoi_hien_mau after benh_vien table is created
+ALTER TABLE nguoi_hien_mau
+ADD CONSTRAINT fk_benh_vien_xac_nhan 
+FOREIGN KEY (id_benh_vien_xac_nhan) REFERENCES benh_vien(id_benh_vien);
 
 -- ============================================
 -- 7. BẢNG NGƯỜI PHỤ TRÁCH BỆNH VIỆN
@@ -209,28 +218,31 @@ INSERT INTO nguoidung (ho_ten, email, mat_khau, so_dien_thoai, gioi_tinh, ngay_s
 ('Le Thi H', 'lethih@email.com', '$2b$10$wrP.9VlkgrUNPGf2xt15v.gIBmaapz2vLuUtiKOOpmM0qxZGGkz2u', '0904000001', 'Nu', '1995-12-30', 4),
 ('Pham Van I', 'phamvani@email.com', '$2b$10$wrP.9VlkgrUNPGf2xt15v.gIBmaapz2vLuUtiKOOpmM0qxZGGkz2u', '0904000002', 'Nam', '1993-06-22', 4);
 
--- Insert người hiến máu
-INSERT INTO nguoi_hien_mau (id_nguoi_dung, nhom_mau, lan_hien_gan_nhat, tong_so_lan_hien) VALUES
-(2, 'O', '2024-01-15', 3),
-(3, 'A', '2024-02-20', 5),
-(4, 'B', '2023-12-10', 2);
-
 -- Insert tổ chức
 INSERT INTO to_chuc (ten_don_vi, dia_chi) VALUES
 ('Doan Thanh Nien TP Da Nang', '123 Le Duan, Hai Chau, Da Nang'),
 ('Hoi Chu Thap Do Da Nang', '456 Nguyen Van Linh, Da Nang'),
 ('Truong Dai Hoc Bach Khoa Da Nang', '54 Nguyen Luong Bang, Lien Chieu, Da Nang');
 
--- Insert người phụ trách tổ chức
-INSERT INTO nguoi_phu_trach_to_chuc (id_nguoi_dung, id_to_chuc, nguoi_lien_he) VALUES
-(5, 1, 'Pham Thi D'),
-(6, 2, 'Hoang Van E');
-
--- Insert bệnh viện
+-- Insert bệnh viện (MUST be before nguoi_hien_mau due to FK)
 INSERT INTO benh_vien (ten_benh_vien, dia_chi) VALUES
 ('Benh Vien Da Khoa Da Nang', '124 Hai Phong, Thanh Khe, Da Nang'),
 ('Benh Vien Tim Mach Da Nang', '215 Hong Bang, Hai Chau, Da Nang'),
 ('Benh Vien Phu San - Nhi Da Nang', '402 Le Van Hien, Thanh Khe, Da Nang');
+
+-- Insert người hiến máu (AFTER benh_vien due to FK constraint)
+-- User 2: Đã hiến 3 lần, nhóm máu đã được xác thực
+-- User 3: Đã hiến 5 lần, nhóm máu đã được xác thực
+-- User 4: Đã hiến 2 lần, nhưng nhóm máu chưa được xác thực chính thức (tự khai báo)
+INSERT INTO nguoi_hien_mau (id_nguoi_dung, nhom_mau, lan_hien_gan_nhat, tong_so_lan_hien, nhom_mau_xac_nhan, ngay_xac_nhan, id_benh_vien_xac_nhan, ghi_chu_xac_nhan) VALUES
+(2, 'O', '2024-01-15', 3, TRUE, '2024-01-15', 1, 'Xác thực nhóm máu qua xét nghiệm tại BV Đa Khoa Đà Nẵng'),
+(3, 'A', '2024-02-20', 5, TRUE, '2024-01-10', 1, 'Xác thực nhóm máu qua xét nghiệm tại BV Đa Khoa Đà Nẵng'),
+(4, 'B', '2023-12-10', 1, FALSE, NULL, NULL, NULL);
+
+-- Insert người phụ trách tổ chức
+INSERT INTO nguoi_phu_trach_to_chuc (id_nguoi_dung, id_to_chuc, nguoi_lien_he) VALUES
+(5, 1, 'Pham Thi D'),
+(6, 2, 'Hoang Van E');
 
 -- Insert người phụ trách bệnh viện
 INSERT INTO nguoi_phu_trach_benh_vien (id_nguoi_dung, id_benh_vien, chuc_vu, nguoi_lien_he) VALUES
@@ -259,6 +271,7 @@ INSERT INTO sukien_hien_mau (id_to_chuc, id_benh_vien, ten_su_kien, ngay_bat_dau
 INSERT INTO dang_ky_hien_mau (id_su_kien, id_nguoi_hien, id_nguoi_duyet, trang_thai, ghi_chu_duyet) VALUES
 (1, 1, 1, 'da_duyet', 'Dang ky thanh cong'),
 (1, 2, 1, 'da_duyet', 'Dang ky thanh cong'),
+(1, 3, 1, 'da_duyet', 'Dang ky thanh cong'), -- Le Van C đăng ký sự kiện 1, đã được duyệt nhưng chưa xác thực nhóm máu
 (2, 3, NULL, 'cho_duyet', NULL);
 
 -- Insert kết quả hiến máu

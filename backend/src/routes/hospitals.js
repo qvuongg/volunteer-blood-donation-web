@@ -5,7 +5,9 @@ import {
   updateEventStatus,
   getApprovedRegistrations,
   createResult,
-  createNotification
+  createNotification,
+  getUnconfirmedBloodTypes,
+  confirmBloodType
 } from '../controllers/hospitalController.js';
 
 const router = express.Router();
@@ -18,6 +20,10 @@ router.put('/events/:id/status', updateEventStatus);
 router.get('/events/:id/registrations', getApprovedRegistrations);
 router.post('/results', createResult);
 router.post('/notifications', createNotification);
+
+// Blood type confirmation routes
+router.get('/blood-types/unconfirmed', getUnconfirmedBloodTypes);
+router.post('/blood-types/confirm', confirmBloodType);
 
 export default router;
 

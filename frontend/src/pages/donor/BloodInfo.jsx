@@ -5,6 +5,7 @@ import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
 
 const BloodInfo = () => {
+  const [bloodInfo, setBloodInfo] = useState(null);
   const [nhom_mau, setNhom_mau] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -19,7 +20,9 @@ const BloodInfo = () => {
     try {
       const response = await api.get('/donors/blood-info');
       if (response.data.success && response.data.data.donor) {
-        setNhom_mau(response.data.data.donor.nhom_mau || '');
+        const donor = response.data.data.donor;
+        setBloodInfo(donor);
+        setNhom_mau(donor.nhom_mau || '');
       }
     } catch (error) {
       console.error('Error fetching blood info:', error);
@@ -72,6 +75,25 @@ const BloodInfo = () => {
         </p>
       </div>
 
+      {bloodInfo?.nhom_mau_xac_nhan && (
+        <div className="alert alert-success" style={{ marginBottom: 'var(--spacing-xl)', maxWidth: '600px', margin: '0 auto var(--spacing-xl)' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-md)' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0, marginTop: '2px' }}>
+              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div style={{ flex: 1 }}>
+              <strong>Nhóm máu đã được xác thực</strong>
+              <p style={{ margin: '4px 0 0 0', fontSize: 'var(--font-size-sm)' }}>
+                Xác thực bởi: <strong>{bloodInfo.ten_benh_vien_xac_nhan}</strong> vào ngày {new Date(bloodInfo.ngay_xac_nhan).toLocaleDateString('vi-VN')}
+                {bloodInfo.ghi_chu_xac_nhan && (
+                  <><br />Ghi chú: {bloodInfo.ghi_chu_xac_nhan}</>
+                )}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="card" style={{ maxWidth: '600px', margin: '0 auto' }}>
         <div className="card-body">
           {message === 'success' && (
@@ -98,13 +120,15 @@ const BloodInfo = () => {
                   <button
                     key={type.value}
                     type="button"
-                    onClick={() => setNhom_mau(type.value)}
+                    onClick={() => !bloodInfo?.nhom_mau_xac_nhan && setNhom_mau(type.value)}
+                    disabled={bloodInfo?.nhom_mau_xac_nhan}
                     style={{
                       padding: 'var(--spacing-xl)',
                       border: nhom_mau === type.value ? `3px solid ${type.color}` : '2px solid var(--gray-300)',
                       borderRadius: 'var(--radius-lg)',
                       background: nhom_mau === type.value ? `${type.color}15` : 'white',
-                      cursor: 'pointer',
+                      cursor: bloodInfo?.nhom_mau_xac_nhan ? 'not-allowed' : 'pointer',
+                      opacity: bloodInfo?.nhom_mau_xac_nhan ? 0.6 : 1,
                       transition: 'all var(--transition-fast)',
                       display: 'flex',
                       flexDirection: 'column',
@@ -130,37 +154,45 @@ const BloodInfo = () => {
             <div style={{ 
               marginTop: 'var(--spacing-xl)', 
               padding: 'var(--spacing-lg)', 
-              background: 'var(--gray-50)', 
-              borderRadius: 'var(--radius-md)' 
+              background: bloodInfo?.nhom_mau_xac_nhan ? 'var(--success-50)' : 'var(--gray-50)', 
+              borderRadius: 'var(--radius-md)',
+              border: bloodInfo?.nhom_mau_xac_nhan ? '1px solid var(--success-200)' : 'none'
             }}>
-              <h4 style={{ marginTop: 0, fontSize: 'var(--font-size-base)' }}>Thông tin về nhóm máu</h4>
+              <h4 style={{ marginTop: 0, fontSize: 'var(--font-size-base)' }}>
+                {bloodInfo?.nhom_mau_xac_nhan ? '✓ Nhóm máu đã được xác thực' : 'Thông tin về nhóm máu'}
+              </h4>
               <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', lineHeight: 'var(--line-height-relaxed)', margin: 0 }}>
-                Việc biết chính xác nhóm máu của bạn rất quan trọng trong quá trình hiến máu. 
-                Nếu chưa biết nhóm máu, bạn có thể xét nghiệm tại các cơ sở y tế hoặc trong lần hiến máu đầu tiên.
+                {bloodInfo?.nhom_mau_xac_nhan ? (
+                  'Nhóm máu của bạn đã được bệnh viện xác thực chính thức và không thể thay đổi.'
+                ) : (
+                  'Việc biết chính xác nhóm máu của bạn rất quan trọng trong quá trình hiến máu. Nhóm máu sẽ được xác thực chính thức khi bạn hiến máu lần đầu tại bệnh viện.'
+                )}
               </p>
         </div>
 
             <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
-          <button
-            type="submit"
-                disabled={saving || !nhom_mau}
-                className="btn btn-primary"
-              >
-                {saving ? (
-                  <>
-                    <LoadingSpinner size="small" />
-                    Đang cập nhật...
-                  </>
-                ) : (
-                  'Cập nhật'
-                )}
-          </button>
+          {!bloodInfo?.nhom_mau_xac_nhan && (
+            <button
+              type="submit"
+                  disabled={saving || !nhom_mau}
+                  className="btn btn-primary"
+                >
+                  {saving ? (
+                    <>
+                      <LoadingSpinner size="small" />
+                      Đang cập nhật...
+                    </>
+                  ) : (
+                    'Cập nhật'
+                  )}
+            </button>
+          )}
           <button
             type="button"
                 onClick={() => navigate('/donor/dashboard')}
                 className="btn btn-outline"
           >
-            Hủy
+            {bloodInfo?.nhom_mau_xac_nhan ? 'Quay lại' : 'Hủy'}
           </button>
         </div>
       </form>

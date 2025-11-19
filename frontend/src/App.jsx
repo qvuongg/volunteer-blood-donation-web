@@ -16,6 +16,12 @@ import OrgDashboard from './pages/organization/Dashboard';
 import OrgEvents from './pages/organization/Events';
 import OrgApprovals from './pages/organization/Approvals';
 import HospitalDashboard from './pages/hospital/Dashboard';
+import HospitalProfile from './pages/hospital/Profile';
+import HospitalBloodTypeConfirmation from './pages/hospital/BloodTypeConfirmation';
+import HospitalEventApproval from './pages/hospital/EventApproval';
+import HospitalRegistrationList from './pages/hospital/RegistrationList';
+import HospitalResultUpdate from './pages/hospital/ResultUpdate';
+import HospitalNotificationCreate from './pages/hospital/NotificationCreate';
 import VolunteerDashboard from './pages/volunteer/Dashboard';
 import AdminDashboard from './pages/admin/Dashboard';
 import './App.css';
@@ -127,6 +133,54 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['benh_vien']}>
                 <HospitalDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hospital/profile" 
+            element={
+              <ProtectedRoute allowedRoles={['benh_vien']}>
+                <HospitalProfile />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hospital/blood-type-confirmation" 
+            element={
+              <ProtectedRoute allowedRoles={['benh_vien']}>
+                <HospitalBloodTypeConfirmation />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hospital/event-approval" 
+            element={
+              <ProtectedRoute allowedRoles={['benh_vien']}>
+                <HospitalEventApproval />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hospital/registrations" 
+            element={
+              <ProtectedRoute allowedRoles={['benh_vien']}>
+                <HospitalRegistrationList />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hospital/results" 
+            element={
+              <ProtectedRoute allowedRoles={['benh_vien']}>
+                <HospitalResultUpdate />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/hospital/notifications" 
+            element={
+              <ProtectedRoute allowedRoles={['benh_vien']}>
+                <HospitalNotificationCreate />
               </ProtectedRoute>
             } 
           />

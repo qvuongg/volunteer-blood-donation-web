@@ -219,3 +219,79 @@ export const getMe = async (req, res, next) => {
   }
 };
 
+// Get full profile based on role
+export const getProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id_nguoi_dung;
+    const userRole = req.user.ten_vai_tro;
+
+    const profile = {
+      user: req.user
+    };
+
+    // Get additional info based on role
+    if (userRole === 'nguoi_hien') {
+      const [donors] = await pool.execute(
+        `SELECT nh.*, bv.ten_benh_vien as ten_benh_vien_xac_nhan
+         FROM nguoi_hien_mau nh
+         LEFT JOIN benh_vien bv ON nh.id_benh_vien_xac_nhan = bv.id_benh_vien
+         WHERE nh.id_nguoi_dung = ?`,
+        [userId]
+      );
+      profile.donor = donors[0] || null;
+    } else if (userRole === 'benh_vien') {
+      const [coordinator] = await pool.execute(
+        `SELECT nptbv.*, bv.ten_benh_vien, bv.dia_chi
+         FROM nguoi_phu_trach_benh_vien nptbv
+         JOIN benh_vien bv ON nptbv.id_benh_vien = bv.id_benh_vien
+         WHERE nptbv.id_nguoi_dung = ?`,
+        [userId]
+      );
+      if (coordinator.length > 0) {
+        profile.coordinator = {
+          id_nguoi_phu_trach: coordinator[0].id_nguoi_phu_trach,
+          chuc_vu: coordinator[0].chuc_vu,
+          nguoi_lien_he: coordinator[0].nguoi_lien_he
+        };
+        profile.hospital = {
+          id_benh_vien: coordinator[0].id_benh_vien,
+          ten_benh_vien: coordinator[0].ten_benh_vien,
+          dia_chi: coordinator[0].dia_chi
+        };
+      }
+    } else if (userRole === 'to_chuc') {
+      const [coordinator] = await pool.execute(
+        `SELECT nptc.*, tc.ten_don_vi, tc.dia_chi
+         FROM nguoi_phu_trach_to_chuc nptc
+         JOIN to_chuc tc ON nptc.id_to_chuc = tc.id_to_chuc
+         WHERE nptc.id_nguoi_dung = ?`,
+        [userId]
+      );
+      if (coordinator.length > 0) {
+        profile.coordinator = {
+          id_nguoi_phu_trach: coordinator[0].id_nguoi_phu_trach,
+          nguoi_lien_he: coordinator[0].nguoi_lien_he
+        };
+        profile.organization = {
+          id_to_chuc: coordinator[0].id_to_chuc,
+          ten_don_vi: coordinator[0].ten_don_vi,
+          dia_chi: coordinator[0].dia_chi
+        };
+      }
+    } else if (userRole === 'nhom_tinh_nguyen') {
+      const [group] = await pool.execute(
+        `SELECT * FROM nhom_tinh_nguyen WHERE id_nguoi_dung = ?`,
+        [userId]
+      );
+      profile.volunteerGroup = group[0] || null;
+    }
+
+    res.json({
+      success: true,
+      data: profile
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

@@ -169,13 +169,58 @@ const Dashboard = () => {
                       padding: 'var(--spacing-xl)', 
                       background: 'var(--primary-gradient)',
                       borderRadius: 'var(--radius-lg)',
-                      color: 'white'
+                      color: 'white',
+                      position: 'relative'
                     }}>
                       <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', opacity: 0.9 }}>Nhóm máu</p>
                       <h2 style={{ margin: '8px 0', fontSize: '3rem', fontWeight: 'var(--font-weight-bold)' }}>
                         {profile.donor.nhom_mau || '?'}
                       </h2>
+                      {profile.donor.nhom_mau_xac_nhan ? (
+                        <div style={{ 
+                          position: 'absolute', 
+                          top: '12px', 
+                          right: '12px',
+                          background: 'rgba(255, 255, 255, 0.3)',
+                          padding: '4px 12px',
+                          borderRadius: 'var(--radius-full)',
+                          fontSize: 'var(--font-size-xs)',
+                          fontWeight: 'var(--font-weight-semibold)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+                            <path d="M5 7l2 2 4-4M13 7A6 6 0 111 7a6 6 0 0112 0z"/>
+                          </svg>
+                          Đã xác thực
+                        </div>
+                      ) : (
+                        <div style={{ 
+                          position: 'absolute', 
+                          top: '12px', 
+                          right: '12px',
+                          background: 'rgba(255, 255, 255, 0.3)',
+                          padding: '4px 12px',
+                          borderRadius: 'var(--radius-full)',
+                          fontSize: 'var(--font-size-xs)',
+                          fontWeight: 'var(--font-weight-semibold)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+                            <path d="M7 1a6 6 0 100 12A6 6 0 007 1zm0 9V7M7 5h.01"/>
+                          </svg>
+                          Chưa xác thực
+                        </div>
+                      )}
                     </div>
+                    {!profile.donor.nhom_mau_xac_nhan && profile.donor.nhom_mau && (
+                      <div className="alert alert-info" style={{ marginTop: 0 }}>
+                        ℹ️ Nhóm máu sẽ được xác thực chính thức khi bạn hiến máu lần đầu tại bệnh viện.
+                      </div>
+                    )}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
                         <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>Tổng lần hiến</span>

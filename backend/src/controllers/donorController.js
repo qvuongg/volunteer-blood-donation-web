@@ -19,10 +19,14 @@ export const getProfile = async (req, res, next) => {
       });
     }
 
-    // Get donor info
+    // Get donor info with blood type confirmation status
     const [donors] = await pool.execute(
-      `SELECT id_nguoi_hien, nhom_mau, lan_hien_gan_nhat, tong_so_lan_hien 
-       FROM nguoi_hien_mau WHERE id_nguoi_dung = ?`,
+      `SELECT nh.id_nguoi_hien, nh.nhom_mau, nh.lan_hien_gan_nhat, nh.tong_so_lan_hien,
+              nh.nhom_mau_xac_nhan, nh.ngay_xac_nhan, nh.id_benh_vien_xac_nhan, nh.ghi_chu_xac_nhan,
+              bv.ten_benh_vien as ten_benh_vien_xac_nhan
+       FROM nguoi_hien_mau nh
+       LEFT JOIN benh_vien bv ON nh.id_benh_vien_xac_nhan = bv.id_benh_vien
+       WHERE nh.id_nguoi_dung = ?`,
       [userId]
     );
 
@@ -116,8 +120,12 @@ export const getBloodInfo = async (req, res, next) => {
     const userId = req.user.id_nguoi_dung;
 
     const [donors] = await pool.execute(
-      `SELECT id_nguoi_hien, nhom_mau, lan_hien_gan_nhat, tong_so_lan_hien 
-       FROM nguoi_hien_mau WHERE id_nguoi_dung = ?`,
+      `SELECT nh.id_nguoi_hien, nh.nhom_mau, nh.lan_hien_gan_nhat, nh.tong_so_lan_hien,
+              nh.nhom_mau_xac_nhan, nh.ngay_xac_nhan, nh.id_benh_vien_xac_nhan, nh.ghi_chu_xac_nhan,
+              bv.ten_benh_vien as ten_benh_vien_xac_nhan
+       FROM nguoi_hien_mau nh
+       LEFT JOIN benh_vien bv ON nh.id_benh_vien_xac_nhan = bv.id_benh_vien
+       WHERE nh.id_nguoi_dung = ?`,
       [userId]
     );
 
@@ -151,9 +159,18 @@ export const updateBloodInfo = async (req, res, next) => {
       });
     }
 
+    // Validate blood type
+    const validBloodTypes = ['A', 'B', 'AB', 'O'];
+    if (!validBloodTypes.includes(nhom_mau)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nhóm máu không hợp lệ.'
+      });
+    }
+
     // Check if donor record exists
     const [donors] = await pool.execute(
-      'SELECT id_nguoi_hien FROM nguoi_hien_mau WHERE id_nguoi_dung = ?',
+      'SELECT id_nguoi_hien, nhom_mau_xac_nhan FROM nguoi_hien_mau WHERE id_nguoi_dung = ?',
       [userId]
     );
 
@@ -164,7 +181,15 @@ export const updateBloodInfo = async (req, res, next) => {
       });
     }
 
-    // Update blood type
+    // If blood type is already confirmed, don't allow changes
+    if (donors[0].nhom_mau_xac_nhan) {
+      return res.status(400).json({
+        success: false,
+        message: 'Nhóm máu đã được xác thực bởi bệnh viện, không thể thay đổi.'
+      });
+    }
+
+    // Update blood type (only self-declared, not confirmed)
     await pool.execute(
       'UPDATE nguoi_hien_mau SET nhom_mau = ? WHERE id_nguoi_dung = ?',
       [nhom_mau, userId]
@@ -172,14 +197,18 @@ export const updateBloodInfo = async (req, res, next) => {
 
     // Get updated donor
     const [updatedDonors] = await pool.execute(
-      `SELECT id_nguoi_hien, nhom_mau, lan_hien_gan_nhat, tong_so_lan_hien 
-       FROM nguoi_hien_mau WHERE id_nguoi_dung = ?`,
+      `SELECT nh.id_nguoi_hien, nh.nhom_mau, nh.lan_hien_gan_nhat, nh.tong_so_lan_hien,
+              nh.nhom_mau_xac_nhan, nh.ngay_xac_nhan, nh.id_benh_vien_xac_nhan, nh.ghi_chu_xac_nhan,
+              bv.ten_benh_vien as ten_benh_vien_xac_nhan
+       FROM nguoi_hien_mau nh
+       LEFT JOIN benh_vien bv ON nh.id_benh_vien_xac_nhan = bv.id_benh_vien
+       WHERE nh.id_nguoi_dung = ?`,
       [userId]
     );
 
     res.json({
       success: true,
-      message: 'Cập nhật nhóm máu thành công.',
+      message: 'Cập nhật nhóm máu thành công. Nhóm máu sẽ được xác thực chính thức khi bạn hiến máu.',
       data: {
         donor: updatedDonors[0]
       }
