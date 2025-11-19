@@ -1,0 +1,23 @@
+import express from 'express';
+import { authenticate, authorize } from '../middleware/auth.js';
+import {
+  getPendingEvents,
+  updateEventStatus,
+  getApprovedRegistrations,
+  createResult,
+  createNotification
+} from '../controllers/hospitalController.js';
+
+const router = express.Router();
+
+router.use(authenticate);
+router.use(authorize('benh_vien'));
+
+router.get('/events/pending', getPendingEvents);
+router.put('/events/:id/status', updateEventStatus);
+router.get('/events/:id/registrations', getApprovedRegistrations);
+router.post('/results', createResult);
+router.post('/notifications', createNotification);
+
+export default router;
+

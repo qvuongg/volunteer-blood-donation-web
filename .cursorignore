@@ -1,0 +1,6 @@
+# File: .cursorignore
+# Để trống hoặc chỉ ignore những gì thực sự cần
+
+node_modules/
+.DS_Store
+*.log
