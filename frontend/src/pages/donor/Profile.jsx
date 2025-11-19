@@ -93,68 +93,68 @@ const Profile = () => {
           {message === 'error' && (
             <div className="alert alert-danger">
               Có lỗi xảy ra. Vui lòng thử lại.
-            </div>
-          )}
+        </div>
+      )}
 
-          <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="ho_ten" className="form-label">Họ tên *</label>
-              <input
-                type="text"
-                id="ho_ten"
-                name="ho_ten"
-                value={formData.ho_ten}
-                onChange={handleChange}
-                required
+          <input
+            type="text"
+            id="ho_ten"
+            name="ho_ten"
+            value={formData.ho_ten}
+            onChange={handleChange}
+            required
                 className="form-input"
-              />
-            </div>
+          />
+        </div>
 
             <div className="form-group">
               <label htmlFor="so_dien_thoai" className="form-label">Số điện thoại</label>
-              <input
-                type="tel"
-                id="so_dien_thoai"
-                name="so_dien_thoai"
-                value={formData.so_dien_thoai}
-                onChange={handleChange}
+          <input
+            type="tel"
+            id="so_dien_thoai"
+            name="so_dien_thoai"
+            value={formData.so_dien_thoai}
+            onChange={handleChange}
                 className="form-input"
                 placeholder="0901234567"
-              />
-            </div>
+          />
+        </div>
 
             <div className="form-group">
               <label htmlFor="gioi_tinh" className="form-label">Giới tính *</label>
-              <select
-                id="gioi_tinh"
-                name="gioi_tinh"
-                value={formData.gioi_tinh}
-                onChange={handleChange}
-                required
+          <select
+            id="gioi_tinh"
+            name="gioi_tinh"
+            value={formData.gioi_tinh}
+            onChange={handleChange}
+            required
                 className="form-select"
-              >
-                <option value="Nam">Nam</option>
-                <option value="Nu">Nữ</option>
-                <option value="Khac">Khác</option>
-              </select>
-            </div>
+          >
+            <option value="Nam">Nam</option>
+            <option value="Nu">Nữ</option>
+            <option value="Khac">Khác</option>
+          </select>
+        </div>
 
             <div className="form-group">
               <label htmlFor="ngay_sinh" className="form-label">Ngày sinh *</label>
-              <input
-                type="date"
-                id="ngay_sinh"
-                name="ngay_sinh"
-                value={formData.ngay_sinh}
-                onChange={handleChange}
-                required
+          <input
+            type="date"
+            id="ngay_sinh"
+            name="ngay_sinh"
+            value={formData.ngay_sinh}
+            onChange={handleChange}
+            required
                 className="form-input"
-              />
-            </div>
+          />
+        </div>
 
             <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
-              <button
-                type="submit"
+          <button
+            type="submit"
                 disabled={saving}
                 className="btn btn-primary"
               >
@@ -166,17 +166,17 @@ const Profile = () => {
                 ) : (
                   'Cập nhật'
                 )}
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/donor/dashboard')}
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/donor/dashboard')}
                 className="btn btn-outline"
-              >
-                Hủy
-              </button>
-            </div>
-          </form>
+          >
+            Hủy
+          </button>
         </div>
+      </form>
+    </div>
       </div>
     </Layout>
   );

@@ -117,7 +117,7 @@ const Approvals = () => {
               ))}
             </tbody>
           </table>
-        </div>
+    </div>
       )}
     </Layout>
   );

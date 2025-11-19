@@ -151,8 +151,8 @@ const History = () => {
                           Kết quả
                         </p>
                         <span className={`badge ${item.ket_qua === 'Dat' ? 'badge-success' : 'badge-gray'}`}>
-                          {item.ket_qua}
-                        </span>
+                  {item.ket_qua}
+                </span>
                       </div>
                     </div>
                   </div>

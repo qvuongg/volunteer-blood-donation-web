@@ -82,10 +82,10 @@ const BloodInfo = () => {
           {message === 'error' && (
             <div className="alert alert-danger">
               Có lỗi xảy ra. Vui lòng thử lại.
-            </div>
-          )}
+        </div>
+      )}
 
-          <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label className="form-label">Chọn nhóm máu của bạn *</label>
               <div style={{ 
@@ -111,7 +111,7 @@ const BloodInfo = () => {
                       alignItems: 'center',
                       gap: 'var(--spacing-sm)'
                     }}
-                  >
+          >
                     <svg width="32" height="32" viewBox="0 0 32 32" fill={nhom_mau === type.value ? type.color : 'var(--gray-400)'}>
                       <path d="M16 4s-10 11.667-10 16.667A10 10 0 0026 20.667C26 15.667 16 4 16 4z"/>
                     </svg>
@@ -123,7 +123,7 @@ const BloodInfo = () => {
                       {type.label}
                     </span>
                   </button>
-                ))}
+            ))}
               </div>
             </div>
 
@@ -138,11 +138,11 @@ const BloodInfo = () => {
                 Việc biết chính xác nhóm máu của bạn rất quan trọng trong quá trình hiến máu. 
                 Nếu chưa biết nhóm máu, bạn có thể xét nghiệm tại các cơ sở y tế hoặc trong lần hiến máu đầu tiên.
               </p>
-            </div>
+        </div>
 
             <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
-              <button
-                type="submit"
+          <button
+            type="submit"
                 disabled={saving || !nhom_mau}
                 className="btn btn-primary"
               >
@@ -154,17 +154,17 @@ const BloodInfo = () => {
                 ) : (
                   'Cập nhật'
                 )}
-              </button>
-              <button
-                type="button"
+          </button>
+          <button
+            type="button"
                 onClick={() => navigate('/donor/dashboard')}
                 className="btn btn-outline"
-              >
-                Hủy
-              </button>
-            </div>
-          </form>
+          >
+            Hủy
+          </button>
         </div>
+      </form>
+    </div>
       </div>
     </Layout>
   );

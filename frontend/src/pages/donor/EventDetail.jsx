@@ -83,7 +83,7 @@ const EventDetail = () => {
               Quay lại danh sách
             </button>
           </div>
-        </div>
+      </div>
       </Layout>
     );
   }
@@ -96,7 +96,7 @@ const EventDetail = () => {
             <path d="M12 5l-7 7 7 7" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
           Quay lại
-        </button>
+      </button>
       </div>
 
       {message === 'success' && (
@@ -204,12 +204,12 @@ const EventDetail = () => {
                 )}
               </div>
             </div>
-          </div>
+      </div>
 
           <div style={{ display: 'flex', gap: 'var(--spacing-md)', paddingTop: 'var(--spacing-xl)', borderTop: '1px solid var(--gray-200)' }}>
-            <button
+          <button
               className="btn btn-primary"
-              onClick={handleRegister}
+            onClick={handleRegister}
               disabled={registering || event.trang_thai !== 'da_duyet'}
             >
               {registering ? (
@@ -225,7 +225,7 @@ const EventDetail = () => {
                   Đăng ký hiến máu
                 </>
               )}
-            </button>
+          </button>
             {event.trang_thai !== 'da_duyet' && (
               <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-size-sm)', margin: 0, display: 'flex', alignItems: 'center' }}>
                 Sự kiện này chưa được duyệt
@@ -233,7 +233,7 @@ const EventDetail = () => {
             )}
           </div>
         </div>
-      </div>
+    </div>
     </Layout>
   );
 };

@@ -76,47 +76,47 @@ const Login = () => {
           <p className="auth-subtitle">Chào mừng bạn trở lại</p>
         </div>
 
-        {error && (
+      {error && (
           <div className="alert alert-danger">
-            {error}
-          </div>
-        )}
+          {error}
+        </div>
+      )}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email" className="form-label">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
               className="form-input"
               placeholder="email@example.com"
-            />
-          </div>
+          />
+        </div>
 
           <div className="form-group">
             <label htmlFor="mat_khau" className="form-label">Mật khẩu</label>
-            <input
-              type="password"
-              id="mat_khau"
-              name="mat_khau"
-              value={formData.mat_khau}
-              onChange={handleChange}
-              required
+          <input
+            type="password"
+            id="mat_khau"
+            name="mat_khau"
+            value={formData.mat_khau}
+            onChange={handleChange}
+            required
               className="form-input"
               placeholder="••••••••"
-            />
-          </div>
+          />
+        </div>
 
-          <button
-            type="submit"
-            disabled={loading}
+        <button
+          type="submit"
+          disabled={loading}
             className="btn btn-primary"
             style={{ width: '100%' }}
-          >
+        >
             {loading ? (
               <>
                 <LoadingSpinner size="small" />
@@ -125,11 +125,11 @@ const Login = () => {
             ) : (
               'Đăng nhập'
             )}
-          </button>
-        </form>
+        </button>
+      </form>
 
         <div className="auth-footer">
-          Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
+        Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
         </div>
       </div>
     </div>

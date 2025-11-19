@@ -72,7 +72,7 @@ const Dashboard = () => {
                 <path d="M8 16h8M8 20h6M8 12h10M6 28h20a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v20a2 2 0 002 2z"/>
               </svg>
               <span>Cập nhật kết quả</span>
-            </button>
+      </button>
             <button
               className="btn btn-outline"
               style={{ flexDirection: 'column', height: '120px', gap: 'var(--spacing-md)' }}
@@ -82,10 +82,10 @@ const Dashboard = () => {
                 <path d="M24 10a8 8 0 00-16 0c0 5.333-2.667 8-2.667 8h21.334S24 15.333 24 10zM18.73 26a3 3 0 01-5.46 0"/>
               </svg>
               <span>Gửi thông báo</span>
-            </button>
+      </button>
           </div>
         </div>
-      </div>
+    </div>
     </Layout>
   );
 };

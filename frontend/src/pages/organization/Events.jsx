@@ -55,8 +55,8 @@ const Events = () => {
           <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
             <path d="M10 5v10m5-5H5"/>
           </svg>
-          Tạo sự kiện mới
-        </button>
+        Tạo sự kiện mới
+      </button>
       </div>
 
       {events.length === 0 ? (
@@ -89,8 +89,8 @@ const Events = () => {
                   style={{ width: '100%', marginTop: 'var(--spacing-md)' }}
                   onClick={() => navigate(`/organization/events/${event.id_su_kien}/registrations`)}
                 >
-                  Xem đăng ký
-                </button>
+                Xem đăng ký
+              </button>
               </div>
             </div>
           ))}

@@ -73,10 +73,10 @@ const Dashboard = () => {
                 <path d="M10 16l4 4 8-8M28 16a12 12 0 11-24 0 12 12 0 0124 0z"/>
               </svg>
               <span>Duyệt đăng ký</span>
-            </button>
+      </button>
           </div>
         </div>
-      </div>
+    </div>
     </Layout>
   );
 };

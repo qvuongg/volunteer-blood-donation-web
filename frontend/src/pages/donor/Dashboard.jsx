@@ -97,7 +97,7 @@ const Dashboard = () => {
                 <h3 className="card-title">Thông tin cá nhân</h3>
                 <button className="btn btn-sm btn-outline" onClick={() => navigate('/donor/profile')}>
                   Chỉnh sửa
-                </button>
+              </button>
               </div>
               <div className="card-body">
                 {profile.user && (
@@ -149,9 +149,9 @@ const Dashboard = () => {
                         </p>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
+            </div>
+          )}
+        </div>
             </div>
 
             <div className="card">
@@ -190,8 +190,8 @@ const Dashboard = () => {
                         </span>
                       </div>
                     </div>
-                  </div>
-                ) : (
+            </div>
+          ) : (
                   <div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)' }}>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
                       Chưa có thông tin hiến máu
@@ -200,10 +200,10 @@ const Dashboard = () => {
                       Cập nhật ngay
                     </button>
                   </div>
-                )}
+          )}
               </div>
-            </div>
-          </div>
+        </div>
+      </div>
 
           <div className="card" style={{ marginTop: 'var(--spacing-xl)' }}>
             <div className="card-header">
@@ -221,7 +221,7 @@ const Dashboard = () => {
                     <path d="M4 12h24M10 4v6M22 4v6"/>
                   </svg>
                   <span>Sự kiện hiến máu</span>
-                </button>
+        </button>
                 <button
                   className="btn btn-outline"
                   style={{ flexDirection: 'column', height: '120px', gap: 'var(--spacing-md)' }}
@@ -231,7 +231,7 @@ const Dashboard = () => {
                     <path d="M8 16h8M8 20h6M8 12h10M6 28h20a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v20a2 2 0 002 2z"/>
                   </svg>
                   <span>Lịch đăng ký</span>
-                </button>
+        </button>
                 <button
                   className="btn btn-outline"
                   style={{ flexDirection: 'column', height: '120px', gap: 'var(--spacing-md)' }}
@@ -242,7 +242,7 @@ const Dashboard = () => {
                     <path d="M16 8v8l4 4"/>
                   </svg>
                   <span>Lịch sử hiến máu</span>
-                </button>
+        </button>
                 <button
                   className="btn btn-outline"
                   style={{ flexDirection: 'column', height: '120px', gap: 'var(--spacing-md)' }}
@@ -253,9 +253,9 @@ const Dashboard = () => {
                     <circle cx="16" cy="12" r="3"/>
                   </svg>
                   <span>Địa điểm</span>
-                </button>
-              </div>
-            </div>
+        </button>
+      </div>
+    </div>
           </div>
         </>
       )}
