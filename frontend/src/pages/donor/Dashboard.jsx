@@ -152,14 +152,14 @@ const Dashboard = () => {
             </div>
           )}
         </div>
-            </div>
+        </div>
 
             <div className="card">
               <div className="card-header">
                 <h3 className="card-title">Thông tin hiến máu</h3>
                 <button className="btn btn-sm btn-outline" onClick={() => navigate('/donor/blood-info')}>
                   Cập nhật
-                </button>
+              </button>
               </div>
               <div className="card-body">
                 {profile.donor ? (

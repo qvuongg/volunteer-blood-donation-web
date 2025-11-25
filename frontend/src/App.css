@@ -31,6 +31,10 @@
   .main-content.with-sidebar {
     margin-left: var(--sidebar-width);
   }
+
+  .main-content.with-sidebar.collapsed {
+    margin-left: 80px;
+  }
 }
 
 .content-wrapper {
@@ -263,6 +267,7 @@
   overflow-y: auto;
   transform: translateX(-100%);
   transition: transform var(--transition-base);
+  background: var(--bg-primary);
   z-index: 999;
 }
 
@@ -274,6 +279,10 @@
   .sidebar {
     transform: translateX(0);
   }
+}
+
+.sidebar.collapsed {
+  width: 80px;
 }
 
 .sidebar-overlay {
@@ -304,6 +313,10 @@
   margin: 0;
 }
 
+.sidebar.collapsed .sidebar-header h3 {
+  display: none;
+}
+
 .close-btn {
   display: flex;
   align-items: center;
@@ -329,11 +342,60 @@
   }
 }
 
+.collapse-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.collapse-btn:hover {
+  background: var(--gray-100);
+  color: var(--text-primary);
+}
+
+@media (min-width: 1024px) {
+  .collapse-btn {
+    display: flex;
+  }
+
+  .sidebar.collapsed .collapse-btn svg {
+    transform: rotate(180deg);
+  }
+}
+
 .sidebar-nav {
   padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.sidebar-section {
+  display: flex;
+  flex-direction: column;
   gap: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+}
+
+.sidebar-section:last-child {
+  margin-bottom: 0;
+}
+
+.sidebar-section-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  margin: 0 0 var(--spacing-xs) var(--spacing-sm);
 }
 
 .sidebar-item {
@@ -373,6 +435,24 @@
 
 .sidebar-label {
   flex: 1;
+}
+
+.sidebar.collapsed .sidebar-nav {
+  padding: var(--spacing-md);
+}
+
+.sidebar.collapsed .sidebar-section-title,
+.sidebar.collapsed .sidebar-label {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-item {
+  justify-content: center;
+  padding: var(--spacing-md);
+}
+
+.sidebar.collapsed .sidebar-section {
+  margin-bottom: var(--spacing-sm);
 }
 
 /* ============================================

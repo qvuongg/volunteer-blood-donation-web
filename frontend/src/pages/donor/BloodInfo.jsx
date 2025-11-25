@@ -172,8 +172,8 @@ const BloodInfo = () => {
 
             <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
           {!bloodInfo?.nhom_mau_xac_nhan && (
-            <button
-              type="submit"
+          <button
+            type="submit"
                   disabled={saving || !nhom_mau}
                   className="btn btn-primary"
                 >
@@ -185,7 +185,7 @@ const BloodInfo = () => {
                   ) : (
                     'Cập nhật'
                   )}
-            </button>
+          </button>
           )}
           <button
             type="button"

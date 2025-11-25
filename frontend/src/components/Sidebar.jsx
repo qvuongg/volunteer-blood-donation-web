@@ -1,7 +1,78 @@
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-const Sidebar = ({ isOpen, onClose }) => {
+const menuConfig = {
+  nguoi_hien: [
+    {
+      title: 'Tổng quan',
+      items: [{ path: '/donor/dashboard', label: 'Bảng điều khiển', icon: 'dashboard' }]
+    },
+    {
+      title: 'Thông tin cá nhân',
+      items: [
+        { path: '/donor/profile', label: 'Hồ sơ', icon: 'user' },
+        { path: '/donor/blood-info', label: 'Thông tin máu', icon: 'droplet' }
+      ]
+    },
+    {
+      title: 'Hoạt động',
+      items: [
+        { path: '/donor/events', label: 'Sự kiện', icon: 'calendar' },
+        { path: '/donor/registrations', label: 'Đăng ký của tôi', icon: 'list' },
+        { path: '/donor/history', label: 'Lịch sử hiến máu', icon: 'history' },
+        { path: '/donor/locations', label: 'Địa điểm', icon: 'location' }
+      ]
+    }
+  ],
+  to_chuc: [
+    {
+      title: 'Quản lý tổ chức',
+      items: [
+        { path: '/organization/dashboard', label: 'Dashboard', icon: 'dashboard' },
+        { path: '/organization/events', label: 'Quản lý sự kiện', icon: 'calendar' },
+        { path: '/organization/approvals', label: 'Duyệt đăng ký', icon: 'check' }
+      ]
+    }
+  ],
+  benh_vien: [
+    {
+      title: 'Tổng quan',
+      items: [
+        { path: '/hospital/dashboard', label: 'Dashboard', icon: 'dashboard' },
+        { path: '/hospital/profile', label: 'Hồ sơ', icon: 'user' }
+      ]
+    },
+    {
+      title: 'Phê duyệt',
+      items: [
+        { path: '/hospital/event-approval', label: 'Duyệt sự kiện', icon: 'check' },
+        { path: '/hospital/registrations', label: 'Danh sách đăng ký', icon: 'list' },
+        { path: '/hospital/blood-type-confirmation', label: 'Xác thực nhóm máu', icon: 'droplet' }
+      ]
+    },
+    {
+      title: 'Vận hành',
+      items: [
+        { path: '/hospital/results', label: 'Cập nhật kết quả', icon: 'edit' },
+        { path: '/hospital/notifications', label: 'Tạo thông báo', icon: 'bell' }
+      ]
+    }
+  ],
+  nhom_tinh_nguyen: [
+    {
+      title: 'Tổng quan',
+      items: [{ path: '/volunteer/dashboard', label: 'Dashboard', icon: 'dashboard' }]
+    }
+  ],
+  admin: [
+    {
+      title: 'Quản trị',
+      items: [{ path: '/admin/dashboard', label: 'Dashboard', icon: 'dashboard' }]
+    }
+  ]
+};
+
+const Sidebar = ({ isOpen, isDesktop, collapsed, onClose, onToggleCollapse }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -10,40 +81,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     if (!user) return [];
 
     const role = user.ten_vai_tro;
-
-    const menus = {
-      'nguoi_hien': [
-        { path: '/donor/dashboard', label: 'Dashboard', icon: 'dashboard' },
-        { path: '/donor/profile', label: 'Hồ sơ', icon: 'user' },
-        { path: '/donor/blood-info', label: 'Thông tin máu', icon: 'droplet' },
-        { path: '/donor/events', label: 'Sự kiện', icon: 'calendar' },
-        { path: '/donor/registrations', label: 'Đăng ký của tôi', icon: 'list' },
-        { path: '/donor/history', label: 'Lịch sử hiến máu', icon: 'history' },
-        { path: '/donor/locations', label: 'Địa điểm', icon: 'location' },
-      ],
-      'to_chuc': [
-        { path: '/organization/dashboard', label: 'Dashboard', icon: 'dashboard' },
-        { path: '/organization/events', label: 'Quản lý sự kiện', icon: 'calendar' },
-        { path: '/organization/approvals', label: 'Duyệt đăng ký', icon: 'check' },
-      ],
-      'benh_vien': [
-        { path: '/hospital/dashboard', label: 'Dashboard', icon: 'dashboard' },
-        { path: '/hospital/profile', label: 'Hồ sơ', icon: 'user' },
-        { path: '/hospital/event-approval', label: 'Duyệt sự kiện', icon: 'check' },
-        { path: '/hospital/registrations', label: 'Danh sách đăng ký', icon: 'list' },
-        { path: '/hospital/blood-type-confirmation', label: 'Xác thực nhóm máu', icon: 'droplet' },
-        { path: '/hospital/results', label: 'Cập nhật kết quả', icon: 'edit' },
-        { path: '/hospital/notifications', label: 'Tạo thông báo', icon: 'bell' },
-      ],
-      'nhom_tinh_nguyen': [
-        { path: '/volunteer/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      ],
-      'admin': [
-        { path: '/admin/dashboard', label: 'Dashboard', icon: 'dashboard' },
-      ],
-    };
-
-    return menus[role] || [];
+    return menuConfig[role] || [];
   };
 
   const getIcon = (iconName) => {
@@ -95,42 +133,80 @@ const Sidebar = ({ isOpen, onClose }) => {
           <path d="M4 10l4 4 8-8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       ),
+      edit: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+          <path d="M12 5l3 3-8 8H4v-3l8-8z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M11 6l3 3" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
+      bell: (
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+          <path d="M10 18a2 2 0 002-2H8a2 2 0 002 2zm6-6V9a6 6 0 10-12 0v3l-2 2v1h16v-1l-2-2z" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      ),
     };
     return icons[iconName] || icons.dashboard;
   };
 
   const handleNavigate = (path) => {
     navigate(path);
-    if (window.innerWidth < 1024) {
+    if (!isDesktop) {
       onClose();
     }
   };
 
-  const menuItems = getMenuItems();
+  const menuSections = getMenuItems();
+  const sidebarClasses = ['sidebar'];
+  if (isDesktop) sidebarClasses.push('desktop');
+  if (isOpen) sidebarClasses.push('open');
+  if (isDesktop && collapsed) sidebarClasses.push('collapsed');
 
   return (
     <>
-      {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
-      <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
+      {!isDesktop && isOpen && <div className="sidebar-overlay" onClick={onClose} />}
+      <aside className={sidebarClasses.join(' ')}>
         <div className="sidebar-header">
-          <h3>Menu</h3>
-          <button className="close-btn" onClick={onClose} aria-label="Close sidebar">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+          {!collapsed && <h3>Menu</h3>}
+          {isDesktop ? (
+            <button
+              className="collapse-btn"
+              onClick={onToggleCollapse}
+              aria-label={collapsed ? 'Mở rộng menu' : 'Thu gọn menu'}
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor">
+                <path
+                  d="M12 5l5 5-5 5M8 5L3 10l5 5"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+          ) : (
+            <button className="close-btn" onClick={onClose} aria-label="Close sidebar">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          )}
         </div>
         
         <nav className="sidebar-nav">
-          {menuItems.map((item) => (
-            <button
-              key={item.path}
-              className={`sidebar-item ${location.pathname === item.path ? 'active' : ''}`}
-              onClick={() => handleNavigate(item.path)}
-            >
-              <span className="sidebar-icon">{getIcon(item.icon)}</span>
-              <span className="sidebar-label">{item.label}</span>
-            </button>
+          {menuSections.map((section) => (
+            <div className="sidebar-section" key={section.title}>
+              {!collapsed && <p className="sidebar-section-title">{section.title}</p>}
+              {section.items.map((item) => (
+                <button
+                  key={item.path}
+                  className={`sidebar-item ${location.pathname === item.path ? 'active' : ''}`}
+                  onClick={() => handleNavigate(item.path)}
+                  title={collapsed ? item.label : undefined}
+                >
+                  <span className="sidebar-icon">{getIcon(item.icon)}</span>
+                  {!collapsed && <span className="sidebar-label">{item.label}</span>}
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
       </aside>

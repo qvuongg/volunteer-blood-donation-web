@@ -306,7 +306,7 @@ export const createResult = async (req, res, next) => {
 
     // Insert result
     await pool.execute(
-      `INSERT INTO ket_qua_hien_mau (id_nguoi_hien, id_su_kien, id_benh_vien, ngay_hien, luong_ml, ket_qua) 
+      `INSERT INTO ket_qua_hien_mau (id_nguoi_hien, id_su_kien, id_benh_vien, ngay_hien, luong_ml, ket_qua)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [id_nguoi_hien, id_su_kien, hospitalId, ngay_hien, luong_ml, ket_qua]
     );

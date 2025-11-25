@@ -1,0 +1,5 @@
+# Bỏ qua tất cả các file Markdown (.md)
+*.md
+
+# Bỏ qua tất cả các file SQL (.sql)
+*.sql
