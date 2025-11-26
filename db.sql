@@ -109,17 +109,6 @@ CREATE TABLE nhom_tinh_nguyen (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
--- 9. BẢNG ĐỊA ĐIỂM
--- ============================================
-CREATE TABLE dia_diem (
-    id_dia_diem INT PRIMARY KEY AUTO_INCREMENT,
-    ten_dia_diem VARCHAR(200) NOT NULL,
-    dia_chi TEXT NOT NULL,
-    vi_do DECIMAL(10,6),
-    kinh_do DECIMAL(10,6)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
 -- 10. BẢNG SỰ KIỆN HIẾN MÁU
 -- ============================================
 CREATE TABLE sukien_hien_mau (
@@ -129,13 +118,13 @@ CREATE TABLE sukien_hien_mau (
     ten_su_kien VARCHAR(200) NOT NULL,
     ngay_bat_dau DATE,
     ngay_ket_thuc DATE,
-    id_dia_diem INT,
+    ten_dia_diem VARCHAR(200),
+    dia_chi_dia_diem TEXT,
     so_luong_du_kien INT,
     trang_thai VARCHAR(50) DEFAULT 'cho_duyet',
     id_phe_duyet_boi INT,
     FOREIGN KEY (id_to_chuc) REFERENCES to_chuc(id_to_chuc),
     FOREIGN KEY (id_benh_vien) REFERENCES benh_vien(id_benh_vien),
-    FOREIGN KEY (id_dia_diem) REFERENCES dia_diem(id_dia_diem),
     FOREIGN KEY (id_phe_duyet_boi) REFERENCES nguoi_phu_trach_benh_vien(id_nguoi_phu_trach)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -254,18 +243,11 @@ INSERT INTO nhom_tinh_nguyen (id_nguoi_dung, ten_nhom, dia_chi, nguoi_lien_he) V
 (9, 'Nhom Tinh Nguyen Hien Mau Xanh', '123 Bach Dang, Hai Chau, Da Nang', 'Le Thi H'),
 (10, 'Nhom Tinh Nguyen Tre Da Nang', '456 Tran Phu, Hai Chau, Da Nang', 'Pham Van I');
 
--- Insert địa điểm
-INSERT INTO dia_diem (ten_dia_diem, dia_chi, vi_do, kinh_do) VALUES
-('Benh Vien Da Khoa Da Nang', '124 Hai Phong, Thanh Khe, Da Nang', 16.0544, 108.2022),
-('Truong Dai Hoc Bach Khoa', '54 Nguyen Luong Bang, Lien Chieu, Da Nang', 16.0736, 108.1467),
-('Trung Tam Hoi Nghi Tien Sa', '1 Le Van Duyet, Ngu Hanh Son, Da Nang', 16.0000, 108.2333),
-('Nha Van Hoa Thanh Nien', '123 Bach Dang, Hai Chau, Da Nang', 16.0611, 108.2244);
-
 -- Insert sự kiện hiến máu
-INSERT INTO sukien_hien_mau (id_to_chuc, id_benh_vien, ten_su_kien, ngay_bat_dau, ngay_ket_thuc, id_dia_diem, so_luong_du_kien, trang_thai, id_phe_duyet_boi) VALUES
-(1, 1, 'Hien Mau Tinh Nguyen Mua Xuan 2024', '2024-03-15', '2024-03-15', 1, 100, 'da_duyet', 1),
-(2, 2, 'Chuong Trinh Hien Mau Nhan Dao', '2024-04-20', '2024-04-20', 2, 150, 'cho_duyet', NULL),
-(3, 1, 'Ngay Hoi Hien Mau Tinh Nguyen', '2024-05-01', '2024-05-01', 3, 200, 'cho_duyet', NULL);
+INSERT INTO sukien_hien_mau (id_to_chuc, id_benh_vien, ten_su_kien, ngay_bat_dau, ngay_ket_thuc, ten_dia_diem, dia_chi_dia_diem, so_luong_du_kien, trang_thai, id_phe_duyet_boi) VALUES
+(1, 1, 'Hien Mau Tinh Nguyen Mua Xuan 2024', '2024-03-15', '2024-03-15', 'Benh Vien Da Khoa Da Nang', '124 Hai Phong, Thanh Khe, Da Nang', 100, 'da_duyet', 1),
+(2, 2, 'Chuong Trinh Hien Mau Nhan Dao', '2024-04-20', '2024-04-20', 'Truong Dai Hoc Bach Khoa', '54 Nguyen Luong Bang, Lien Chieu, Da Nang', 150, 'cho_duyet', NULL),
+(3, 1, 'Ngay Hoi Hien Mau Tinh Nguyen', '2024-05-01', '2024-05-01', 'Trung Tam Hoi Nghi Tien Sa', '1 Le Van Duyet, Ngu Hanh Son, Da Nang', 200, 'cho_duyet', NULL);
 
 -- Insert đăng ký hiến máu
 INSERT INTO dang_ky_hien_mau (id_su_kien, id_nguoi_hien, id_nguoi_duyet, trang_thai, ghi_chu_duyet) VALUES

@@ -15,14 +15,11 @@ export const getEvents = async (req, res, next) => {
         sk.trang_thai,
         tc.ten_don_vi,
         bv.ten_benh_vien,
-        dd.ten_dia_diem,
-        dd.dia_chi,
-        dd.vi_do,
-        dd.kinh_do
+        sk.ten_dia_diem,
+        sk.dia_chi_dia_diem AS dia_chi
       FROM sukien_hien_mau sk
       JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
       JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
-      LEFT JOIN dia_diem dd ON sk.id_dia_diem = dd.id_dia_diem
     `;
 
     const params = [];
@@ -67,15 +64,11 @@ export const getEventById = async (req, res, next) => {
         bv.id_benh_vien,
         bv.ten_benh_vien,
         bv.dia_chi as benh_vien_dia_chi,
-        dd.id_dia_diem,
-        dd.ten_dia_diem,
-        dd.dia_chi,
-        dd.vi_do,
-        dd.kinh_do
+        sk.ten_dia_diem,
+        sk.dia_chi_dia_diem AS dia_chi
       FROM sukien_hien_mau sk
       JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
       JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
-      LEFT JOIN dia_diem dd ON sk.id_dia_diem = dd.id_dia_diem
       WHERE sk.id_su_kien = ?`,
       [id]
     );

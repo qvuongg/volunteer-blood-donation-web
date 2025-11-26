@@ -129,13 +129,12 @@ export const getMyRegistrations = async (req, res, next) => {
         sk.ngay_ket_thuc,
         tc.ten_don_vi,
         bv.ten_benh_vien,
-        dd.ten_dia_diem,
-        dd.dia_chi
+        sk.ten_dia_diem,
+        sk.dia_chi_dia_diem AS dia_chi
       FROM dang_ky_hien_mau dk
       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
       JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
       JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
-      LEFT JOIN dia_diem dd ON sk.id_dia_diem = dd.id_dia_diem
       WHERE dk.id_nguoi_hien = ?
       ORDER BY dk.ngay_dang_ky DESC`,
       [donorId]
