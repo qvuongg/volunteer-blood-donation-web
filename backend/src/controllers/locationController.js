@@ -13,19 +13,18 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c; // Distance in km
 };
 
-// Get all locations (from approved events)
+// Get all locations
 export const getLocations = async (req, res, next) => {
   try {
     const [locations] = await pool.execute(
       `SELECT 
-        DISTINCT
-        sk.id_su_kien AS id_dia_diem,
-        sk.ten_dia_diem,
-        sk.dia_chi_dia_diem AS dia_chi
-      FROM sukien_hien_mau sk
-      WHERE sk.trang_thai = 'da_duyet'
-        AND sk.ten_dia_diem IS NOT NULL
-      ORDER BY sk.ten_dia_diem`
+        id_dia_diem,
+        ten_dia_diem,
+        dia_chi,
+        vi_do,
+        kinh_do
+      FROM dia_diem
+      ORDER BY ten_dia_diem`
     );
 
     res.json({
@@ -39,26 +38,57 @@ export const getLocations = async (req, res, next) => {
   }
 };
 
-// Get nearby locations (approximate, based on text search - coordinates removed)
+// Get nearby locations
 export const getNearbyLocations = async (req, res, next) => {
   try {
+    const { lat, lng, radius = 10 } = req.query; // radius in km, default 10km
+
+    if (!lat || !lng) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng cung cấp tọa độ (lat, lng).'
+      });
+    }
+
+    const userLat = parseFloat(lat);
+    const userLng = parseFloat(lng);
+    const radiusKm = parseFloat(radius);
+
+    // Get all locations
     const [locations] = await pool.execute(
       `SELECT 
-        DISTINCT
-        sk.id_su_kien AS id_dia_diem,
-        sk.ten_dia_diem,
-        sk.dia_chi_dia_diem AS dia_chi
-      FROM sukien_hien_mau sk
-      WHERE sk.trang_thai = 'da_duyet'
-        AND sk.ten_dia_diem IS NOT NULL`
+        id_dia_diem,
+        ten_dia_diem,
+        dia_chi,
+        vi_do,
+        kinh_do
+      FROM dia_diem
+      WHERE vi_do IS NOT NULL AND kinh_do IS NOT NULL`
     );
+
+    // Calculate distances and filter
+    const nearbyLocations = locations
+      .map(location => {
+        const distance = calculateDistance(
+          userLat,
+          userLng,
+          parseFloat(location.vi_do),
+          parseFloat(location.kinh_do)
+        );
+        return {
+          ...location,
+          distance: Math.round(distance * 10) / 10 // Round to 1 decimal
+        };
+      })
+      .filter(location => location.distance <= radiusKm)
+      .sort((a, b) => a.distance - b.distance);
 
     res.json({
       success: true,
       data: {
-        locations,
-        userLocation: null,
-        radius: null
+        locations: nearbyLocations,
+        userLocation: { lat: userLat, lng: userLng },
+        radius: radiusKm
       }
     });
   } catch (error) {

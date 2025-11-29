@@ -22,18 +22,7 @@ export const getPendingEvents = async (req, res, next) => {
 
     // Get pending events
     const [events] = await pool.execute(
-      `SELECT 
-        sk.id_su_kien,
-        sk.id_to_chuc,
-        sk.id_benh_vien,
-        sk.ten_su_kien,
-        sk.ngay_bat_dau,
-        sk.ngay_ket_thuc,
-        sk.ten_dia_diem,
-        sk.dia_chi_dia_diem AS dia_chi,
-        sk.so_luong_du_kien,
-        sk.trang_thai,
-        tc.ten_don_vi
+      `SELECT sk.*, tc.ten_don_vi
       FROM sukien_hien_mau sk
       JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
       WHERE sk.id_benh_vien = ? AND sk.trang_thai = 'cho_duyet'

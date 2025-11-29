@@ -25,9 +25,9 @@ const Locations = () => {
     }
   };
 
-  const filteredLocations = locations.filter((loc) =>
-    (loc.ten_dia_diem || '').toLowerCase().includes(search.toLowerCase()) ||
-    (loc.dia_chi || '').toLowerCase().includes(search.toLowerCase())
+  const filteredLocations = locations.filter(loc =>
+    loc.ten_dia_diem.toLowerCase().includes(search.toLowerCase()) ||
+    (loc.dia_chi && loc.dia_chi.toLowerCase().includes(search.toLowerCase()))
   );
 
   if (loading) {
@@ -105,29 +105,27 @@ const Locations = () => {
                   </div>
                 </div>
                 
-                <div
-                  style={{
-                    marginTop: 'var(--spacing-md)',
-                    paddingTop: 'var(--spacing-md)',
-                    borderTop: '1px solid var(--gray-200)'
-                  }}
+                {(location.vi_do && location.kinh_do) && (
+                  <div style={{ 
+                    marginTop: 'var(--spacing-md)', 
+                    paddingTop: 'var(--spacing-md)', 
+                    borderTop: '1px solid var(--gray-200)' 
+                  }}>
+                <a
+                  href={`https://www.google.com/maps?q=${location.vi_do},${location.kinh_do}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                      className="btn btn-sm btn-outline"
+                      style={{ width: '100%' }}
                 >
-                  <a
-                    href={`https://www.google.com/maps?q=${encodeURIComponent(
-                      `${location.ten_dia_diem} ${location.dia_chi}`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-sm btn-outline"
-                    style={{ width: '100%' }}
-                  >
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M8 2a5 5 0 00-5 5c0 3.75 5 8.33 5 8.33s5-4.58 5-8.33a5 5 0 00-5-5z" />
-                      <circle cx="8" cy="7" r="1.5" />
-                    </svg>
-                    Xem trên bản đồ
-                  </a>
-                </div>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M8 2a5 5 0 00-5 5c0 3.75 5 8.33 5 8.33s5-4.58 5-8.33a5 5 0 00-5-5z"/>
+                        <circle cx="8" cy="7" r="1.5"/>
+                      </svg>
+                      Xem trên bản đồ
+                </a>
+                  </div>
+              )}
               </div>
             </div>
           ))}

@@ -33,23 +33,7 @@ CREATE TABLE nguoidung (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
--- 3. BẢNG NGƯỜI HIẾN MÁU (without FK to benh_vien for now)
--- ============================================
-CREATE TABLE nguoi_hien_mau (
-    id_nguoi_hien INT PRIMARY KEY AUTO_INCREMENT,
-    id_nguoi_dung INT NOT NULL,
-    nhom_mau VARCHAR(5) COMMENT 'Nhóm máu tự khai báo hoặc đã xác thực',
-    lan_hien_gan_nhat DATE,
-    tong_so_lan_hien INT DEFAULT 0,
-    nhom_mau_xac_nhan BOOLEAN DEFAULT FALSE COMMENT 'Nhóm máu đã được bệnh viện xác thực',
-    ngay_xac_nhan DATE COMMENT 'Ngày xác thực nhóm máu',
-    id_benh_vien_xac_nhan INT COMMENT 'Bệnh viện xác thực nhóm máu',
-    ghi_chu_xac_nhan TEXT COMMENT 'Ghi chú từ bệnh viện khi xác thực',
-    FOREIGN KEY (id_nguoi_dung) REFERENCES nguoidung(id_nguoi_dung)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
--- 4. BẢNG TỔ CHỨC
+-- 3. BẢNG TỔ CHỨC
 -- ============================================
 CREATE TABLE to_chuc (
     id_to_chuc INT PRIMARY KEY AUTO_INCREMENT,
@@ -58,19 +42,7 @@ CREATE TABLE to_chuc (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
--- 5. BẢNG NGƯỜI PHỤ TRÁCH TỔ CHỨC
--- ============================================
-CREATE TABLE nguoi_phu_trach_to_chuc (
-    id_nguoi_phu_trach INT PRIMARY KEY AUTO_INCREMENT,
-    id_nguoi_dung INT NOT NULL,
-    id_to_chuc INT NOT NULL,
-    nguoi_lien_he VARCHAR(100),
-    FOREIGN KEY (id_nguoi_dung) REFERENCES nguoidung(id_nguoi_dung),
-    FOREIGN KEY (id_to_chuc) REFERENCES to_chuc(id_to_chuc)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- ============================================
--- 6. BẢNG BỆNH VIỆN
+-- 4. BẢNG BỆNH VIỆN
 -- ============================================
 CREATE TABLE benh_vien (
     id_benh_vien INT PRIMARY KEY AUTO_INCREMENT,
@@ -78,22 +50,43 @@ CREATE TABLE benh_vien (
     dia_chi TEXT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Add foreign key to nguoi_hien_mau after benh_vien table is created
-ALTER TABLE nguoi_hien_mau
-ADD CONSTRAINT fk_benh_vien_xac_nhan 
-FOREIGN KEY (id_benh_vien_xac_nhan) REFERENCES benh_vien(id_benh_vien);
+-- ============================================
+-- 5. BẢNG NGƯỜI PHỤ TRÁCH TỔ CHỨC
+-- ============================================
+CREATE TABLE nguoi_phu_trach_to_chuc (
+    id_nguoi_phu_trach INT PRIMARY KEY,
+    id_to_chuc INT NOT NULL,
+    nguoi_lien_he VARCHAR(100),
+    FOREIGN KEY (id_nguoi_phu_trach) REFERENCES nguoidung(id_nguoi_dung),
+    FOREIGN KEY (id_to_chuc) REFERENCES to_chuc(id_to_chuc)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
--- 7. BẢNG NGƯỜI PHỤ TRÁCH BỆNH VIỆN
+-- 6. BẢNG NGƯỜI PHỤ TRÁCH BỆNH VIỆN
 -- ============================================
 CREATE TABLE nguoi_phu_trach_benh_vien (
-    id_nguoi_phu_trach INT PRIMARY KEY AUTO_INCREMENT,
-    id_nguoi_dung INT NOT NULL,
+    id_nguoi_phu_trach INT PRIMARY KEY,
     id_benh_vien INT NOT NULL,
     chuc_vu VARCHAR(50),
     nguoi_lien_he VARCHAR(100),
-    FOREIGN KEY (id_nguoi_dung) REFERENCES nguoidung(id_nguoi_dung),
+    FOREIGN KEY (id_nguoi_phu_trach) REFERENCES nguoidung(id_nguoi_dung),
     FOREIGN KEY (id_benh_vien) REFERENCES benh_vien(id_benh_vien)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- 7. BẢNG NGƯỜI HIẾN MÁU
+-- ============================================
+CREATE TABLE nguoi_hien_mau (
+    id_nguoi_hien INT PRIMARY KEY,
+    nhom_mau VARCHAR(5),
+    lan_hien_gan_nhat DATE,
+    tong_so_lan_hien INT DEFAULT 0,
+    nhom_mau_xac_nhan BOOLEAN DEFAULT FALSE,
+    ngay_xac_nhan DATE,
+    id_nguoi_phu_trach_benh_vien INT,
+    ghi_chu_xac_nhan TEXT,
+    FOREIGN KEY (id_nguoi_hien) REFERENCES nguoidung(id_nguoi_dung),
+    FOREIGN KEY (id_nguoi_phu_trach_benh_vien) REFERENCES nguoi_phu_trach_benh_vien(id_nguoi_phu_trach)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -109,7 +102,7 @@ CREATE TABLE nhom_tinh_nguyen (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
--- 10. BẢNG SỰ KIỆN HIẾN MÁU
+-- 9. BẢNG SỰ KIỆN HIẾN MÁU
 -- ============================================
 CREATE TABLE sukien_hien_mau (
     id_su_kien INT PRIMARY KEY AUTO_INCREMENT,
@@ -119,7 +112,7 @@ CREATE TABLE sukien_hien_mau (
     ngay_bat_dau DATE,
     ngay_ket_thuc DATE,
     ten_dia_diem VARCHAR(200),
-    dia_chi_dia_diem TEXT,
+    dia_chi TEXT,
     so_luong_du_kien INT,
     trang_thai VARCHAR(50) DEFAULT 'cho_duyet',
     id_phe_duyet_boi INT,
@@ -213,30 +206,34 @@ INSERT INTO to_chuc (ten_don_vi, dia_chi) VALUES
 ('Hoi Chu Thap Do Da Nang', '456 Nguyen Van Linh, Da Nang'),
 ('Truong Dai Hoc Bach Khoa Da Nang', '54 Nguyen Luong Bang, Lien Chieu, Da Nang');
 
--- Insert bệnh viện (MUST be before nguoi_hien_mau due to FK)
+-- Insert bệnh viện
 INSERT INTO benh_vien (ten_benh_vien, dia_chi) VALUES
 ('Benh Vien Da Khoa Da Nang', '124 Hai Phong, Thanh Khe, Da Nang'),
 ('Benh Vien Tim Mach Da Nang', '215 Hong Bang, Hai Chau, Da Nang'),
 ('Benh Vien Phu San - Nhi Da Nang', '402 Le Van Hien, Thanh Khe, Da Nang');
 
--- Insert người hiến máu (AFTER benh_vien due to FK constraint)
--- User 2: Đã hiến 3 lần, nhóm máu đã được xác thực
--- User 3: Đã hiến 5 lần, nhóm máu đã được xác thực
--- User 4: Đã hiến 2 lần, nhưng nhóm máu chưa được xác thực chính thức (tự khai báo)
-INSERT INTO nguoi_hien_mau (id_nguoi_dung, nhom_mau, lan_hien_gan_nhat, tong_so_lan_hien, nhom_mau_xac_nhan, ngay_xac_nhan, id_benh_vien_xac_nhan, ghi_chu_xac_nhan) VALUES
-(2, 'O', '2024-01-15', 3, TRUE, '2024-01-15', 1, 'Xác thực nhóm máu qua xét nghiệm tại BV Đa Khoa Đà Nẵng'),
-(3, 'A', '2024-02-20', 5, TRUE, '2024-01-10', 1, 'Xác thực nhóm máu qua xét nghiệm tại BV Đa Khoa Đà Nẵng'),
-(4, 'B', '2023-12-10', 1, FALSE, NULL, NULL, NULL);
-
 -- Insert người phụ trách tổ chức
-INSERT INTO nguoi_phu_trach_to_chuc (id_nguoi_dung, id_to_chuc, nguoi_lien_he) VALUES
+-- id_nguoi_phu_trach là FK trực tiếp đến nguoidung(id_nguoi_dung)
+INSERT INTO nguoi_phu_trach_to_chuc (id_nguoi_phu_trach, id_to_chuc, nguoi_lien_he) VALUES
 (5, 1, 'Pham Thi D'),
 (6, 2, 'Hoang Van E');
 
--- Insert người phụ trách bệnh viện
-INSERT INTO nguoi_phu_trach_benh_vien (id_nguoi_dung, id_benh_vien, chuc_vu, nguoi_lien_he) VALUES
+-- Insert người phụ trách bệnh viện (MUST be before nguoi_hien_mau due to FK)
+-- id_nguoi_phu_trach là FK trực tiếp đến nguoidung(id_nguoi_dung)
+INSERT INTO nguoi_phu_trach_benh_vien (id_nguoi_phu_trach, id_benh_vien, chuc_vu, nguoi_lien_he) VALUES
 (7, 1, 'Truong Phong Y Te', 'Nguyen Thi F'),
 (8, 2, 'Pho Giam Doc', 'Tran Van G');
+
+-- Insert người hiến máu (AFTER nguoi_phu_trach_benh_vien due to FK constraint)
+-- id_nguoi_hien là FK trực tiếp đến nguoidung(id_nguoi_dung)
+-- id_nguoi_phu_trach_benh_vien tham chiếu đến id_nguoi_phu_trach trong bảng nguoi_phu_trach_benh_vien
+-- User 2: Đã hiến 3 lần, nhóm máu đã được xác thực bởi User 7 (id_nguoi_phu_trach = 7)
+-- User 3: Đã hiến 5 lần, nhóm máu đã được xác thực bởi User 7 (id_nguoi_phu_trach = 7)
+-- User 4: Đã hiến 2 lần, nhưng nhóm máu chưa được xác thực chính thức (tự khai báo)
+INSERT INTO nguoi_hien_mau (id_nguoi_hien, nhom_mau, lan_hien_gan_nhat, tong_so_lan_hien, nhom_mau_xac_nhan, ngay_xac_nhan, id_nguoi_phu_trach_benh_vien, ghi_chu_xac_nhan) VALUES
+(2, 'O', '2024-01-15', 3, TRUE, '2024-01-15', 7, 'Xác thực nhóm máu qua xét nghiệm tại BV Đa Khoa Đà Nẵng'),
+(3, 'A', '2024-02-20', 5, TRUE, '2024-01-10', 7, 'Xác thực nhóm máu qua xét nghiệm tại BV Đa Khoa Đà Nẵng'),
+(4, 'B', '2023-12-10', 1, FALSE, NULL, NULL, NULL);
 
 -- Insert nhóm tình nguyện
 INSERT INTO nhom_tinh_nguyen (id_nguoi_dung, ten_nhom, dia_chi, nguoi_lien_he) VALUES
@@ -244,22 +241,28 @@ INSERT INTO nhom_tinh_nguyen (id_nguoi_dung, ten_nhom, dia_chi, nguoi_lien_he) V
 (10, 'Nhom Tinh Nguyen Tre Da Nang', '456 Tran Phu, Hai Chau, Da Nang', 'Pham Van I');
 
 -- Insert sự kiện hiến máu
-INSERT INTO sukien_hien_mau (id_to_chuc, id_benh_vien, ten_su_kien, ngay_bat_dau, ngay_ket_thuc, ten_dia_diem, dia_chi_dia_diem, so_luong_du_kien, trang_thai, id_phe_duyet_boi) VALUES
-(1, 1, 'Hien Mau Tinh Nguyen Mua Xuan 2024', '2024-03-15', '2024-03-15', 'Benh Vien Da Khoa Da Nang', '124 Hai Phong, Thanh Khe, Da Nang', 100, 'da_duyet', 1),
+-- id_phe_duyet_boi tham chiếu đến id_nguoi_phu_trach trong bảng nguoi_phu_trach_benh_vien
+-- User 7 (id_nguoi_phu_trach = 7) phụ trách bệnh viện 1
+INSERT INTO sukien_hien_mau (id_to_chuc, id_benh_vien, ten_su_kien, ngay_bat_dau, ngay_ket_thuc, ten_dia_diem, dia_chi, so_luong_du_kien, trang_thai, id_phe_duyet_boi) VALUES
+(1, 1, 'Hien Mau Tinh Nguyen Mua Xuan 2024', '2024-03-15', '2024-03-15', 'Benh Vien Da Khoa Da Nang', '124 Hai Phong, Thanh Khe, Da Nang', 100, 'da_duyet', 7),
 (2, 2, 'Chuong Trinh Hien Mau Nhan Dao', '2024-04-20', '2024-04-20', 'Truong Dai Hoc Bach Khoa', '54 Nguyen Luong Bang, Lien Chieu, Da Nang', 150, 'cho_duyet', NULL),
 (3, 1, 'Ngay Hoi Hien Mau Tinh Nguyen', '2024-05-01', '2024-05-01', 'Trung Tam Hoi Nghi Tien Sa', '1 Le Van Duyet, Ngu Hanh Son, Da Nang', 200, 'cho_duyet', NULL);
 
 -- Insert đăng ký hiến máu
+-- id_nguoi_duyet tham chiếu đến id_nguoi_phu_trach trong bảng nguoi_phu_trach_to_chuc
+-- User 5 (id_nguoi_phu_trach = 5) phụ trách tổ chức 1
+-- id_nguoi_hien: 1 = User 2, 2 = User 3, 3 = User 4
 INSERT INTO dang_ky_hien_mau (id_su_kien, id_nguoi_hien, id_nguoi_duyet, trang_thai, ghi_chu_duyet) VALUES
-(1, 1, 1, 'da_duyet', 'Dang ky thanh cong'),
-(1, 2, 1, 'da_duyet', 'Dang ky thanh cong'),
-(1, 3, 1, 'da_duyet', 'Dang ky thanh cong'), -- Le Van C đăng ký sự kiện 1, đã được duyệt nhưng chưa xác thực nhóm máu
-(2, 3, NULL, 'cho_duyet', NULL);
+(1, 2, 5, 'da_duyet', 'Dang ky thanh cong'), -- User 2 (id_nguoi_hien = 2)
+(1, 3, 5, 'da_duyet', 'Dang ky thanh cong'), -- User 3 (id_nguoi_hien = 3)
+(1, 4, 5, 'da_duyet', 'Dang ky thanh cong'), -- User 4 (id_nguoi_hien = 4) đăng ký sự kiện 1, đã được duyệt nhưng chưa xác thực nhóm máu
+(2, 4, NULL, 'cho_duyet', NULL);
 
 -- Insert kết quả hiến máu
+-- id_nguoi_hien: 2 = User 2, 3 = User 3
 INSERT INTO ket_qua_hien_mau (id_nguoi_hien, id_su_kien, id_benh_vien, ngay_hien, luong_ml, ket_qua) VALUES
-(1, 1, 1, '2024-03-15', 450, 'Dat'),
-(2, 1, 1, '2024-03-15', 450, 'Dat');
+(2, 1, 1, '2024-03-15', 450, 'Dat'), -- User 2 (id_nguoi_hien = 2)
+(3, 1, 1, '2024-03-15', 450, 'Dat'); -- User 3 (id_nguoi_hien = 3)
 
 -- Insert thông báo
 INSERT INTO thong_bao (id_benh_vien, id_nhom, tieu_de, noi_dung, da_doc) VALUES

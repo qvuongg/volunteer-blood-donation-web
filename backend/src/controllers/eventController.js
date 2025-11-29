@@ -16,7 +16,7 @@ export const getEvents = async (req, res, next) => {
         tc.ten_don_vi,
         bv.ten_benh_vien,
         sk.ten_dia_diem,
-        sk.dia_chi_dia_diem AS dia_chi
+        sk.dia_chi
       FROM sukien_hien_mau sk
       JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
       JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
@@ -65,7 +65,7 @@ export const getEventById = async (req, res, next) => {
         bv.ten_benh_vien,
         bv.dia_chi as benh_vien_dia_chi,
         sk.ten_dia_diem,
-        sk.dia_chi_dia_diem AS dia_chi
+        sk.dia_chi
       FROM sukien_hien_mau sk
       JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
       JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien

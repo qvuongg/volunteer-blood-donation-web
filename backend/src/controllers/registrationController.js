@@ -130,7 +130,7 @@ export const getMyRegistrations = async (req, res, next) => {
         tc.ten_don_vi,
         bv.ten_benh_vien,
         sk.ten_dia_diem,
-        sk.dia_chi_dia_diem AS dia_chi
+        sk.dia_chi
       FROM dang_ky_hien_mau dk
       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
       JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc

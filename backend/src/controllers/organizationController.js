@@ -32,7 +32,7 @@ export const getMyEvents = async (req, res, next) => {
         sk.trang_thai,
         bv.ten_benh_vien,
         sk.ten_dia_diem,
-        sk.dia_chi_dia_diem AS dia_chi
+        sk.dia_chi
       FROM sukien_hien_mau sk
       JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
       WHERE sk.id_to_chuc = ?
@@ -70,11 +70,11 @@ export const createEvent = async (req, res, next) => {
       ngay_bat_dau,
       ngay_ket_thuc,
       ten_dia_diem,
-      dia_chi_dia_diem,
+      dia_chi,
       so_luong_du_kien
     } = req.body;
 
-    if (!ten_su_kien || !id_benh_vien || !ngay_bat_dau) {
+    if (!ten_su_kien || !id_benh_vien || !ngay_bat_dau || !ten_dia_diem || !dia_chi) {
       return res.status(400).json({
         success: false,
         message: 'Vui lòng điền đầy đủ thông tin bắt buộc.'
@@ -83,9 +83,9 @@ export const createEvent = async (req, res, next) => {
 
     const [result] = await pool.execute(
       `INSERT INTO sukien_hien_mau 
-       (id_to_chuc, id_benh_vien, ten_su_kien, ngay_bat_dau, ngay_ket_thuc, ten_dia_diem, dia_chi_dia_diem, so_luong_du_kien, trang_thai)
+       (id_to_chuc, id_benh_vien, ten_su_kien, ngay_bat_dau, ngay_ket_thuc, ten_dia_diem, dia_chi, so_luong_du_kien, trang_thai)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'cho_duyet')`,
-      [orgId, id_benh_vien, ten_su_kien, ngay_bat_dau, ngay_ket_thuc || null, ten_dia_diem || null, dia_chi_dia_diem || null, so_luong_du_kien || null]
+      [orgId, id_benh_vien, ten_su_kien, ngay_bat_dau, ngay_ket_thuc || null, ten_dia_diem, dia_chi, so_luong_du_kien || null]
     );
 
     // Get created event
@@ -98,7 +98,8 @@ export const createEvent = async (req, res, next) => {
         sk.so_luong_du_kien,
         sk.trang_thai,
         bv.ten_benh_vien,
-        sk.ten_dia_diem
+        sk.ten_dia_diem,
+        sk.dia_chi
       FROM sukien_hien_mau sk
       JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
       WHERE sk.id_su_kien = ?`,
@@ -150,7 +151,7 @@ export const updateEvent = async (req, res, next) => {
       ngay_bat_dau,
       ngay_ket_thuc,
       ten_dia_diem,
-      dia_chi_dia_diem,
+      dia_chi,
       so_luong_du_kien
     } = req.body;
 
@@ -177,9 +178,9 @@ export const updateEvent = async (req, res, next) => {
       updateFields.push('ten_dia_diem = ?');
       updateValues.push(ten_dia_diem || null);
     }
-    if (dia_chi_dia_diem !== undefined) {
-      updateFields.push('dia_chi_dia_diem = ?');
-      updateValues.push(dia_chi_dia_diem || null);
+    if (dia_chi !== undefined) {
+      updateFields.push('dia_chi = ?');
+      updateValues.push(dia_chi || null);
     }
     if (so_luong_du_kien !== undefined) {
       updateFields.push('so_luong_du_kien = ?');
@@ -204,7 +205,8 @@ export const updateEvent = async (req, res, next) => {
         sk.so_luong_du_kien,
         sk.trang_thai,
         bv.ten_benh_vien,
-        sk.ten_dia_diem
+        sk.ten_dia_diem,
+        sk.dia_chi
       FROM sukien_hien_mau sk
       JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
       WHERE sk.id_su_kien = ?`,
