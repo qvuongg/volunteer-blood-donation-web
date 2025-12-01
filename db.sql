@@ -244,10 +244,15 @@ INSERT INTO nhom_tinh_nguyen (id_nguoi_dung, ten_nhom, dia_chi, nguoi_lien_he) V
 -- id_phe_duyet_boi tham chiếu đến id_nguoi_phu_trach trong bảng nguoi_phu_trach_benh_vien
 -- User 7 (id_nguoi_phu_trach = 7) phụ trách bệnh viện 1
 INSERT INTO sukien_hien_mau (id_to_chuc, id_benh_vien, ten_su_kien, ngay_bat_dau, ngay_ket_thuc, ten_dia_diem, dia_chi, so_luong_du_kien, trang_thai, id_phe_duyet_boi) VALUES
+-- Sự kiện đã diễn ra (dùng cho lịch sử, demo)
 (1, 1, 'Hien Mau Tinh Nguyen Mua Xuan 2024', '2024-03-15', '2024-03-15', 'Benh Vien Da Khoa Da Nang', '124 Hai Phong, Thanh Khe, Da Nang', 100, 'da_duyet', 7),
-(2, 2, 'Chuong Trinh Hien Mau Nhan Dao', '2024-04-20', '2024-04-20', 'Truong Dai Hoc Bach Khoa', '54 Nguyen Luong Bang, Lien Chieu, Da Nang', 150, 'cho_duyet', NULL),
-(3, 1, 'Ngay Hoi Hien Mau Tinh Nguyen', '2024-05-01', '2024-05-01', 'Trung Tam Hoi Nghi Tien Sa', '1 Le Van Duyet, Ngu Hanh Son, Da Nang', 200, 'cho_duyet', NULL);
-
+(2, 2, 'Chuong Trinh Hien Mau Nhan Dao 2024', '2024-04-20', '2024-04-20', 'Truong Dai Hoc Bach Khoa', '54 Nguyen Luong Bang, Lien Chieu, Da Nang', 150, 'cho_duyet', NULL),
+(3, 1, 'Ngay Hoi Hien Mau Tinh Nguyen 2024', '2024-05-01', '2024-05-01', 'Trung Tam Hoi Nghi Tien Sa', '1 Le Van Duyet, Ngu Hanh Son, Da Nang', 200, 'cho_duyet', NULL),
+-- Các sự kiện đang mở cổng đăng ký (trang_thai = 'da_duyet' để backend cho phép đăng ký)
+(1, 1, 'Chien Dich Hien Mau Mua He 2025', '2025-06-10', '2026-06-10', 'Nha Van Hoa Thieu Nhi Da Nang', '2-4 Le Duan, Hai Chau, Da Nang', 120, 'da_duyet', 7),
+(2, 2, 'Ngay Hoi Hien Mau Sinh Vien 2025', '2025-09-05', '2025-09-05', 'Truong Dai Hoc Bach Khoa Da Nang', '54 Nguyen Luong Bang, Lien Chieu, Da Nang', 180, 'da_duyet', 8),
+(3, 1, 'Chuong Trinh Giot Mau Hong 2025', '2025-11-20', '2025-11-20', 'Trung Tam Hoi Nghi Tien Sa', '1 Le Van Duyet, Ngu Hanh Son, Da Nang', 200, 'da_duyet', 7),
+(1, 1, 'Chien Dich Hien Mau Mua Xuan 2025', '2025-02-10', '2026-06-10', 'Nha Van Hoa Thieu Nhi Da Nang', '2-4 Le Duan, Hai Chau, Da Nang', 120, 'da_duyet', 7);
 -- Insert đăng ký hiến máu
 -- id_nguoi_duyet tham chiếu đến id_nguoi_phu_trach trong bảng nguoi_phu_trach_to_chuc
 -- User 5 (id_nguoi_phu_trach = 5) phụ trách tổ chức 1

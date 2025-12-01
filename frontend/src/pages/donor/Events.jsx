@@ -37,13 +37,27 @@ const Events = () => {
     });
   };
 
-  const getStatusBadge = (status) => {
-    const statusMap = {
-      'da_duyet': { label: 'Đã duyệt', class: 'badge-success' },
-      'cho_duyet': { label: 'Chờ duyệt', class: 'badge-warning' },
-      'tu_choi': { label: 'Từ chối', class: 'badge-danger' }
-    };
-    const statusInfo = statusMap[status] || { label: status, class: 'badge-gray' };
+  // Trạng thái theo thời gian (đang diễn ra / đã kết thúc / sắp diễn ra)
+  const getTimeStatus = (event) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const startDate = new Date(event.ngay_bat_dau);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = new Date(event.ngay_ket_thuc || event.ngay_bat_dau);
+    endDate.setHours(0, 0, 0, 0);
+
+    if (endDate < today) {
+      return { label: 'Đã kết thúc', class: 'badge-gray' };
+    }
+    if (startDate > today) {
+      return { label: 'Sắp diễn ra', class: 'badge-warning' };
+    }
+    return { label: 'Đang diễn ra', class: 'badge-success' };
+  };
+
+  const getStatusBadge = (event) => {
+    const statusInfo = getTimeStatus(event);
     return <span className={`badge ${statusInfo.class}`}>{statusInfo.label}</span>;
   };
 
@@ -52,6 +66,29 @@ const Events = () => {
     event.ten_don_vi.toLowerCase().includes(search.toLowerCase()) ||
     event.ten_benh_vien.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Sắp xếp lại phía frontend để khớp với yêu cầu:
+  // - Sự kiện đang/sắp diễn ra trước, đã kết thúc sau
+  // - Sự kiện càng cũ càng ở cuối
+  const sortedEvents = [...filteredEvents].sort((a, b) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const endA = new Date(a.ngay_ket_thuc || a.ngay_bat_dau);
+    const endB = new Date(b.ngay_ket_thuc || b.ngay_bat_dau);
+    endA.setHours(0, 0, 0, 0);
+    endB.setHours(0, 0, 0, 0);
+
+    const aEnded = endA < today;
+    const bEnded = endB < today;
+
+    if (aEnded !== bEnded) {
+      return aEnded ? 1 : -1; // a đã kết thúc thì xuống dưới
+    }
+
+    // Cùng nhóm (cả hai đều còn hạn hoặc đều đã kết thúc): ngày kết thúc xa hơn nằm dưới
+    return endA - endB;
+  });
 
   if (loading) {
     return (
@@ -84,7 +121,7 @@ const Events = () => {
         </div>
       </div>
 
-      {filteredEvents.length === 0 ? (
+      {sortedEvents.length === 0 ? (
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: 'var(--spacing-3xl)' }}>
             <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="var(--gray-400)" strokeWidth="2" style={{ margin: '0 auto var(--spacing-lg)' }}>
@@ -98,7 +135,7 @@ const Events = () => {
         </div>
       ) : (
         <div className="grid grid-cols-2">
-          {filteredEvents.map(event => (
+          {sortedEvents.map(event => (
             <div
               key={event.id_su_kien}
               className="card"
@@ -110,7 +147,7 @@ const Events = () => {
                   <h3 style={{ margin: 0, fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)' }}>
                     {event.ten_su_kien}
                   </h3>
-                  {getStatusBadge(event.trang_thai)}
+                  {getStatusBadge(event)}
                 </div>
                 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-lg)' }}>
@@ -129,7 +166,7 @@ const Events = () => {
                       <path d="M2 6h12M5 1v4M11 1v4"/>
                     </svg>
                     <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-                      {formatDate(event.ngay_bat_dau)}
+                      {new Date(event.ngay_bat_dau).toLocaleDateString('vi-VN')} - {event.ngay_ket_thuc ? new Date(event.ngay_ket_thuc).toLocaleDateString('vi-VN') : ''}
                     </span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>

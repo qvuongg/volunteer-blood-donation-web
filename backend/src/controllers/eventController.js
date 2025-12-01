@@ -30,7 +30,16 @@ export const getEvents = async (req, res, next) => {
       query += ' WHERE sk.trang_thai = "da_duyet"';
     }
 
-    query += ' ORDER BY sk.ngay_bat_dau DESC';
+    // Sắp xếp: ưu tiên sự kiện đang/sắp diễn ra trước, sự kiện đã kết thúc ở cuối.
+    // Trong mỗi nhóm, sắp xếp theo ngày kết thúc tăng dần (gần hiện tại đứng trước).
+    query += `
+      ORDER BY 
+        CASE 
+          WHEN COALESCE(sk.ngay_ket_thuc, sk.ngay_bat_dau) < CURDATE() THEN 1
+          ELSE 0
+        END ASC,
+        COALESCE(sk.ngay_ket_thuc, sk.ngay_bat_dau) ASC
+    `;
 
     const [events] = await pool.execute(query, params);
 

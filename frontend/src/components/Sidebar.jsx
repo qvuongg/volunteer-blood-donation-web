@@ -19,8 +19,7 @@ const menuConfig = {
       items: [
         { path: '/donor/events', label: 'Sự kiện', icon: 'calendar' },
         { path: '/donor/registrations', label: 'Đăng ký của tôi', icon: 'list' },
-        { path: '/donor/history', label: 'Lịch sử hiến máu', icon: 'history' },
-        { path: '/donor/locations', label: 'Địa điểm', icon: 'location' }
+        { path: '/donor/history', label: 'Lịch sử hiến máu', icon: 'history' }
       ]
     }
   ],
@@ -66,8 +65,15 @@ const menuConfig = {
   ],
   admin: [
     {
-      title: 'Quản trị',
-      items: [{ path: '/admin/dashboard', label: 'Dashboard', icon: 'dashboard' }]
+      title: 'Quản trị hệ thống',
+      items: [
+        { path: '/admin/dashboard', label: 'Tổng quan', icon: 'dashboard' },
+        { path: '/admin/users', label: 'Quản lý người dùng', icon: 'user' },
+        { path: '/admin/events', label: 'Quản lý sự kiện', icon: 'calendar' },
+        { path: '/admin/registrations', label: 'Đăng ký hiến máu', icon: 'list' },
+        { path: '/admin/reports', label: 'Báo cáo thống kê', icon: 'history' },
+        { path: '/admin/settings', label: 'Cài đặt hệ thống', icon: 'edit' }
+      ]
     }
   ]
 };

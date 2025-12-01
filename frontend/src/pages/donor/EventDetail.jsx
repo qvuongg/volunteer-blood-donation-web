@@ -11,6 +11,7 @@ const EventDetail = () => {
   const [loading, setLoading] = useState(true);
   const [registering, setRegistering] = useState(false);
   const [message, setMessage] = useState('');
+  const [isRegistered, setIsRegistered] = useState(false);
 
   useEffect(() => {
     fetchEvent();
@@ -21,12 +22,27 @@ const EventDetail = () => {
       const response = await api.get(`/events/${id}`);
       if (response.data.success) {
         setEvent(response.data.data.event);
+        // Sau khi có thông tin sự kiện, kiểm tra xem user đã đăng ký chưa
+        fetchRegistrationStatus(response.data.data.event.id_su_kien);
       }
     } catch (error) {
       console.error('Error fetching event:', error);
       setMessage('Không tìm thấy sự kiện.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchRegistrationStatus = async (eventId) => {
+    try {
+      const response = await api.get('/registrations/my');
+      if (response.data.success) {
+        const registrations = response.data.data.registrations || [];
+        const alreadyRegistered = registrations.some((reg) => reg.id_su_kien === Number(eventId));
+        setIsRegistered(alreadyRegistered);
+      }
+    } catch (error) {
+      console.error('Error fetching registrations:', error);
     }
   };
 
@@ -62,6 +78,19 @@ const EventDetail = () => {
       day: 'numeric'
     });
   };
+
+  const isEventEnded = (evt) => {
+    if (!evt) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const endDate = new Date(evt.ngay_ket_thuc || evt.ngay_bat_dau);
+    endDate.setHours(0, 0, 0, 0);
+
+    return endDate < today;
+  };
+
+  const canRegister = event && event.trang_thai === 'da_duyet' && !isEventEnded(event) && !isRegistered;
 
   if (loading) {
     return (
@@ -180,6 +209,28 @@ const EventDetail = () => {
                     <p style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)', margin: 0 }}>
                       {event.dia_chi}
                     </p>
+                    <div style={{ marginTop: 'var(--spacing-sm)' }}>
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.dia_chi)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-sm btn-outline"
+                      >
+                        <svg
+                          width="16"
+                          height="16"
+                          viewBox="0 0 16 16"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          style={{ marginRight: 'var(--spacing-xs)' }}
+                        >
+                          <path d="M8 2a5 5 0 00-5 5c0 3.75 5 8.33 5 8.33s5-4.58 5-8.33a5 5 0 00-5-5z" />
+                          <circle cx="8" cy="7" r="1.5" />
+                        </svg>
+                        Xem trên Google Maps
+                      </a>
+                    </div>
                   </div>
                 )}
                 {event.so_luong_du_kien && (
@@ -207,10 +258,10 @@ const EventDetail = () => {
       </div>
 
           <div style={{ display: 'flex', gap: 'var(--spacing-md)', paddingTop: 'var(--spacing-xl)', borderTop: '1px solid var(--gray-200)' }}>
-          <button
+            <button
               className="btn btn-primary"
-            onClick={handleRegister}
-              disabled={registering || event.trang_thai !== 'da_duyet'}
+              onClick={handleRegister}
+              disabled={registering || !canRegister}
             >
               {registering ? (
                 <>
@@ -225,10 +276,15 @@ const EventDetail = () => {
                   Đăng ký hiến máu
                 </>
               )}
-          </button>
-            {event.trang_thai !== 'da_duyet' && (
+            </button>
+            {isRegistered && (
+              <p style={{ color: 'var(--primary-600)', fontSize: 'var(--font-size-sm)', margin: 0, display: 'flex', alignItems: 'center' }}>
+                Bạn đã đăng ký sự kiện này.
+              </p>
+            )}
+            {!isRegistered && isEventEnded(event) && (
               <p style={{ color: 'var(--text-tertiary)', fontSize: 'var(--font-size-sm)', margin: 0, display: 'flex', alignItems: 'center' }}>
-                Sự kiện này chưa được duyệt
+                Sự kiện này đã kết thúc, không thể đăng ký.
               </p>
             )}
           </div>

@@ -3,7 +3,7 @@ import pool from '../config/database.js';
 // Get organization id for user
 const getOrganizationId = async (userId) => {
   const [orgs] = await pool.execute(
-    'SELECT id_to_chuc FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_dung = ?',
+    'SELECT id_to_chuc FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_phu_trach = ?',
     [userId]
   );
   return orgs.length > 0 ? orgs[0].id_to_chuc : null;
@@ -12,7 +12,7 @@ const getOrganizationId = async (userId) => {
 // Get my organization coordinator id
 const getCoordinatorId = async (userId) => {
   const [coords] = await pool.execute(
-    'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_dung = ?',
+    'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_phu_trach = ?',
     [userId]
   );
   return coords.length > 0 ? coords[0].id_nguoi_phu_trach : null;

@@ -63,8 +63,9 @@ export const register = async (req, res, next) => {
     );
 
     if (roles[0]?.ten_vai_tro === 'nguoi_hien') {
+      // In the database schema, nguoi_hien_mau.id_nguoi_hien is a FK to nguoidung.id_nguoi_dung
       await pool.execute(
-        'INSERT INTO nguoi_hien_mau (id_nguoi_dung) VALUES (?)',
+        'INSERT INTO nguoi_hien_mau (id_nguoi_hien) VALUES (?)',
         [userId]
       );
     }
@@ -232,10 +233,15 @@ export const getProfile = async (req, res, next) => {
     // Get additional info based on role
     if (userRole === 'nguoi_hien') {
       const [donors] = await pool.execute(
-        `SELECT nh.*, bv.ten_benh_vien as ten_benh_vien_xac_nhan
+        `SELECT 
+           nh.*,
+           bv.ten_benh_vien as ten_benh_vien_xac_nhan
          FROM nguoi_hien_mau nh
-         LEFT JOIN benh_vien bv ON nh.id_benh_vien_xac_nhan = bv.id_benh_vien
-         WHERE nh.id_nguoi_dung = ?`,
+         LEFT JOIN nguoi_phu_trach_benh_vien nptbv 
+           ON nh.id_nguoi_phu_trach_benh_vien = nptbv.id_nguoi_phu_trach
+         LEFT JOIN benh_vien bv 
+           ON nptbv.id_benh_vien = bv.id_benh_vien
+         WHERE nh.id_nguoi_hien = ?`,
         [userId]
       );
       profile.donor = donors[0] || null;
@@ -244,7 +250,7 @@ export const getProfile = async (req, res, next) => {
         `SELECT nptbv.*, bv.ten_benh_vien, bv.dia_chi
          FROM nguoi_phu_trach_benh_vien nptbv
          JOIN benh_vien bv ON nptbv.id_benh_vien = bv.id_benh_vien
-         WHERE nptbv.id_nguoi_dung = ?`,
+         WHERE nptbv.id_nguoi_phu_trach = ?`,
         [userId]
       );
       if (coordinator.length > 0) {
@@ -264,7 +270,7 @@ export const getProfile = async (req, res, next) => {
         `SELECT nptc.*, tc.ten_don_vi, tc.dia_chi
          FROM nguoi_phu_trach_to_chuc nptc
          JOIN to_chuc tc ON nptc.id_to_chuc = tc.id_to_chuc
-         WHERE nptc.id_nguoi_dung = ?`,
+         WHERE nptc.id_nguoi_phu_trach = ?`,
         [userId]
       );
       if (coordinator.length > 0) {
