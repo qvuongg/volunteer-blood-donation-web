@@ -98,7 +98,12 @@ const Login = () => {
         </div>
 
           <div className="form-group">
-            <label htmlFor="mat_khau" className="form-label">Mật khẩu</label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xs)' }}>
+              <label htmlFor="mat_khau" className="form-label" style={{ marginBottom: 0 }}>Mật khẩu</label>
+              <Link to="/forgot-password" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--primary-600)' }}>
+                Quên mật khẩu?
+              </Link>
+            </div>
           <input
             type="password"
             id="mat_khau"

@@ -170,6 +170,20 @@ CREATE TABLE thong_bao (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
+-- 14. BẢNG MÃ OTP
+-- ============================================
+CREATE TABLE otp_codes (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(100) NOT NULL,
+    otp VARCHAR(6) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    expires_at TIMESTAMP NOT NULL,
+    used BOOLEAN DEFAULT FALSE,
+    INDEX idx_email (email),
+    INDEX idx_expires (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
 -- INSERT DỮ LIỆU MẪU
 -- ============================================
 
@@ -185,7 +199,7 @@ INSERT INTO vaitro (ten_vai_tro) VALUES
 -- Hash được tạo bằng bcrypt với saltRounds = 10
 INSERT INTO nguoidung (ho_ten, email, mat_khau, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro) VALUES
 -- Admin
-('Quan Tri Vien', 'admin@hienmau.com', '$2b$10$wrP.9VlkgrUNPGf2xt15v.gIBmaapz2vLuUtiKOOpmM0qxZGGkz2u', '0900000001', 'Nam', '1990-01-01', 5),
+('Quan Tri Vien', 'locb00302@gmail.com', '$2b$10$wrP.9VlkgrUNPGf2xt15v.gIBmaapz2vLuUtiKOOpmM0qxZGGkz2u', '0900000001', 'Nam', '1990-01-01', 5),
 -- Người hiến máu
 ('Nguyen Van A', 'nguyenvana@email.com', '$2b$10$wrP.9VlkgrUNPGf2xt15v.gIBmaapz2vLuUtiKOOpmM0qxZGGkz2u', '0901000001', 'Nam', '1995-05-15', 1),
 ('Tran Thi B', 'tranthib@email.com', '$2b$10$wrP.9VlkgrUNPGf2xt15v.gIBmaapz2vLuUtiKOOpmM0qxZGGkz2u', '0901000002', 'Nu', '1998-08-20', 1),

@@ -3,6 +3,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
 import ProtectedRoute from './components/ProtectedRoute';
 import DonorDashboard from './pages/donor/Dashboard';
 import DonorProfile from './pages/donor/Profile';
@@ -11,7 +12,6 @@ import DonorEvents from './pages/donor/Events';
 import DonorEventDetail from './pages/donor/EventDetail';
 import DonorRegistrations from './pages/donor/Registrations';
 import DonorHistory from './pages/donor/History';
-import DonorLocations from './pages/donor/Locations';
 import OrgDashboard from './pages/organization/Dashboard';
 import OrgEvents from './pages/organization/Events';
 import OrgApprovals from './pages/organization/Approvals';
@@ -34,6 +34,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           
           {/* Donor routes */}
           <Route 
@@ -89,14 +90,6 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['nguoi_hien']}>
                 <DonorHistory />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/donor/locations" 
-            element={
-              <ProtectedRoute allowedRoles={['nguoi_hien']}>
-                <DonorLocations />
               </ProtectedRoute>
             } 
           />
@@ -198,47 +191,6 @@ function App() {
           {/* Admin routes */}
           <Route 
             path="/admin/dashboard" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          {/* Tạm thời các đường dẫn quản trị khác cũng dùng chung Dashboard */}
-          <Route 
-            path="/admin/users" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/events" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/registrations" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/reports" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/settings" 
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />

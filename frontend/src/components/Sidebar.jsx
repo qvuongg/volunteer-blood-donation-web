@@ -19,7 +19,8 @@ const menuConfig = {
       items: [
         { path: '/donor/events', label: 'Sự kiện', icon: 'calendar' },
         { path: '/donor/registrations', label: 'Đăng ký của tôi', icon: 'list' },
-        { path: '/donor/history', label: 'Lịch sử hiến máu', icon: 'history' }
+        { path: '/donor/history', label: 'Lịch sử hiến máu', icon: 'history' },
+        { path: '/donor/locations', label: 'Địa điểm', icon: 'location' }
       ]
     }
   ],

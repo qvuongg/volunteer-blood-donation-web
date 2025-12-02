@@ -13,21 +13,18 @@ const calculateDistance = (lat1, lon1, lat2, lon2) => {
   return R * c; // Distance in km
 };
 
-// Get all locations (derived from approved blood donation events)
+// Get all locations
 export const getLocations = async (req, res, next) => {
   try {
-    // Vì không có bảng dia_diem, ta sử dụng các sự kiện hiến máu đã được duyệt
-    // như các "địa điểm hiến máu" đang mở cho người dùng đăng ký.
     const [locations] = await pool.execute(
       `SELECT 
-        sk.id_su_kien        AS id_dia_diem,
-        sk.ten_dia_diem      AS ten_dia_diem,
-        sk.dia_chi           AS dia_chi,
-        NULL                 AS vi_do,
-        NULL                 AS kinh_do
-      FROM sukien_hien_mau sk
-      WHERE sk.trang_thai = 'da_duyet'
-      ORDER BY sk.ngay_bat_dau DESC`
+        id_dia_diem,
+        ten_dia_diem,
+        dia_chi,
+        vi_do,
+        kinh_do
+      FROM dia_diem
+      ORDER BY ten_dia_diem`
     );
 
     res.json({
@@ -41,7 +38,7 @@ export const getLocations = async (req, res, next) => {
   }
 };
 
-// Get nearby locations (hiện tại chưa có toạ độ trong DB, trả về danh sách rỗng hoặc toàn bộ đã duyệt)
+// Get nearby locations
 export const getNearbyLocations = async (req, res, next) => {
   try {
     const { lat, lng, radius = 10 } = req.query; // radius in km, default 10km
@@ -57,21 +54,34 @@ export const getNearbyLocations = async (req, res, next) => {
     const userLng = parseFloat(lng);
     const radiusKm = parseFloat(radius);
 
-    // Hiện DB chưa lưu vi_do / kinh_do cho sự kiện, nên tạm thời trả về danh sách sự kiện đã duyệt,
-    // không tính khoảng cách. Nếu sau này bổ sung toạ độ cho sự kiện, có thể áp dụng lại Haversine.
+    // Get all locations
     const [locations] = await pool.execute(
       `SELECT 
-        sk.id_su_kien        AS id_dia_diem,
-        sk.ten_dia_diem      AS ten_dia_diem,
-        sk.dia_chi           AS dia_chi,
-        NULL                 AS vi_do,
-        NULL                 AS kinh_do
-      FROM sukien_hien_mau sk
-      WHERE sk.trang_thai = 'da_duyet'
-      ORDER BY sk.ngay_bat_dau DESC`
+        id_dia_diem,
+        ten_dia_diem,
+        dia_chi,
+        vi_do,
+        kinh_do
+      FROM dia_diem
+      WHERE vi_do IS NOT NULL AND kinh_do IS NOT NULL`
     );
 
-    const nearbyLocations = locations;
+    // Calculate distances and filter
+    const nearbyLocations = locations
+      .map(location => {
+        const distance = calculateDistance(
+          userLat,
+          userLng,
+          parseFloat(location.vi_do),
+          parseFloat(location.kinh_do)
+        );
+        return {
+          ...location,
+          distance: Math.round(distance * 10) / 10 // Round to 1 decimal
+        };
+      })
+      .filter(location => location.distance <= radiusKm)
+      .sort((a, b) => a.distance - b.distance);
 
     res.json({
       success: true,

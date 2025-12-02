@@ -1,6 +1,12 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../config/database.js';
+import { sendOTPEmail } from '../utils/email.js';
+
+// Tạo mã OTP ngẫu nhiên 6 số
+const generateOTP = () => {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+};
 
 // Register new user
 export const register = async (req, res, next) => {
@@ -63,9 +69,8 @@ export const register = async (req, res, next) => {
     );
 
     if (roles[0]?.ten_vai_tro === 'nguoi_hien') {
-      // In the database schema, nguoi_hien_mau.id_nguoi_hien is a FK to nguoidung.id_nguoi_dung
       await pool.execute(
-        'INSERT INTO nguoi_hien_mau (id_nguoi_hien) VALUES (?)',
+        'INSERT INTO nguoi_hien_mau (id_nguoi_dung) VALUES (?)',
         [userId]
       );
     }
@@ -233,15 +238,10 @@ export const getProfile = async (req, res, next) => {
     // Get additional info based on role
     if (userRole === 'nguoi_hien') {
       const [donors] = await pool.execute(
-        `SELECT 
-           nh.*,
-           bv.ten_benh_vien as ten_benh_vien_xac_nhan
+        `SELECT nh.*, bv.ten_benh_vien as ten_benh_vien_xac_nhan
          FROM nguoi_hien_mau nh
-         LEFT JOIN nguoi_phu_trach_benh_vien nptbv 
-           ON nh.id_nguoi_phu_trach_benh_vien = nptbv.id_nguoi_phu_trach
-         LEFT JOIN benh_vien bv 
-           ON nptbv.id_benh_vien = bv.id_benh_vien
-         WHERE nh.id_nguoi_hien = ?`,
+         LEFT JOIN benh_vien bv ON nh.id_benh_vien_xac_nhan = bv.id_benh_vien
+         WHERE nh.id_nguoi_dung = ?`,
         [userId]
       );
       profile.donor = donors[0] || null;
@@ -250,7 +250,7 @@ export const getProfile = async (req, res, next) => {
         `SELECT nptbv.*, bv.ten_benh_vien, bv.dia_chi
          FROM nguoi_phu_trach_benh_vien nptbv
          JOIN benh_vien bv ON nptbv.id_benh_vien = bv.id_benh_vien
-         WHERE nptbv.id_nguoi_phu_trach = ?`,
+         WHERE nptbv.id_nguoi_dung = ?`,
         [userId]
       );
       if (coordinator.length > 0) {
@@ -270,7 +270,7 @@ export const getProfile = async (req, res, next) => {
         `SELECT nptc.*, tc.ten_don_vi, tc.dia_chi
          FROM nguoi_phu_trach_to_chuc nptc
          JOIN to_chuc tc ON nptc.id_to_chuc = tc.id_to_chuc
-         WHERE nptc.id_nguoi_phu_trach = ?`,
+         WHERE nptc.id_nguoi_dung = ?`,
         [userId]
       );
       if (coordinator.length > 0) {
@@ -297,6 +297,155 @@ export const getProfile = async (req, res, next) => {
       data: profile
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+// Gửi OTP qua email (cho quên mật khẩu)
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng nhập email.'
+      });
+    }
+
+    // Kiểm tra email có tồn tại không
+    const [users] = await pool.execute(
+      'SELECT id_nguoi_dung FROM nguoidung WHERE email = ?',
+      [email]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Email không tồn tại trong hệ thống.'
+      });
+    }
+
+    // Tạo OTP
+    const otp = generateOTP();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 phút
+
+    // Đánh dấu các OTP cũ của email này là đã dùng (bảo mật)
+    await pool.execute(
+      'UPDATE otp_codes SET used = TRUE WHERE email = ? AND used = FALSE',
+      [email]
+    );
+
+    // Lưu OTP mới vào database
+    await pool.execute(
+      'INSERT INTO otp_codes (email, otp, expires_at) VALUES (?, ?, ?)',
+      [email, otp, expiresAt]
+    );
+
+    // Gửi email
+    await sendOTPEmail(email, otp, 'forgot-password');
+
+    res.json({
+      success: true,
+      message: 'Mã OTP đã được gửi đến email của bạn.'
+    });
+  } catch (error) {
+    console.error('❌ Forgot password error:', error);
+    next(error);
+  }
+};
+
+// Xác thực OTP
+export const verifyOTP = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng nhập đầy đủ email và mã OTP.'
+      });
+    }
+
+    const [otpRecords] = await pool.execute(
+      `SELECT id, created_at FROM otp_codes 
+       WHERE email = ? AND otp = ? AND used = FALSE AND expires_at > NOW()
+       ORDER BY created_at DESC LIMIT 1`,
+      [email, otp]
+    );
+
+    if (otpRecords.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mã OTP không đúng hoặc đã hết hạn. Vui lòng yêu cầu mã mới.'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Xác thực OTP thành công.'
+    });
+  } catch (error) {
+    console.error('❌ Verify OTP error:', error);
+    next(error);
+  }
+};
+
+// Đặt lại mật khẩu
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { email, otp, mat_khau_moi } = req.body;
+
+    if (!email || !otp || !mat_khau_moi) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng nhập đầy đủ thông tin.'
+      });
+    }
+
+    if (mat_khau_moi.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mật khẩu phải có ít nhất 6 ký tự.'
+      });
+    }
+
+    // Xác thực OTP lần nữa
+    const [otpRecords] = await pool.execute(
+      `SELECT id FROM otp_codes 
+       WHERE email = ? AND otp = ? AND used = FALSE AND expires_at > NOW()
+       ORDER BY created_at DESC LIMIT 1`,
+      [email, otp]
+    );
+
+    if (otpRecords.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mã OTP không đúng hoặc đã hết hạn. Vui lòng yêu cầu mã mới.'
+      });
+    }
+
+    // Hash mật khẩu mới
+    const hashedPassword = await bcrypt.hash(mat_khau_moi, 10);
+
+    // Cập nhật mật khẩu
+    await pool.execute(
+      'UPDATE nguoidung SET mat_khau = ? WHERE email = ?',
+      [hashedPassword, email]
+    );
+
+    // Đánh dấu OTP đã sử dụng
+    await pool.execute(
+      'UPDATE otp_codes SET used = TRUE WHERE id = ?',
+      [otpRecords[0].id]
+    );
+
+    res.json({
+      success: true,
+      message: 'Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại.'
+    });
+  } catch (error) {
+    console.error('❌ Reset password error:', error);
     next(error);
   }
 };

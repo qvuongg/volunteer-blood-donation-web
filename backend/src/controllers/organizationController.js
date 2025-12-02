@@ -3,7 +3,7 @@ import pool from '../config/database.js';
 // Get organization info for current user
 const getOrganizationId = async (userId) => {
   const [orgs] = await pool.execute(
-    'SELECT id_to_chuc FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_phu_trach = ?',
+    'SELECT id_to_chuc FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_dung = ?',
     [userId]
   );
   return orgs.length > 0 ? orgs[0].id_to_chuc : null;
@@ -306,7 +306,7 @@ export const getEventRegistrations = async (req, res, next) => {
         nd.ngay_sinh
       FROM dang_ky_hien_mau dk
       JOIN nguoi_hien_mau nh ON dk.id_nguoi_hien = nh.id_nguoi_hien
-      JOIN nguoidung nd ON nh.id_nguoi_hien = nd.id_nguoi_dung
+      JOIN nguoidung nd ON nh.id_nguoi_dung = nd.id_nguoi_dung
       WHERE dk.id_su_kien = ?
       ORDER BY dk.ngay_dang_ky DESC`,
       [id]

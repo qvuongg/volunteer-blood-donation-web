@@ -13,9 +13,20 @@ export const registerForEvent = async (req, res, next) => {
       });
     }
 
-    // In the schema, nguoi_hien_mau.id_nguoi_hien is a FK to nguoidung.id_nguoi_dung,
-    // so the logged-in user's id is also the donor id.
-    const donorId = userId;
+    // Get donor id
+    const [donors] = await pool.execute(
+      'SELECT id_nguoi_hien FROM nguoi_hien_mau WHERE id_nguoi_dung = ?',
+      [userId]
+    );
+
+    if (donors.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin người hiến máu.'
+      });
+    }
+
+    const donorId = donors[0].id_nguoi_hien;
 
     // Check if already registered
     const [existing] = await pool.execute(
@@ -30,11 +41,9 @@ export const registerForEvent = async (req, res, next) => {
       });
     }
 
-    // Check if event exists and is approved and not ended
+    // Check if event exists and is approved
     const [events] = await pool.execute(
-      `SELECT id_su_kien, trang_thai, ngay_bat_dau, ngay_ket_thuc 
-       FROM sukien_hien_mau 
-       WHERE id_su_kien = ?`,
+      'SELECT id_su_kien, trang_thai FROM sukien_hien_mau WHERE id_su_kien = ?',
       [id_su_kien]
     );
 
@@ -45,26 +54,10 @@ export const registerForEvent = async (req, res, next) => {
       });
     }
 
-    const event = events[0];
-
-    if (event.trang_thai !== 'da_duyet') {
+    if (events[0].trang_thai !== 'da_duyet') {
       return res.status(400).json({
         success: false,
         message: 'Sự kiện chưa được duyệt.'
-      });
-    }
-
-    // Không cho đăng ký nếu sự kiện đã kết thúc (ngày kết thúc < hôm nay)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const endDate = new Date(event.ngay_ket_thuc || event.ngay_bat_dau);
-    endDate.setHours(0, 0, 0, 0);
-
-    if (endDate < today) {
-      return res.status(400).json({
-        success: false,
-        message: 'Sự kiện đã kết thúc, không thể đăng ký.'
       });
     }
 
@@ -106,8 +99,22 @@ export const getMyRegistrations = async (req, res, next) => {
   try {
     const userId = req.user.id_nguoi_dung;
 
-    // Logged-in user id is donor id (see FK in schema)
-    const donorId = userId;
+    // Get donor id
+    const [donors] = await pool.execute(
+      'SELECT id_nguoi_hien FROM nguoi_hien_mau WHERE id_nguoi_dung = ?',
+      [userId]
+    );
+
+    if (donors.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          registrations: []
+        }
+      });
+    }
+
+    const donorId = donors[0].id_nguoi_hien;
 
     // Get registrations
     const [registrations] = await pool.execute(
