@@ -1,11 +1,41 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import Layout from '../../components/Layout';
 import StatCard from '../../components/StatCard';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import api from '../../services/api';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await api.get('/hospitals/stats');
+      if (response.data.success) {
+        setStats(response.data.data);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <LoadingSpinner fullScreen />
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -19,31 +49,31 @@ const Dashboard = () => {
       <div className="grid grid-cols-4">
         <StatCard
           title="Sự kiện chờ duyệt"
-          value="0"
+          value={stats?.pendingEvents || 0}
           icon="clock"
           color="warning"
           subtitle="Cần xem xét"
         />
         <StatCard
-          title="Sự kiện đã duyệt"
-          value="0"
-          icon="check"
-          color="success"
-          subtitle="Đã phê duyệt"
-        />
-        <StatCard
-          title="Người hiến"
-          value="0"
+          title="Người hiến máu"
+          value={stats?.totalDonors || 0}
           icon="users"
           color="primary"
-          subtitle="Tổng số người"
+          subtitle="Đã tham gia"
         />
         <StatCard
           title="Lượng máu"
-          value="0 ml"
+          value={`${(stats?.bloodCollected || 0).toLocaleString()} ml`}
           icon="droplet"
           color="danger"
           subtitle="Đã thu được"
+        />
+        <StatCard
+          title="Thông báo"
+          value={stats?.notificationsSent || 0}
+          icon="bell"
+          color="success"
+          subtitle="Đã gửi"
         />
       </div>
 

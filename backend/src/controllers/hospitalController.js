@@ -423,3 +423,71 @@ export const getUnconfirmedBloodTypes = async (req, res, next) => {
     next(error);
   }
 };
+
+// Get hospital stats for dashboard
+export const getStats = async (req, res, next) => {
+  try {
+    const userId = req.user.id_nguoi_dung;
+
+    // Get hospital ID
+    const [hospital] = await pool.execute(
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
+      [userId]
+    );
+
+    if (hospital.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin bệnh viện.'
+      });
+    }
+
+    const hospitalId = hospital[0].id_benh_vien;
+
+    // Get pending events count
+    const [pendingEvents] = await pool.execute(
+      `SELECT COUNT(*) as count 
+       FROM sukien_hien_mau 
+       WHERE id_benh_vien = ? AND trang_thai = 'cho_duyet'`,
+      [hospitalId]
+    );
+
+    // Get total donors (from approved registrations)
+    const [totalDonors] = await pool.execute(
+      `SELECT COUNT(DISTINCT dk.id_nguoi_hien) as count
+       FROM dang_ky_hien_mau dk
+       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
+       WHERE sk.id_benh_vien = ? AND dk.trang_thai = 'da_duyet'`,
+      [hospitalId]
+    );
+
+    // Get total blood collected
+    const [bloodCollected] = await pool.execute(
+      `SELECT COALESCE(SUM(kq.luong_ml), 0) as total
+       FROM ket_qua_hien_mau kq
+       JOIN sukien_hien_mau sk ON kq.id_su_kien = sk.id_su_kien
+       WHERE sk.id_benh_vien = ?`,
+      [hospitalId]
+    );
+
+    // Get notifications sent count
+    const [notificationsSent] = await pool.execute(
+      `SELECT COUNT(*) as count
+       FROM thong_bao
+       WHERE id_benh_vien = ?`,
+      [hospitalId]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        pendingEvents: pendingEvents[0].count,
+        totalDonors: totalDonors[0].count,
+        bloodCollected: bloodCollected[0].total,
+        notificationsSent: notificationsSent[0].count
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};

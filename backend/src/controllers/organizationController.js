@@ -323,3 +323,63 @@ export const getEventRegistrations = async (req, res, next) => {
   }
 };
 
+// Get organization stats for dashboard
+export const getStats = async (req, res, next) => {
+  try {
+    const userId = req.user.id_nguoi_dung;
+    const orgId = await getOrganizationId(userId);
+
+    if (!orgId) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin tổ chức.'
+      });
+    }
+
+    // Get total events
+    const [eventCount] = await pool.execute(
+      'SELECT COUNT(*) as count FROM sukien_hien_mau WHERE id_to_chuc = ?',
+      [orgId]
+    );
+
+    // Get pending registrations count
+    const [pendingCount] = await pool.execute(
+      `SELECT COUNT(*) as count 
+       FROM dang_ky_hien_mau dk
+       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
+       WHERE sk.id_to_chuc = ? AND dk.trang_thai = 'cho_duyet'`,
+      [orgId]
+    );
+
+    // Get approved registrations count
+    const [approvedCount] = await pool.execute(
+      `SELECT COUNT(*) as count 
+       FROM dang_ky_hien_mau dk
+       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
+       WHERE sk.id_to_chuc = ? AND dk.trang_thai = 'da_duyet'`,
+      [orgId]
+    );
+
+    // Get total participants (all registrations)
+    const [participantCount] = await pool.execute(
+      `SELECT COUNT(DISTINCT dk.id_nguoi_hien) as count 
+       FROM dang_ky_hien_mau dk
+       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
+       WHERE sk.id_to_chuc = ?`,
+      [orgId]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        totalEvents: eventCount[0].count,
+        pendingApprovals: pendingCount[0].count,
+        approvedRegistrations: approvedCount[0].count,
+        totalParticipants: participantCount[0].count
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

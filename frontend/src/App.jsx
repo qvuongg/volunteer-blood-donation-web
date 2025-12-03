@@ -24,6 +24,11 @@ import HospitalResultUpdate from './pages/hospital/ResultUpdate';
 import HospitalNotificationCreate from './pages/hospital/NotificationCreate';
 import VolunteerDashboard from './pages/volunteer/Dashboard';
 import AdminDashboard from './pages/admin/Dashboard';
+import AdminUsers from './pages/admin/Users';
+import AdminEvents from './pages/admin/Events';
+import AdminRegistrations from './pages/admin/Registrations';
+import AdminReports from './pages/admin/Reports';
+import AdminSettings from './pages/admin/Settings';
 import './App.css';
 
 function App() {
@@ -194,6 +199,46 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/users" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminUsers />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/events" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminEvents />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/registrations" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminRegistrations />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/reports" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminReports />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/settings" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminSettings />
               </ProtectedRoute>
             } 
           />

@@ -7,13 +7,17 @@ import {
   createResult,
   createNotification,
   getUnconfirmedBloodTypes,
-  confirmBloodType
+  confirmBloodType,
+  getStats
 } from '../controllers/hospitalController.js';
 
 const router = express.Router();
 
 router.use(authenticate);
 router.use(authorize('benh_vien'));
+
+// Stats route
+router.get('/stats', getStats);
 
 router.get('/events/pending', getPendingEvents);
 router.put('/events/:id/status', updateEventStatus);

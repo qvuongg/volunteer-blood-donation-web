@@ -1,6 +1,16 @@
 import express from 'express';
 import { body } from 'express-validator';
-import { register, login, getMe, getProfile, forgotPassword, verifyOTP, resetPassword } from '../controllers/authController.js';
+import { 
+  register, 
+  login, 
+  getMe, 
+  getProfile, 
+  forgotPassword, 
+  verifyOTP, 
+  resetPassword,
+  sendRegistrationOTP,
+  verifyRegistrationOTP
+} from '../controllers/authController.js';
 import { authenticate } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -20,8 +30,12 @@ const loginValidation = [
   body('mat_khau').notEmpty().withMessage('Mật khẩu là bắt buộc')
 ];
 
-// Routes
+// Registration routes with OTP
+router.post('/send-registration-otp', sendRegistrationOTP);
+router.post('/verify-registration-otp', verifyRegistrationOTP);
 router.post('/register', registerValidation, register);
+
+// Login routes
 router.post('/login', loginValidation, login);
 router.get('/me', authenticate, getMe);
 router.get('/profile', authenticate, getProfile);

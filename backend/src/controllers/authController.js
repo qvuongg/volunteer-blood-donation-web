@@ -450,3 +450,111 @@ export const resetPassword = async (req, res, next) => {
   }
 };
 
+// Send OTP for registration
+export const sendRegistrationOTP = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng cung cấp email.'
+      });
+    }
+
+    // Check if email already exists
+    const [existingUsers] = await pool.execute(
+      'SELECT id_nguoi_dung FROM nguoidung WHERE email = ?',
+      [email]
+    );
+
+    if (existingUsers.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email đã được sử dụng.'
+      });
+    }
+
+    // Generate OTP
+    const otp = generateOTP();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    // Delete old OTPs for this email
+    await pool.execute(
+      'DELETE FROM otp_codes WHERE email = ?',
+      [email]
+    );
+
+    // Save OTP to database
+    await pool.execute(
+      'INSERT INTO otp_codes (email, otp, expires_at) VALUES (?, ?, ?)',
+      [email, otp, expiresAt]
+    );
+
+    // Send OTP email
+    await sendOTPEmail(email, otp, 'registration');
+
+    console.log(`📧 Registration OTP sent to ${email}: ${otp}`);
+
+    res.json({
+      success: true,
+      message: 'Mã OTP đã được gửi đến email của bạn.'
+    });
+  } catch (error) {
+    console.error('❌ Send registration OTP error:', error);
+    next(error);
+  }
+};
+
+// Verify OTP for registration
+export const verifyRegistrationOTP = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng cung cấp email và mã OTP.'
+      });
+    }
+
+    // Find OTP
+    const [otpRecords] = await pool.execute(
+      'SELECT * FROM otp_codes WHERE email = ? AND otp = ? AND used = FALSE ORDER BY created_at DESC LIMIT 1',
+      [email, otp]
+    );
+
+    if (otpRecords.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mã OTP không hợp lệ hoặc đã được sử dụng.'
+      });
+    }
+
+    // Check if expired
+    const now = new Date();
+    const expiresAt = new Date(otpRecords[0].expires_at);
+
+    if (now > expiresAt) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mã OTP đã hết hạn. Vui lòng yêu cầu mã mới.'
+      });
+    }
+
+    // Mark OTP as used
+    await pool.execute(
+      'UPDATE otp_codes SET used = TRUE WHERE id = ?',
+      [otpRecords[0].id]
+    );
+
+    res.json({
+      success: true,
+      message: 'Xác thực OTP thành công. Vui lòng hoàn tất đăng ký.'
+    });
+  } catch (error) {
+    console.error('❌ Verify registration OTP error:', error);
+    next(error);
+  }
+};
+

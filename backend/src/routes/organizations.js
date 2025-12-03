@@ -5,7 +5,8 @@ import {
   createEvent,
   updateEvent,
   deleteEvent,
-  getEventRegistrations
+  getEventRegistrations,
+  getStats
 } from '../controllers/organizationController.js';
 
 const router = express.Router();
@@ -13,6 +14,9 @@ const router = express.Router();
 // All routes require authentication
 router.use(authenticate);
 router.use(authorize('to_chuc'));
+
+// Stats route
+router.get('/stats', getStats);
 
 // Event routes
 router.get('/events', getMyEvents);
