@@ -3,7 +3,7 @@ import pool from '../config/database.js';
 // Get organization info for current user
 const getOrganizationId = async (userId) => {
   const [orgs] = await pool.execute(
-    'SELECT id_to_chuc FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_dung = ?',
+    'SELECT id_to_chuc FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_phu_trach = ?',
     [userId]
   );
   return orgs.length > 0 ? orgs[0].id_to_chuc : null;
@@ -263,6 +263,77 @@ export const deleteEvent = async (req, res, next) => {
   }
 };
 
+// Get event detail
+export const getEventDetail = async (req, res, next) => {
+  try {
+    const userId = req.user.id_nguoi_dung;
+    const { id } = req.params;
+    const orgId = await getOrganizationId(userId);
+
+    if (!orgId) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin tổ chức.'
+      });
+    }
+
+    // Check if event belongs to organization
+    const [events] = await pool.execute(
+      `SELECT 
+        sk.id_su_kien,
+        sk.ten_su_kien,
+        sk.ngay_bat_dau,
+        sk.ngay_ket_thuc,
+        sk.so_luong_du_kien,
+        sk.trang_thai,
+        sk.ten_dia_diem,
+        sk.dia_chi,
+        bv.id_benh_vien,
+        bv.ten_benh_vien,
+        tc.ten_don_vi
+      FROM sukien_hien_mau sk
+      JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
+      JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
+      WHERE sk.id_su_kien = ? AND sk.id_to_chuc = ?`,
+      [id, orgId]
+    );
+
+    if (events.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sự kiện không tồn tại hoặc không thuộc tổ chức của bạn.'
+      });
+    }
+
+    // Get registration counts
+    const [counts] = await pool.execute(
+      `SELECT 
+        COUNT(*) as total,
+        SUM(CASE WHEN trang_thai = 'cho_duyet' THEN 1 ELSE 0 END) as pending,
+        SUM(CASE WHEN trang_thai = 'da_duyet' THEN 1 ELSE 0 END) as approved,
+        SUM(CASE WHEN trang_thai = 'tu_choi' THEN 1 ELSE 0 END) as rejected
+      FROM dang_ky_hien_mau
+      WHERE id_su_kien = ?`,
+      [id]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        event: events[0],
+        registrations: {
+          total: counts[0].total || 0,
+          pending: counts[0].pending || 0,
+          approved: counts[0].approved || 0,
+          rejected: counts[0].rejected || 0
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Get event registrations
 export const getEventRegistrations = async (req, res, next) => {
   try {
@@ -306,7 +377,7 @@ export const getEventRegistrations = async (req, res, next) => {
         nd.ngay_sinh
       FROM dang_ky_hien_mau dk
       JOIN nguoi_hien_mau nh ON dk.id_nguoi_hien = nh.id_nguoi_hien
-      JOIN nguoidung nd ON nh.id_nguoi_dung = nd.id_nguoi_dung
+      JOIN nguoidung nd ON nh.id_nguoi_hien = nd.id_nguoi_dung
       WHERE dk.id_su_kien = ?
       ORDER BY dk.ngay_dang_ky DESC`,
       [id]

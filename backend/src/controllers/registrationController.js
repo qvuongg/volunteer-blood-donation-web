@@ -13,9 +13,9 @@ export const registerForEvent = async (req, res, next) => {
       });
     }
 
-    // Get donor id
+    // Get donor id - id_nguoi_hien is the primary key and equals id_nguoi_dung
     const [donors] = await pool.execute(
-      'SELECT id_nguoi_hien FROM nguoi_hien_mau WHERE id_nguoi_dung = ?',
+      'SELECT id_nguoi_hien FROM nguoi_hien_mau WHERE id_nguoi_hien = ?',
       [userId]
     );
 
@@ -99,9 +99,9 @@ export const getMyRegistrations = async (req, res, next) => {
   try {
     const userId = req.user.id_nguoi_dung;
 
-    // Get donor id
+    // Get donor id - id_nguoi_hien is the primary key and equals id_nguoi_dung
     const [donors] = await pool.execute(
-      'SELECT id_nguoi_hien FROM nguoi_hien_mau WHERE id_nguoi_dung = ?',
+      'SELECT id_nguoi_hien FROM nguoi_hien_mau WHERE id_nguoi_hien = ?',
       [userId]
     );
 

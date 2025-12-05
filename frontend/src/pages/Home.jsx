@@ -87,8 +87,8 @@ const Home = () => {
                 fontSize: 'var(--font-size-lg)'
               }}
             >
-              Đăng nhập
-            </button>
+            Đăng nhập
+          </button>
           </div>
         </div>
 
@@ -250,7 +250,7 @@ const Home = () => {
                     {role.desc}
                   </p>
                 </div>
-              </div>
+          </div>
             ))}
           </div>
         </div>

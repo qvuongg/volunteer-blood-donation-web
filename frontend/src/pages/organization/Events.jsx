@@ -36,6 +36,21 @@ const Events = () => {
     return <span className={`badge ${statusInfo.class}`}>{statusInfo.label}</span>;
   };
 
+  const handleDelete = async (id, name) => {
+    if (!window.confirm(`Bạn có chắc muốn xóa sự kiện "${name}"?`)) {
+      return;
+    }
+
+    try {
+      await api.delete(`/organizations/events/${id}`);
+      alert('Xóa sự kiện thành công!');
+      fetchEvents();
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Có lỗi xảy ra: ' + (error.response?.data?.message || error.message));
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -76,21 +91,57 @@ const Events = () => {
                   <h3 style={{ margin: 0, fontSize: 'var(--font-size-lg)' }}>{event.ten_su_kien}</h3>
                   {getStatusBadge(event.trang_thai)}
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
                   <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-                    Ngày: {new Date(event.ngay_bat_dau).toLocaleDateString('vi-VN')}
+                    <strong>Bệnh viện:</strong> {event.ten_benh_vien}
                   </div>
                   <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-                    Số lượng: {event.so_luong_du_kien || 0} người
+                    <strong>Ngày:</strong> {new Date(event.ngay_bat_dau).toLocaleDateString('vi-VN')}
+                    {event.ngay_ket_thuc && ` - ${new Date(event.ngay_ket_thuc).toLocaleDateString('vi-VN')}`}
                   </div>
+                  <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                    <strong>Địa điểm:</strong> {event.ten_dia_diem}
+                  </div>
+                  {event.so_luong_du_kien && (
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                      <strong>Số lượng dự kiến:</strong> {event.so_luong_du_kien} người
+                    </div>
+                  )}
                 </div>
-                <button
-                  className="btn btn-outline btn-sm"
-                  style={{ width: '100%', marginTop: 'var(--spacing-md)' }}
-                  onClick={() => navigate(`/organization/events/${event.id_su_kien}/registrations`)}
-                >
-                Xem đăng ký
-              </button>
+                <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    style={{ flex: 1 }}
+                    onClick={() => navigate(`/organization/events/${event.id_su_kien}`)}
+                  >
+                    Chi tiết
+                  </button>
+                  <button
+                    className="btn btn-outline btn-sm"
+                    style={{ flex: 1 }}
+                    onClick={() => navigate(`/organization/events/${event.id_su_kien}/registrations`)}
+                  >
+                    Đăng ký
+                  </button>
+                </div>
+                {event.trang_thai === 'cho_duyet' && (
+                  <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-sm)' }}>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      style={{ flex: 1 }}
+                      onClick={() => navigate(`/organization/events/${event.id_su_kien}/edit`)}
+                    >
+                      Sửa
+                    </button>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      style={{ flex: 1 }}
+                      onClick={() => handleDelete(event.id_su_kien, event.ten_su_kien)}
+                    >
+                      Xóa
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

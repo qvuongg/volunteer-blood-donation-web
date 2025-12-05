@@ -4,8 +4,10 @@ import bcrypt from 'bcrypt';
 // Get all users with pagination and filters
 export const getUsers = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, role, status, search } = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit) || 10);
     const offset = (page - 1) * limit;
+    const { role, status, search } = req.query;
 
     let whereConditions = [];
     let queryParams = [];
@@ -17,7 +19,7 @@ export const getUsers = async (req, res, next) => {
     }
 
     // Filter by status
-    if (status !== undefined) {
+    if (status !== undefined && status !== '') {
       whereConditions.push('nd.trang_thai = ?');
       queryParams.push(status === 'true' || status === '1' ? 1 : 0);
     }
@@ -41,7 +43,8 @@ export const getUsers = async (req, res, next) => {
 
     const total = countResult[0].total;
 
-    // Get paginated users
+    // Get paginated users - Use template literal for LIMIT/OFFSET to avoid prepared statement issues
+    const limitOffsetClause = `LIMIT ${limit} OFFSET ${offset}`;
     const [users] = await pool.execute(
       `SELECT 
         nd.id_nguoi_dung,
@@ -57,8 +60,8 @@ export const getUsers = async (req, res, next) => {
       JOIN vaitro vt ON nd.id_vai_tro = vt.id_vai_tro
       ${whereClause}
       ORDER BY nd.ngay_tao DESC
-      LIMIT ? OFFSET ?`,
-      [...queryParams, parseInt(limit), parseInt(offset)]
+      ${limitOffsetClause}`,
+      queryParams
     );
 
     res.json({
@@ -66,8 +69,8 @@ export const getUsers = async (req, res, next) => {
       data: {
         users,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page,
+          limit,
           total,
           totalPages: Math.ceil(total / limit)
         }
@@ -188,8 +191,10 @@ export const getStats = async (req, res, next) => {
 // Get all events with pagination and filters
 export const getEvents = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, status, organization, hospital, search } = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit) || 10);
     const offset = (page - 1) * limit;
+    const { status, organization, hospital, search } = req.query;
 
     let whereConditions = [];
     let queryParams = [];
@@ -224,7 +229,8 @@ export const getEvents = async (req, res, next) => {
 
     const total = countResult[0].total;
 
-    // Get events with registration count
+    // Get events with registration count - Use template literal for LIMIT/OFFSET
+    const limitOffsetClause = `LIMIT ${limit} OFFSET ${offset}`;
     const [events] = await pool.execute(
       `SELECT 
         sk.*,
@@ -238,8 +244,8 @@ export const getEvents = async (req, res, next) => {
       ${whereClause}
       GROUP BY sk.id_su_kien
       ORDER BY sk.ngay_bat_dau DESC
-      LIMIT ? OFFSET ?`,
-      [...queryParams, parseInt(limit), parseInt(offset)]
+      ${limitOffsetClause}`,
+      queryParams
     );
 
     res.json({
@@ -247,8 +253,8 @@ export const getEvents = async (req, res, next) => {
       data: {
         events,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page,
+          limit,
           total,
           totalPages: Math.ceil(total / limit)
         }
@@ -262,8 +268,10 @@ export const getEvents = async (req, res, next) => {
 // Get all registrations with pagination and filters
 export const getRegistrations = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, status, event, donor } = req.query;
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit) || 10);
     const offset = (page - 1) * limit;
+    const { status, event, donor } = req.query;
 
     let whereConditions = [];
     let queryParams = [];
@@ -293,7 +301,8 @@ export const getRegistrations = async (req, res, next) => {
 
     const total = countResult[0].total;
 
-    // Get registrations
+    // Get registrations - Use template literal for LIMIT/OFFSET
+    const limitOffsetClause = `LIMIT ${limit} OFFSET ${offset}`;
     const [registrations] = await pool.execute(
       `SELECT 
         dk.*,
@@ -310,8 +319,8 @@ export const getRegistrations = async (req, res, next) => {
       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
       ${whereClause}
       ORDER BY dk.ngay_dang_ky DESC
-      LIMIT ? OFFSET ?`,
-      [...queryParams, parseInt(limit), parseInt(offset)]
+      ${limitOffsetClause}`,
+      queryParams
     );
 
     res.json({
@@ -319,8 +328,8 @@ export const getRegistrations = async (req, res, next) => {
       data: {
         registrations,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page,
+          limit,
           total,
           totalPages: Math.ceil(total / limit)
         }

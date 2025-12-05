@@ -2,12 +2,14 @@ import express from 'express';
 import { authenticate, authorize } from '../middleware/auth.js';
 import {
   getMyEvents,
+  getEventDetail,
   createEvent,
   updateEvent,
   deleteEvent,
   getEventRegistrations,
   getStats
 } from '../controllers/organizationController.js';
+import pool from '../config/database.js';
 
 const router = express.Router();
 
@@ -18,8 +20,24 @@ router.use(authorize('to_chuc'));
 // Stats route
 router.get('/stats', getStats);
 
+// Get hospitals list for event creation
+router.get('/hospitals', async (req, res, next) => {
+  try {
+    const [hospitals] = await pool.execute(
+      'SELECT id_benh_vien, ten_benh_vien FROM benh_vien ORDER BY ten_benh_vien'
+    );
+    res.json({
+      success: true,
+      data: { hospitals }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Event routes
 router.get('/events', getMyEvents);
+router.get('/events/:id', getEventDetail);
 router.post('/events', createEvent);
 router.put('/events/:id', updateEvent);
 router.delete('/events/:id', deleteEvent);

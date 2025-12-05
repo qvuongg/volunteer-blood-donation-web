@@ -2,6 +2,7 @@ import express from 'express';
 import { authenticate, authorize } from '../middleware/auth.js';
 import {
   getPendingEvents,
+  getApprovedEvents,
   updateEventStatus,
   getApprovedRegistrations,
   createResult,
@@ -20,6 +21,7 @@ router.use(authorize('benh_vien'));
 router.get('/stats', getStats);
 
 router.get('/events/pending', getPendingEvents);
+router.get('/events/approved', getApprovedEvents);
 router.put('/events/:id/status', updateEventStatus);
 router.get('/events/:id/registrations', getApprovedRegistrations);
 router.post('/results', createResult);

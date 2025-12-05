@@ -245,8 +245,8 @@ INSERT INTO nguoi_phu_trach_benh_vien (id_nguoi_phu_trach, id_benh_vien, chuc_vu
 -- User 3: Đã hiến 5 lần, nhóm máu đã được xác thực bởi User 7 (id_nguoi_phu_trach = 7)
 -- User 4: Đã hiến 2 lần, nhưng nhóm máu chưa được xác thực chính thức (tự khai báo)
 INSERT INTO nguoi_hien_mau (id_nguoi_hien, nhom_mau, lan_hien_gan_nhat, tong_so_lan_hien, nhom_mau_xac_nhan, ngay_xac_nhan, id_nguoi_phu_trach_benh_vien, ghi_chu_xac_nhan) VALUES
-(2, 'O', '2024-01-15', 3, TRUE, '2024-01-15', 7, 'Xác thực nhóm máu qua xét nghiệm tại BV Đa Khoa Đà Nẵng'),
-(3, 'A', '2024-02-20', 5, TRUE, '2024-01-10', 7, 'Xác thực nhóm máu qua xét nghiệm tại BV Đa Khoa Đà Nẵng'),
+(2, 'O', '2024-01-15', 1, TRUE, '2024-01-15', 7, 'Xác thực nhóm máu qua xét nghiệm tại BV Đa Khoa Đà Nẵng'),
+(3, 'A', '2024-02-20', 1, TRUE, '2024-01-10', 7, 'Xác thực nhóm máu qua xét nghiệm tại BV Đa Khoa Đà Nẵng'),
 (4, 'B', '2023-12-10', 1, FALSE, NULL, NULL, NULL);
 
 -- Insert nhóm tình nguyện

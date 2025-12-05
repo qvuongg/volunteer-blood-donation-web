@@ -7,7 +7,7 @@ export const getPendingEvents = async (req, res, next) => {
 
     // Get hospital ID from user
     const [hospital] = await pool.execute(
-      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
       [userId]
     );
 
@@ -39,6 +39,45 @@ export const getPendingEvents = async (req, res, next) => {
   }
 };
 
+// Get approved events for hospital
+export const getApprovedEvents = async (req, res, next) => {
+  try {
+    const userId = req.user.id_nguoi_dung;
+
+    // Get hospital ID from user
+    const [hospital] = await pool.execute(
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
+      [userId]
+    );
+
+    if (hospital.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin bệnh viện.'
+      });
+    }
+
+    const hospitalId = hospital[0].id_benh_vien;
+
+    // Get approved events
+    const [events] = await pool.execute(
+      `SELECT sk.*, tc.ten_don_vi
+      FROM sukien_hien_mau sk
+      JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
+      WHERE sk.id_benh_vien = ? AND sk.trang_thai = 'da_duyet'
+      ORDER BY sk.ngay_bat_dau DESC`,
+      [hospitalId]
+    );
+
+    res.json({
+      success: true,
+      data: { events }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Approve event
 export const approveEvent = async (req, res, next) => {
   try {
@@ -47,7 +86,7 @@ export const approveEvent = async (req, res, next) => {
 
     // Get coordinator ID
     const [coordinator] = await pool.execute(
-      'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
       [userId]
     );
 
@@ -83,7 +122,7 @@ export const getEventParticipants = async (req, res, next) => {
 
     // Get hospital ID
     const [hospital] = await pool.execute(
-      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
       [userId]
     );
 
@@ -112,7 +151,7 @@ export const getEventParticipants = async (req, res, next) => {
         sk.ten_su_kien
       FROM dang_ky_hien_mau dk
       JOIN nguoi_hien_mau nh ON dk.id_nguoi_hien = nh.id_nguoi_hien
-      JOIN nguoidung nd ON nh.id_nguoi_dung = nd.id_nguoi_dung
+      JOIN nguoidung nd ON nh.id_nguoi_hien = nd.id_nguoi_dung
       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
       WHERE dk.id_su_kien = ? AND dk.trang_thai = 'da_duyet' AND sk.id_benh_vien = ?
       ORDER BY dk.ngay_dang_ky DESC`,
@@ -152,7 +191,7 @@ export const confirmBloodType = async (req, res, next) => {
 
     // Get hospital ID
     const [hospital] = await pool.execute(
-      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
       [userId]
     );
 
@@ -165,24 +204,40 @@ export const confirmBloodType = async (req, res, next) => {
 
     const hospitalId = hospital[0].id_benh_vien;
 
+    // Get coordinator ID for confirmation
+    const [coordinator] = await pool.execute(
+      'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
+      [userId]
+    );
+
+    if (coordinator.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy thông tin người phụ trách.'
+      });
+    }
+
+    const coordinatorId = coordinator[0].id_nguoi_phu_trach;
+
     // Update blood type with confirmation
     await pool.execute(
       `UPDATE nguoi_hien_mau 
        SET nhom_mau = ?,
            nhom_mau_xac_nhan = TRUE,
            ngay_xac_nhan = CURDATE(),
-           id_benh_vien_xac_nhan = ?,
+           id_nguoi_phu_trach_benh_vien = ?,
            ghi_chu_xac_nhan = ?
        WHERE id_nguoi_hien = ?`,
-      [nhom_mau, hospitalId, ghi_chu || 'Xác thực nhóm máu qua xét nghiệm', id_nguoi_hien]
+      [nhom_mau, coordinatorId, ghi_chu || 'Xác thực nhóm máu qua xét nghiệm', id_nguoi_hien]
     );
 
     // Get updated donor info
     const [donor] = await pool.execute(
       `SELECT nh.*, nd.ho_ten, bv.ten_benh_vien
        FROM nguoi_hien_mau nh
-       JOIN nguoidung nd ON nh.id_nguoi_dung = nd.id_nguoi_dung
-       LEFT JOIN benh_vien bv ON nh.id_benh_vien_xac_nhan = bv.id_benh_vien
+       JOIN nguoidung nd ON nh.id_nguoi_hien = nd.id_nguoi_dung
+       LEFT JOIN nguoi_phu_trach_benh_vien nptbv ON nh.id_nguoi_phu_trach_benh_vien = nptbv.id_nguoi_phu_trach
+       LEFT JOIN benh_vien bv ON nptbv.id_benh_vien = bv.id_benh_vien
        WHERE nh.id_nguoi_hien = ?`,
       [id_nguoi_hien]
     );
@@ -206,7 +261,7 @@ export const updateEventStatus = async (req, res, next) => {
 
     // Get coordinator ID
     const [coordinator] = await pool.execute(
-      'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
       [userId]
     );
 
@@ -241,7 +296,7 @@ export const getApprovedRegistrations = async (req, res, next) => {
 
     // Get hospital ID
     const [hospital] = await pool.execute(
-      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
       [userId]
     );
 
@@ -266,7 +321,7 @@ export const getApprovedRegistrations = async (req, res, next) => {
         nh.nhom_mau_xac_nhan
       FROM dang_ky_hien_mau dk
       JOIN nguoi_hien_mau nh ON dk.id_nguoi_hien = nh.id_nguoi_hien
-      JOIN nguoidung nd ON nh.id_nguoi_dung = nd.id_nguoi_dung
+      JOIN nguoidung nd ON nh.id_nguoi_hien = nd.id_nguoi_dung
       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
       WHERE dk.id_su_kien = ? AND dk.trang_thai = 'da_duyet' AND sk.id_benh_vien = ?
       ORDER BY dk.ngay_dang_ky DESC`,
@@ -290,7 +345,7 @@ export const createResult = async (req, res, next) => {
 
     // Get hospital ID
     const [hospital] = await pool.execute(
-      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
       [userId]
     );
 
@@ -336,7 +391,7 @@ export const createNotification = async (req, res, next) => {
 
     // Get hospital ID
     const [hospital] = await pool.execute(
-      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
       [userId]
     );
 
@@ -374,7 +429,7 @@ export const getUnconfirmedBloodTypes = async (req, res, next) => {
 
     // Get hospital ID
     const [hospital] = await pool.execute(
-      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_dung = ?',
+      'SELECT id_benh_vien FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
       [userId]
     );
 
@@ -400,7 +455,7 @@ export const getUnconfirmedBloodTypes = async (req, res, next) => {
         nd.so_dien_thoai,
         nh.lan_hien_gan_nhat as ngay_hien_gan_nhat
       FROM nguoi_hien_mau nh
-      JOIN nguoidung nd ON nh.id_nguoi_dung = nd.id_nguoi_dung
+      JOIN nguoidung nd ON nh.id_nguoi_hien = nd.id_nguoi_dung
       JOIN dang_ky_hien_mau dk ON nh.id_nguoi_hien = dk.id_nguoi_hien
       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
       WHERE nh.nhom_mau_xac_nhan = FALSE 

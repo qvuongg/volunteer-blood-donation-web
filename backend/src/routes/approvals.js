@@ -1,12 +1,19 @@
 import express from 'express';
 import { authenticate, authorize } from '../middleware/auth.js';
-import { approveRegistration, rejectRegistration } from '../controllers/approvalController.js';
+import { 
+  getPendingRegistrations,
+  approveRegistration, 
+  rejectRegistration 
+} from '../controllers/approvalController.js';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authenticate);
 router.use(authorize('to_chuc'));
+
+// Get pending registrations
+router.get('/pending', getPendingRegistrations);
 
 // Approval routes
 router.put('/registrations/:id/approve', approveRegistration);

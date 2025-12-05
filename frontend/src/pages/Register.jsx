@@ -79,7 +79,7 @@ const Register = () => {
       if (response.data.success) {
         setStep(3);
         setTimeout(() => {
-          navigate('/login', { state: { message: 'Đăng ký thành công! Vui lòng đăng nhập.' } });
+        navigate('/login', { state: { message: 'Đăng ký thành công! Vui lòng đăng nhập.' } });
         }, 2000);
       }
     } catch (err) {
@@ -150,131 +150,131 @@ const Register = () => {
           }} />
         </div>
 
-        {error && (
+      {error && (
           <div className="alert alert-danger">
-            {error}
-          </div>
-        )}
+          {error}
+        </div>
+      )}
 
         {step === 1 && (
           <form onSubmit={handleSendOTP} className="auth-form">
-            <div className="grid grid-cols-2">
-              <div className="form-group">
-                <label htmlFor="ho_ten" className="form-label">Họ tên *</label>
-                <input
-                  type="text"
-                  id="ho_ten"
-                  name="ho_ten"
-                  value={formData.ho_ten}
-                  onChange={handleChange}
-                  required
-                  className="form-input"
-                  placeholder="Nguyễn Văn A"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="email" className="form-label">Email *</label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="form-input"
-                  placeholder="email@example.com"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2">
-              <div className="form-group">
-                <label htmlFor="mat_khau" className="form-label">Mật khẩu *</label>
-                <input
-                  type="password"
-                  id="mat_khau"
-                  name="mat_khau"
-                  value={formData.mat_khau}
-                  onChange={handleChange}
-                  required
-                  minLength="6"
-                  className="form-input"
-                  placeholder="Tối thiểu 6 ký tự"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="so_dien_thoai" className="form-label">Số điện thoại</label>
-                <input
-                  type="tel"
-                  id="so_dien_thoai"
-                  name="so_dien_thoai"
-                  value={formData.so_dien_thoai}
-                  onChange={handleChange}
-                  className="form-input"
-                  placeholder="0123456789"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2">
-              <div className="form-group">
-                <label htmlFor="gioi_tinh" className="form-label">Giới tính *</label>
-                <select
-                  id="gioi_tinh"
-                  name="gioi_tinh"
-                  value={formData.gioi_tinh}
-                  onChange={handleChange}
-                  required
-                  className="form-input"
-                >
-                  <option value="Nam">Nam</option>
-                  <option value="Nu">Nữ</option>
-                  <option value="Khac">Khác</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="ngay_sinh" className="form-label">Ngày sinh *</label>
-                <input
-                  type="date"
-                  id="ngay_sinh"
-                  name="ngay_sinh"
-                  value={formData.ngay_sinh}
-                  onChange={handleChange}
-                  required
-                  className="form-input"
-                />
-              </div>
-            </div>
+          <div className="grid grid-cols-2">
+            <div className="form-group">
+              <label htmlFor="ho_ten" className="form-label">Họ tên *</label>
+          <input
+            type="text"
+            id="ho_ten"
+            name="ho_ten"
+            value={formData.ho_ten}
+            onChange={handleChange}
+            required
+                className="form-input"
+                placeholder="Nguyễn Văn A"
+          />
+        </div>
 
             <div className="form-group">
-              <label htmlFor="id_vai_tro" className="form-label">Vai trò *</label>
-              <select
-                id="id_vai_tro"
-                name="id_vai_tro"
-                value={formData.id_vai_tro}
-                onChange={handleChange}
-                required
+              <label htmlFor="email" className="form-label">Email *</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            required
                 className="form-input"
-              >
+                placeholder="email@example.com"
+          />
+        </div>
+          </div>
+
+          <div className="grid grid-cols-2">
+            <div className="form-group">
+              <label htmlFor="mat_khau" className="form-label">Mật khẩu *</label>
+          <input
+            type="password"
+            id="mat_khau"
+            name="mat_khau"
+            value={formData.mat_khau}
+            onChange={handleChange}
+            required
+                  minLength="6"
+                className="form-input"
+                  placeholder="Tối thiểu 6 ký tự"
+          />
+        </div>
+
+            <div className="form-group">
+              <label htmlFor="so_dien_thoai" className="form-label">Số điện thoại</label>
+          <input
+            type="tel"
+            id="so_dien_thoai"
+            name="so_dien_thoai"
+            value={formData.so_dien_thoai}
+            onChange={handleChange}
+                className="form-input"
+                  placeholder="0123456789"
+          />
+        </div>
+          </div>
+
+          <div className="grid grid-cols-2">
+            <div className="form-group">
+              <label htmlFor="gioi_tinh" className="form-label">Giới tính *</label>
+          <select
+            id="gioi_tinh"
+            name="gioi_tinh"
+            value={formData.gioi_tinh}
+            onChange={handleChange}
+            required
+                  className="form-input"
+          >
+            <option value="Nam">Nam</option>
+            <option value="Nu">Nữ</option>
+            <option value="Khac">Khác</option>
+          </select>
+        </div>
+
+            <div className="form-group">
+              <label htmlFor="ngay_sinh" className="form-label">Ngày sinh *</label>
+          <input
+            type="date"
+            id="ngay_sinh"
+            name="ngay_sinh"
+            value={formData.ngay_sinh}
+            onChange={handleChange}
+            required
+                className="form-input"
+          />
+        </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="id_vai_tro" className="form-label">Vai trò *</label>
+          <select
+            id="id_vai_tro"
+            name="id_vai_tro"
+            value={formData.id_vai_tro}
+            onChange={handleChange}
+            required
+                className="form-input"
+          >
                 <option value="1">Người hiến máu</option>
                 <option value="2">Tổ chức</option>
                 <option value="3">Bệnh viện</option>
                 <option value="4">Nhóm tình nguyện</option>
-              </select>
-            </div>
+          </select>
+        </div>
 
-            <button
-              type="submit"
-              disabled={loading}
+        <button
+          type="submit"
+          disabled={loading}
               className="btn btn-primary btn-block"
-            >
+        >
               {loading ? <LoadingSpinner size="small" /> : 'Tiếp tục'}
-            </button>
+        </button>
 
-            <div className="auth-footer">
+        <div className="auth-footer">
               <span>Đã có tài khoản?</span>
               <Link to="/login" className="auth-link">Đăng nhập ngay</Link>
             </div>
@@ -340,7 +340,7 @@ const Register = () => {
               >
                 ← Quay lại
               </button>
-            </div>
+        </div>
           </form>
         )}
       </div>

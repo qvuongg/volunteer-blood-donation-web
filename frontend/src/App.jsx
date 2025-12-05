@@ -15,6 +15,9 @@ import DonorHistory from './pages/donor/History';
 import OrgDashboard from './pages/organization/Dashboard';
 import OrgEvents from './pages/organization/Events';
 import OrgApprovals from './pages/organization/Approvals';
+import EventForm from './pages/organization/EventForm';
+import EventDetail from './pages/organization/EventDetail';
+import EventRegistrations from './pages/organization/EventRegistrations';
 import HospitalDashboard from './pages/hospital/Dashboard';
 import HospitalProfile from './pages/hospital/Profile';
 import HospitalBloodTypeConfirmation from './pages/hospital/BloodTypeConfirmation';
@@ -113,6 +116,38 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['to_chuc']}>
                 <OrgEvents />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/organization/events/new" 
+            element={
+              <ProtectedRoute allowedRoles={['to_chuc']}>
+                <EventForm />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/organization/events/:id" 
+            element={
+              <ProtectedRoute allowedRoles={['to_chuc']}>
+                <EventDetail />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/organization/events/:id/edit" 
+            element={
+              <ProtectedRoute allowedRoles={['to_chuc']}>
+                <EventForm />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/organization/events/:id/registrations" 
+            element={
+              <ProtectedRoute allowedRoles={['to_chuc']}>
+                <EventRegistrations />
               </ProtectedRoute>
             } 
           />

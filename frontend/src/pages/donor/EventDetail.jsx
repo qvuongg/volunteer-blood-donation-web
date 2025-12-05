@@ -258,9 +258,9 @@ const EventDetail = () => {
       </div>
 
           <div style={{ display: 'flex', gap: 'var(--spacing-md)', paddingTop: 'var(--spacing-xl)', borderTop: '1px solid var(--gray-200)' }}>
-            <button
+          <button
               className="btn btn-primary"
-              onClick={handleRegister}
+            onClick={handleRegister}
               disabled={registering || !canRegister}
             >
               {registering ? (
@@ -276,7 +276,7 @@ const EventDetail = () => {
                   Đăng ký hiến máu
                 </>
               )}
-            </button>
+          </button>
             {isRegistered && (
               <p style={{ color: 'var(--primary-600)', fontSize: 'var(--font-size-sm)', margin: 0, display: 'flex', alignItems: 'center' }}>
                 Bạn đã đăng ký sự kiện này.
