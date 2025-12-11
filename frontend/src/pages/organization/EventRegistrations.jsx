@@ -216,3 +216,7 @@ const EventRegistrations = () => {
 
 export default EventRegistrations;
 
+
+
+
+
