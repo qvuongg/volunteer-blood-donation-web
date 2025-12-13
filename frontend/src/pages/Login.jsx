@@ -36,7 +36,7 @@ const Login = () => {
         
         switch (role) {
           case 'nguoi_hien':
-            navigate('/donor/dashboard');
+            navigate('/');
             break;
           case 'to_chuc':
             navigate('/organization/dashboard');

@@ -10,10 +10,12 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchProfile();
+    fetchUpcomingEvents();
   }, []);
 
   const fetchProfile = async () => {
@@ -26,6 +28,17 @@ const Dashboard = () => {
       console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUpcomingEvents = async () => {
+    try {
+      const response = await api.get('/events/upcoming/list?limit=5');
+      if (response.data.success) {
+        setUpcomingEvents(response.data.data.events);
+      }
+    } catch (error) {
+      console.error('Error fetching upcoming events:', error);
     }
   };
 
@@ -291,16 +304,150 @@ const Dashboard = () => {
                 <button
                   className="btn btn-outline"
                   style={{ flexDirection: 'column', height: '120px', gap: 'var(--spacing-md)' }}
-                  onClick={() => navigate('/donor/locations')}
+                  onClick={() => navigate('/donor/profile')}
                 >
                   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M16 4a8 8 0 00-8 8c0 6 8 13.33 8 13.33S24 18 24 12a8 8 0 00-8-8z"/>
-                    <circle cx="16" cy="12" r="3"/>
+                    <path d="M16 16a6 6 0 100-12 6 6 0 000 12zM6 28c0-5 4.5-9 10-9s10 4 10 9"/>
                   </svg>
-                  <span>Địa điểm</span>
+                  <span>Thông tin cá nhân</span>
         </button>
       </div>
     </div>
+          </div>
+
+          {/* Upcoming Events Section */}
+          <div className="card" style={{ marginTop: 'var(--spacing-xl)' }}>
+            <div className="card-header">
+              <h3 className="card-title">Sự Kiện Sắp Diễn Ra</h3>
+              <button 
+                className="btn btn-sm btn-outline" 
+                onClick={() => navigate('/donor/events')}
+              >
+                Xem tất cả
+              </button>
+            </div>
+            <div className="card-body">
+              {upcomingEvents.length > 0 ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+                  {upcomingEvents.map((event) => {
+                    const startDate = new Date(event.ngay_bat_dau);
+                    const endDate = new Date(event.ngay_ket_thuc);
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    let status = 'Sắp diễn ra';
+                    let statusColor = '#2563eb';
+                    if (startDate <= today && endDate >= today) {
+                      status = 'Đang diễn ra';
+                      statusColor = '#16a34a';
+                    }
+
+                    return (
+                      <div 
+                        key={event.id_su_kien}
+                        style={{
+                          border: '1px solid var(--gray-200)',
+                          borderRadius: 'var(--radius-lg)',
+                          padding: 'var(--spacing-lg)',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onClick={() => navigate(`/donor/events/${event.id_su_kien}`)}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.borderColor = '#dc2626';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.15)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.borderColor = 'var(--gray-200)';
+                          e.currentTarget.style.boxShadow = 'none';
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 'var(--spacing-sm)' }}>
+                          <h4 style={{ 
+                            margin: 0, 
+                            fontSize: 'var(--font-size-lg)', 
+                            fontWeight: 'var(--font-weight-semibold)',
+                            color: '#dc2626'
+                          }}>
+                            {event.ten_su_kien}
+                          </h4>
+                          <span style={{
+                            padding: '4px 12px',
+                            borderRadius: 'var(--radius-full)',
+                            fontSize: 'var(--font-size-xs)',
+                            fontWeight: 'var(--font-weight-medium)',
+                            background: `${statusColor}15`,
+                            color: statusColor
+                          }}>
+                            {status}
+                          </span>
+                        </div>
+                        
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', marginTop: 'var(--spacing-md)' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="2" y="3" width="12" height="11" rx="1"/>
+                              <path d="M2 6h12M5 2v3M11 2v3"/>
+                            </svg>
+                            <span>
+                              {startDate.toLocaleDateString('vi-VN')} - {endDate.toLocaleDateString('vi-VN')}
+                            </span>
+                          </div>
+                          
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M8 2a4 4 0 00-4 4c0 3 4 6.67 4 6.67S12 9 12 6a4 4 0 00-4-4z"/>
+                              <circle cx="8" cy="6" r="1.5"/>
+                            </svg>
+                            <span>{event.dia_chi}</span>
+                          </div>
+                          
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                              <path d="M2 8h4M2 12h3M2 4h5M1 14h7a1 1 0 001-1V3a1 1 0 00-1-1H1v12z"/>
+                              <path d="M14 8a6 6 0 11-12 0"/>
+                            </svg>
+                            <span>{event.ten_benh_vien} • {event.ten_don_vi}</span>
+                          </div>
+
+                          <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center',
+                            marginTop: 'var(--spacing-sm)',
+                            paddingTop: 'var(--spacing-sm)',
+                            borderTop: '1px solid var(--gray-200)'
+                          }}>
+                            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-tertiary)' }}>
+                              Đã đăng ký: {event.so_luong_dang_ky || 0} / {event.so_luong_du_kien}
+                            </span>
+                            <span style={{ fontSize: 'var(--font-size-sm)', color: '#dc2626', fontWeight: 'var(--font-weight-medium)' }}>
+                              Xem chi tiết →
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: 'var(--spacing-3xl)', color: 'var(--text-secondary)' }}>
+                  <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2" style={{ margin: '0 auto var(--spacing-md)' }}>
+                    <rect x="8" y="12" width="48" height="44" rx="4"/>
+                    <path d="M8 24h48M20 8v12M44 8v12"/>
+                  </svg>
+                  <p style={{ margin: '0 0 var(--spacing-md)', fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-medium)' }}>
+                    Chưa có sự kiện sắp diễn ra
+                  </p>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => navigate('/donor/events')}
+                  >
+                    Khám phá sự kiện
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </>
       )}
