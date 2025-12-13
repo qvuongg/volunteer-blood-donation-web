@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import Navbar from './Navbar';
 import Sidebar from './Sidebar';
-import Footer from './Footer';
 
 const Layout = ({ children, showSidebar = true }) => {
   const { user } = useAuth();
@@ -67,7 +66,6 @@ const Layout = ({ children, showSidebar = true }) => {
           <div className="content-wrapper">
             {children}
           </div>
-          <Footer />
         </main>
       </div>
     </div>

@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
+import HomeHeader from '../components/HomeHeader';
+import HomeFooter from '../components/HomeFooter';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -10,6 +12,24 @@ const Home = () => {
   const [language, setLanguage] = useState('vi');
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
+
+  const handlePrimaryCta = () => {
+    if (user && user.ten_vai_tro === 'nguoi_hien') {
+      navigate('/donor/events');
+    } else {
+      navigate('/register');
+    }
+  };
+
+  const handleFindDrive = () => {
+    const q = searchQuery.trim();
+    if (user && user.ten_vai_tro === 'nguoi_hien') {
+      navigate(q ? `/donor/events?search=${encodeURIComponent(q)}` : '/donor/events');
+    } else {
+      // Navigate to public events page for non-logged-in users
+      navigate(q ? `/events?search=${encodeURIComponent(q)}` : '/events');
+    }
+  };
 
   useEffect(() => {
     if (user && user.ten_vai_tro === 'nguoi_hien') {
@@ -48,464 +68,186 @@ const Home = () => {
 
   return (
     <div style={{ minHeight: '100vh' }}>
-      {/* Navigation Bar */}
-      <nav style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        padding: 'var(--spacing-md) var(--spacing-xl)',
-        background: 'white',
-        boxShadow: '0 2px 12px rgba(0,0,0,0.08)'
-      }}>
-        <div style={{ 
-          maxWidth: '1400px', 
-          margin: '0 auto',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-            <svg width="40" height="40" viewBox="0 0 48 48" fill="#dc2626">
-              <path d="M24 4C24 4 12 16 12 24C12 30.6274 17.3726 36 24 36C30.6274 36 36 30.6274 36 24C36 16 24 4 24 4Z" />
-            </svg>
-            <span style={{ 
-              fontSize: 'var(--font-size-xl)', 
-              fontWeight: 'var(--font-weight-bold)',
-              color: '#dc2626'
-            }}>
-              Hiến Máu Đà Nẵng
-            </span>
-          </div>
-          
-          {/* Center Menu */}
-          <div style={{ 
-            display: 'flex', 
-            gap: 'var(--spacing-xl)', 
-            alignItems: 'center',
-            flex: 1,
-            justifyContent: 'center'
-          }}>
-            <button 
-              style={{ 
-                background: 'transparent', 
-                border: 'none', 
-                color: 'var(--text-primary)',
-                fontWeight: 'var(--font-weight-medium)',
-                cursor: 'pointer',
-                fontSize: 'var(--font-size-base)',
-                transition: 'color 0.2s'
-              }}
-              onClick={() => user && user.ten_vai_tro === 'nguoi_hien' ? navigate('/donor/events') : navigate('/register')}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#dc2626'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
-            >
-              {user && user.ten_vai_tro === 'nguoi_hien' ? 'Sự Kiện Hiến Máu' : 'Hiến Máu'}
-            </button>
-            <button 
-              style={{ 
-                background: 'transparent', 
-                border: 'none', 
-                color: 'var(--text-primary)',
-                fontWeight: 'var(--font-weight-medium)',
-                cursor: 'pointer',
-                fontSize: 'var(--font-size-base)',
-                transition: 'color 0.2s'
-              }}
-              onClick={() => window.open('https://careers.example.com', '_blank')}
-              onMouseEnter={(e) => e.currentTarget.style.color = '#dc2626'}
-              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--text-primary)'}
-            >
-              Tuyển Dụng
-            </button>
-          </div>
+      <HomeHeader
+        user={user}
+        logout={logout}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        language={language}
+        setLanguage={setLanguage}
+        handleFindDrive={handleFindDrive}
+        handlePrimaryCta={handlePrimaryCta}
+      />
 
-          <div style={{ display: 'flex', gap: 'var(--spacing-md)', alignItems: 'center' }}>
-            {/* Language Switcher */}
-            <select 
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              style={{
-                padding: 'var(--spacing-sm) var(--spacing-md)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--gray-300)',
-                background: 'white',
-                cursor: 'pointer',
-                fontSize: 'var(--font-size-sm)',
-                fontWeight: 'var(--font-weight-medium)'
-              }}
-            >
-              <option value="vi">🇻🇳 VN</option>
-              <option value="en">🇺🇸 EN</option>
-            </select>
-
-            {user && user.ten_vai_tro === 'nguoi_hien' ? (
-              <>
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: 'var(--spacing-sm)',
-                  padding: 'var(--spacing-sm) var(--spacing-md)',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--gray-50)'
-                }}>
-                  <div style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: 'var(--radius-full)',
-                    background: 'var(--primary-gradient)',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 'var(--font-size-sm)',
-                    fontWeight: 'var(--font-weight-bold)'
-                  }}>
-                    {user.ho_ten?.charAt(0)}
-                  </div>
-                  <span style={{ 
-                    fontSize: 'var(--font-size-sm)', 
-                    fontWeight: 'var(--font-weight-medium)',
-                    color: 'var(--text-primary)'
-                  }}>
-                    {user.ho_ten}
-                  </span>
-                </div>
-                <button 
-                  className="btn btn-outline"
-                  onClick={() => navigate('/donor/dashboard')}
-                  style={{ 
-                    borderColor: '#dc2626', 
-                    color: '#dc2626',
-                    padding: 'var(--spacing-sm) var(--spacing-lg)',
-                    borderRadius: 'var(--radius-md)',
-                    fontWeight: 'var(--font-weight-medium)',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#dc2626';
-                    e.currentTarget.style.color = 'white';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#dc2626';
-                  }}
-                >
-                  Dashboard
-                </button>
-                <button 
-                  className="btn btn-outline"
-                  onClick={() => {
-                    logout();
-                    navigate('/');
-                  }}
-                  style={{ 
-                    borderColor: 'var(--gray-300)', 
-                    color: 'var(--text-secondary)',
-                    padding: 'var(--spacing-sm) var(--spacing-lg)',
-                    borderRadius: 'var(--radius-md)',
-                    fontWeight: 'var(--font-weight-medium)',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--gray-100)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                  }}
-                >
-                  Đăng xuất
-                </button>
-              </>
-            ) : (
-              <>
-                <button 
-                  className="btn btn-outline"
-                  onClick={() => navigate('/login')}
-                  style={{ 
-                    borderColor: '#dc2626', 
-                    color: '#dc2626',
-                    padding: 'var(--spacing-sm) var(--spacing-lg)',
-                    borderRadius: 'var(--radius-md)',
-                    fontWeight: 'var(--font-weight-medium)',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#dc2626';
-                    e.currentTarget.style.color = 'white';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = '#dc2626';
-                  }}
-                >
-                  Đăng nhập
-                </button>
-                <button 
-                  className="btn btn-primary"
-                  onClick={() => navigate('/register')}
-                  style={{ 
-                    background: '#dc2626', 
-                    borderColor: '#dc2626',
-                    padding: 'var(--spacing-sm) var(--spacing-lg)',
-                    borderRadius: 'var(--radius-md)',
-                    fontWeight: 'var(--font-weight-medium)',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#b91c1c';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#dc2626';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                  }}
-                >
-                  Đăng ký
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero Section: Text + CTA then Image */}
+      {/* Hero (image background + overlay text) */}
       <div style={{
-        background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-        marginTop: '72px',
-        padding: 'var(--spacing-5xl) var(--spacing-xl) var(--spacing-4xl)',
-        color: 'white',
-        textAlign: 'center'
+        position: 'relative',
+        height: 'clamp(520px, 72vh, 720px)',
+        backgroundImage: 'url(/images/home_page.jpg)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        overflow: 'hidden'
       }}>
         <div style={{
-          maxWidth: '900px',
+          position: 'absolute',
+          inset: 0,
+          background: 'linear-gradient(90deg, rgba(17,24,39,0.70) 0%, rgba(17,24,39,0.35) 55%, rgba(17,24,39,0.05) 100%)'
+        }} />
+
+        <div style={{
+          position: 'relative',
+          height: '100%',
+          maxWidth: '1400px',
           margin: '0 auto',
-          padding: '50px'
+          padding: '0 var(--spacing-xl)',
+          display: 'flex',
+          alignItems: 'center'
         }}>
-          <h1 style={{
-            fontSize: 'clamp(40px, 6vw, 68px)',
-            fontWeight: 'var(--font-weight-bold)',
-            marginBottom: 'var(--spacing-xl)',
-            textShadow: '0 4px 16px rgba(0,0,0,0.3)',
-            lineHeight: 1.15,
-            paddingTop: '20px',
-            letterSpacing: '-0.01em'
-            
-          }}>
-            Hiến Giọt Máu Đào – Trao Đời Sự Sống
-          </h1>
-          <p style={{
-            fontSize: 'clamp(18px, 2.5vw, 24px)',
-            marginBottom: 'var(--spacing-2xl)',
-            lineHeight: 1.7,
-            opacity: 0.96,
-            textShadow: '0 2px 8px rgba(0,0,0,0.25)',
-            maxWidth: '750px',
-            margin: '0 auto var(--spacing-2xl)'
-          }}>
-            Mỗi lần hiến máu chỉ mất vài phút nhưng có thể cứu sống đến 3 người.
-            <br />
-            Hãy trở thành người hùng trong câu chuyện của ai đó.
-          </p>
-          <button 
-            className="btn btn-primary"
-            onClick={() => {
-              if (user && user.ten_vai_tro === 'nguoi_hien') {
-                navigate('/donor/events');
-              } else {
-                navigate('/register');
-              }
-            }}
-            style={{
-              background: 'white',
-              color: '#dc2626',
-              padding: 'var(--spacing-lg) var(--spacing-3xl)',
-              fontSize: 'clamp(16px, 2vw, 20px)',
+          <div>
+            <h1 style={{
+              fontSize: 'clamp(32px, 4vw, 48px)',
               fontWeight: 'var(--font-weight-bold)',
-              boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+              lineHeight: 1.08,
+              color: 'white',
+              maxWidth: '640px',
+              margin: 0,
+              marginTop: '156px',
+              textShadow: '0 6px 24px rgba(0,0,0,0.35)'
+            }}>
+              Hiến Giọt Máu Đào – Trao Đời Sự Sống
+            </h1>
+            <p style={{
+              marginTop: '24px',
+              fontSize: 'clamp(15px, 2vw, 18px)',
+              lineHeight: 1.7,
+              color: 'white',
+              fontWeight: 600,
+              maxWidth: '840px',
+              opacity: 0.95,
+              textShadow: '0 2px 12px rgba(255, 255, 255, 0.35)'
+            }}>
+              Mỗi lần hiến máu chỉ mất vài phút nhưng có thể cứu sống đến 3 người.
+              <br />
+              Hãy trở thành người hùng trong câu chuyện của ai đó.
+            </p>
+            <button
+              onClick={handlePrimaryCta}
+              style={{
+                marginTop: '28px',
+                padding: '14px 32px',
+                border: '2px solid white',
+                background: 'rgba(255,255,255,0.15)',
+                backdropFilter: 'blur(8px)',
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: 'var(--font-size-lg)',
+                fontWeight: 'var(--font-weight-bold)',
+                borderRadius: '999px',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'white';
+                e.currentTarget.style.color = '#dc2626';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255,255,255,0.15)';
+                e.currentTarget.style.color = 'white';
+              }}
+            >
+              {user && user.ten_vai_tro === 'nguoi_hien' ? 'Xem Sự Kiện Hiến Máu' : 'Đăng Ký Hiến Máu Ngay'}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Find a Drive card - Moved below hero */}
+      <div
+        id="home-find-drive"
+        style={{
+          background: 'white',
+          marginTop: '20px',
+          marginBottom: '40px',
+          maxWidth: '1100px',
+          marginLeft: 'auto',
+          marginRight: 'auto',
+          padding: '0 var(--spacing-xl)',
+          position: 'relative',
+          zIndex: 10
+        }}
+      >
+        <div style={{
+          background: 'white',
+          borderRadius: '18px',
+          boxShadow: '0 18px 54px rgba(0,0,0,0.18)',
+          padding: '20px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '16px'
+        }}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2">
+            <path d="M12 22s8-4 8-10a8 8 0 10-16 0c0 6 8 10 8 10z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: '#111827', marginBottom: '6px' }}>
+              Tìm sự kiện hiến máu gần bạn
+            </span>
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleFindDrive();
+              }}
+              placeholder="Nhập địa chỉ, quận/huyện hoặc mã vùng..."
+              style={{
+                border: 'none',
+                outline: 'none',
+                padding: 0,
+                fontSize: 'var(--font-size-base)',
+                color: '#111827'
+              }}
+            />
+          </div>
+
+          <button
+            className="btn btn-primary"
+            onClick={handleFindDrive}
+            style={{
+              background: '#dc2626',
+              borderColor: '#dc2626',
+              padding: '14px 28px',
+              borderRadius: '999px',
+              fontWeight: 'var(--font-weight-bold)',
+              whiteSpace: 'nowrap',
               border: 'none',
-              borderRadius: 'var(--radius-lg)',
+              color: 'white',
               cursor: 'pointer',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.2s ease'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
-              e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.3)';
+              e.currentTarget.style.background = '#b91c1c';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0) scale(1)';
-              e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.25)';
+              e.currentTarget.style.background = '#dc2626';
             }}
           >
-            {user && user.ten_vai_tro === 'nguoi_hien' ? 'Xem Sự Kiện Hiến Máu' : 'Đăng Ký Hiến Máu Ngay'}
+            Tìm kiếm
           </button>
         </div>
       </div>
 
-
-      {/* Hero Image */}
-      <div style={{
-        position: 'relative',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#f3f4f6',
-        boxShadow: 'inset 0 0 100px rgba(0,0,0,0.25)',
-        marginTop: '30px',
-        overflow: 'hidden',
-        height: 'auto',
-        minHeight: 'clamp(400px, 55vh, 600px)'
-      }}>
-        <img 
-          src="/images/home_page.jpg" 
-          alt="Hero"
-          style={{
-            width: '100%',
-            display: 'block'
-          }}
-          onLoad={e => {
-            e.currentTarget.parentNode.style.height = `${e.currentTarget.offsetHeight}px`
-          }}
-        />
-      </div>
-
-      {/* Find a Drive Section - Similar to OneBlood */}
-      <div style={{
-        background: 'linear-gradient(to bottom, white 0%, var(--gray-50) 100%)',
-        padding: 'var(--spacing-4xl) var(--spacing-xl)',
-        transform: 'translateY(-50px)',
-        position: 'relative',
-        zIndex: 10
-      }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <h2 style={{
-            textAlign: 'center',
-            fontSize: 'clamp(28px, 4vw, 48px)',
-            fontWeight: 'var(--font-weight-bold)',
-            color: '#1f2937',
-            marginBottom: 'var(--spacing-md)'
-          }}>
-            Tìm Sự Kiện Hiến Máu Gần Bạn
-          </h2>
-          <p style={{
-            textAlign: 'center',
-            fontSize: 'var(--font-size-lg)',
-            color: 'var(--text-secondary)',
-            marginBottom: 'var(--spacing-3xl)'
-          }}>
-            Nhập địa chỉ hoặc mã vùng để tìm địa điểm hiến máu
-          </p>
-          
-          {/* Search Bar */}
-          <div style={{
-            maxWidth: '800px',
-            margin: '0 auto',
-            background: 'white',
-            borderRadius: 'var(--radius-xl)',
-            padding: 'var(--spacing-md)',
-            boxShadow: '0 12px 48px rgba(0,0,0,0.15)',
-            display: 'flex',
-            gap: 'var(--spacing-md)',
-            alignItems: 'center'
-          }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="M21 21l-4.35-4.35"/>
-            </svg>
-            <input 
-              type="text"
-              placeholder="Nhập địa chỉ, quận/huyện hoặc mã vùng..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter' && searchQuery) {
-                  navigate(`/register?search=${encodeURIComponent(searchQuery)}`);
-                }
-              }}
-              style={{
-                flex: 1,
-                border: 'none',
-                outline: 'none',
-                fontSize: 'var(--font-size-lg)',
-                padding: 'var(--spacing-sm) 0'
-              }}
-            />
-            <button 
-              className="btn btn-primary"
-              onClick={() => {
-                if (searchQuery) {
-                  navigate(`/register?search=${encodeURIComponent(searchQuery)}`);
-                } else {
-                  navigate('/register');
-                }
-              }}
-              style={{
-                background: '#dc2626',
-                padding: 'var(--spacing-md) var(--spacing-3xl)',
-                fontSize: 'var(--font-size-lg)',
-                fontWeight: 'var(--font-weight-bold)',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              Tìm Kiếm
-            </button>
-          </div>
-
-          {/* Quick Actions */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'center',
-            gap: 'var(--spacing-xl)',
-            marginTop: 'var(--spacing-3xl)',
-            flexWrap: 'wrap'
-          }}>
-            {[
-              { icon: '📍', text: 'Tìm Địa Điểm', action: () => navigate('/register') },
-              { icon: '📅', text: 'Đặt Lịch Hẹn', action: () => navigate('/register') },
-              { icon: '🩸', text: 'Kiểm Tra Điều Kiện', action: () => navigate('/register') }
-            ].map((item, idx) => (
-              <button
-                key={idx}
-                onClick={item.action}
-                style={{
-                  background: 'white',
-                  border: '2px solid var(--gray-200)',
-                  borderRadius: 'var(--radius-lg)',
-                  padding: 'var(--spacing-lg) var(--spacing-2xl)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 'var(--spacing-md)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  fontSize: 'var(--font-size-base)',
-                  fontWeight: 'var(--font-weight-medium)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#dc2626';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.2)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--gray-200)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = 'none';
-                }}
-              >
-                <span style={{ fontSize: '24px' }}>{item.icon}</span>
-                <span>{item.text}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
       {/* Statistics Bar */}
-      <div style={{
-        background: 'white',
-        padding: 'var(--spacing-2xl) var(--spacing-xl)',
-        boxShadow: '0 -4px 16px rgba(0,0,0,0.1)'
-      }}>
+      <div 
+        id="statistics"
+        style={{
+          background: 'white',
+          marginTop: '60px',
+          padding: 'var(--spacing-3xl) var(--spacing-xl)',
+          boxShadow: '0 -4px 16px rgba(0,0,0,0.1)'
+        }}
+      >
         <div style={{
           maxWidth: '1400px',
           margin: '0 auto',
@@ -738,35 +480,40 @@ const Home = () => {
       )}
 
       {/* Why Donate Section with Images */}
-      <div style={{
-        background: 'var(--gray-50)',
-        padding: 'var(--spacing-4xl) var(--spacing-xl)'
-      }}>
+      <div 
+        id="why-donate"
+        style={{
+          background: 'var(--gray-50)',
+          padding: 'var(--spacing-5xl) var(--spacing-xl)',
+          scrollMarginTop: '120px'
+        }}
+      >
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-          <h2 style={{
-            textAlign: 'center',
-            fontSize: 'var(--font-size-4xl)',
-            fontWeight: 'var(--font-weight-bold)',
-            color: '#dc2626',
-            marginBottom: 'var(--spacing-md)'
-          }}>
-            Tại Sao Nên Hiến Máu?
-          </h2>
-          <p style={{
-            textAlign: 'center',
-            fontSize: 'var(--font-size-xl)',
-            color: 'var(--text-secondary)',
-            marginBottom: 'var(--spacing-3xl)',
-            maxWidth: '800px',
-            margin: '0 auto var(--spacing-3xl)'
-          }}>
-            Hiến máu không chỉ giúp đỡ người khác mà còn mang lại nhiều lợi ích cho chính bạn
-          </p>
+          <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-4xl)' }}>
+            <h2 style={{
+              fontSize: 'clamp(32px, 4vw, 56px)',
+              fontWeight: 'var(--font-weight-bold)',
+              color: '#dc2626',
+              marginBottom: 'var(--spacing-md)'
+            }}>
+              Tại Sao Nên Hiến Máu?
+            </h2>
+            <p style={{
+              fontSize: 'clamp(18px, 2vw, 22px)',
+              color: 'var(--text-secondary)',
+              maxWidth: '800px',
+              margin: '0 auto',
+              lineHeight: 1.7
+            }}>
+              Hiến máu không chỉ giúp đỡ người khác mà còn mang lại nhiều lợi ích cho chính bạn
+            </p>
+          </div>
 
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-            gap: 'var(--spacing-2xl)'
+            gap: 'var(--spacing-2xl)',
+            padding: '0 var(--spacing-md)'
           }}>
             {[
               {
@@ -806,7 +553,8 @@ const Home = () => {
                 overflow: 'hidden',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
                 transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                margin: 'var(--spacing-sm)'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-8px)';
@@ -846,30 +594,35 @@ const Home = () => {
       </div>
 
       {/* Roles Section */}
-      <div style={{
-        background: 'white',
-        padding: 'var(--spacing-4xl) var(--spacing-xl)'
-      }}>
+      <div 
+        id="roles"
+        style={{
+          background: 'white',
+          padding: 'var(--spacing-5xl) var(--spacing-xl)',
+          scrollMarginTop: '120px',
+          marginTop: 'var(--spacing-3xl)'
+        }}
+      >
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-          <h2 style={{
-            textAlign: 'center',
-            fontSize: 'var(--font-size-4xl)',
-            fontWeight: 'var(--font-weight-bold)',
-            color: '#dc2626',
-            marginBottom: 'var(--spacing-md)'
-          }}>
-            Dành Cho Mọi Đối Tượng
-          </h2>
-          <p style={{
-            textAlign: 'center',
-            fontSize: 'var(--font-size-xl)',
-            color: 'var(--text-secondary)',
-            marginBottom: 'var(--spacing-3xl)',
-            maxWidth: '800px',
-            margin: '0 auto var(--spacing-3xl)'
-          }}>
-            Nền tảng kết nối toàn diện cho tất cả các bên tham gia
-          </p>
+          <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-4xl)' }}>
+            <h2 style={{
+              fontSize: 'clamp(32px, 4vw, 56px)',
+              fontWeight: 'var(--font-weight-bold)',
+              color: '#dc2626',
+              marginBottom: 'var(--spacing-md)'
+            }}>
+              Dành Cho Mọi Đối Tượng
+            </h2>
+            <p style={{
+              fontSize: 'clamp(18px, 2vw, 22px)',
+              color: 'var(--text-secondary)',
+              maxWidth: '800px',
+              margin: '0 auto',
+              lineHeight: 1.7
+            }}>
+              Nền tảng kết nối toàn diện cho tất cả các bên tham gia
+            </p>
+          </div>
 
           <div style={{
             display: 'grid',
@@ -957,12 +710,15 @@ const Home = () => {
       {/* CTA Section with Image */}
       <div style={{
         position: 'relative',
-        height: '500px',
+        height: 'clamp(450px, 50vh, 600px)',
         backgroundImage: 'url(/images/8.jpg)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         display: 'flex',
         alignItems: 'center',
+        padding: 'var(--spacing-3xl) var(--spacing-xl)',
+        marginTop: 'var(--spacing-3xl)',
+        marginBottom: 'var(--spacing-3xl)',
         justifyContent: 'center'
       }}>
         <div style={{
@@ -983,7 +739,7 @@ const Home = () => {
           padding: '0 var(--spacing-xl)'
         }}>
           <h2 style={{
-            fontSize: 'var(--font-size-4xl)',
+            fontSize: 'clamp(36px, 4.5vw, 64px)',
             fontWeight: 'var(--font-weight-bold)',
             marginBottom: 'var(--spacing-lg)',
             textShadow: '0 4px 12px rgba(0,0,0,0.3)'
@@ -991,7 +747,7 @@ const Home = () => {
             Sẵn Sàng Tham Gia?
           </h2>
           <p style={{
-            fontSize: 'var(--font-size-xl)',
+            fontSize: 'clamp(18px, 2vw, 24px)',
             marginBottom: 'var(--spacing-2xl)',
             textShadow: '0 2px 8px rgba(0,0,0,0.3)',
             lineHeight: 1.7,
@@ -1004,98 +760,62 @@ const Home = () => {
           <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'center' }}>
             <button 
               className="btn btn-primary"
-              onClick={() => navigate('/register')}
+              onClick={handlePrimaryCta}
               style={{
                 background: 'white',
                 color: '#dc2626',
                 padding: 'var(--spacing-lg) var(--spacing-3xl)',
-                fontSize: 'var(--font-size-xl)',
+                fontSize: 'clamp(16px, 1.8vw, 20px)',
                 fontWeight: 'var(--font-weight-bold)',
                 boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-                border: 'none'
+                border: 'none',
+                borderRadius: '999px',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 12px 32px rgba(0,0,0,0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.2)';
               }}
             >
-              Đăng Ký Ngay
+              {user && user.ten_vai_tro === 'nguoi_hien' ? 'Xem Sự Kiện' : 'Đăng Ký Ngay'}
             </button>
-            <button 
-              className="btn btn-outline"
-              onClick={() => navigate('/login')}
-              style={{
-                borderColor: 'white',
-                color: 'white',
-                padding: 'var(--spacing-lg) var(--spacing-3xl)',
-                fontSize: 'var(--font-size-xl)',
-                fontWeight: 'var(--font-weight-bold)',
-                background: 'transparent'
-              }}
-            >
-              Đăng Nhập
-            </button>
+            {!user && (
+              <button 
+                className="btn btn-outline"
+                onClick={() => navigate('/login')}
+                style={{
+                  borderColor: 'white',
+                  color: 'white',
+                  padding: 'var(--spacing-lg) var(--spacing-3xl)',
+                  fontSize: 'clamp(16px, 1.8vw, 20px)',
+                  fontWeight: 'var(--font-weight-bold)',
+                  background: 'transparent',
+                  borderRadius: '999px',
+                  transition: 'all 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                Đăng Nhập
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Footer */}
-      <div style={{
-        background: '#1f2937',
-        color: 'white',
-        padding: 'var(--spacing-3xl) var(--spacing-xl)'
-      }}>
-        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: 'var(--spacing-2xl)',
-            marginBottom: 'var(--spacing-2xl)'
-          }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
-                <svg width="32" height="32" viewBox="0 0 48 48" fill="#dc2626">
-                  <path d="M24 4C24 4 12 16 12 24C12 30.6274 17.3726 36 24 36C30.6274 36 36 30.6274 36 24C36 16 24 4 24 4Z" />
-                </svg>
-                <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)' }}>
-                  Hiến Máu Đà Nẵng
-                </span>
-              </div>
-              <p style={{ opacity: 0.8, lineHeight: 1.7 }}>
-                Hệ thống quản lý hiến máu tình nguyện, kết nối cộng đồng và lan tỏa yêu thương.
-              </p>
-            </div>
-            
-            <div>
-              <h4 style={{ marginBottom: 'var(--spacing-md)', fontWeight: 'var(--font-weight-bold)' }}>
-                Liên Hệ
-              </h4>
-              <div style={{ opacity: 0.8, lineHeight: 2 }}>
-                <p>📍 Đà Nẵng, Việt Nam</p>
-                <p>📞 1900 xxxx</p>
-                <p>✉️ contact@hienmaudn.vn</p>
-              </div>
-            </div>
-            
-            <div>
-              <h4 style={{ marginBottom: 'var(--spacing-md)', fontWeight: 'var(--font-weight-bold)' }}>
-                Liên Kết
-              </h4>
-              <div style={{ opacity: 0.8, lineHeight: 2 }}>
-                <p style={{ cursor: 'pointer' }} onClick={() => navigate('/register')}>Đăng ký</p>
-                <p style={{ cursor: 'pointer' }} onClick={() => navigate('/login')}>Đăng nhập</p>
-                <p>Về chúng tôi</p>
-                <p>Liên hệ</p>
-              </div>
-            </div>
-          </div>
-          
-          <div style={{
-            borderTop: '1px solid rgba(255,255,255,0.1)',
-            paddingTop: 'var(--spacing-xl)',
-            textAlign: 'center',
-            opacity: 0.8
-          }}>
-            <p>© 2025 Hệ thống quản lý hiến máu tình nguyện Đà Nẵng. All rights reserved.</p>
-          </div>
-        </div>
-      </div>
+      <HomeFooter
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        handleFindDrive={handleFindDrive}
+      />
     </div>
   );
 };

@@ -3,7 +3,7 @@ import pool from '../config/database.js';
 // Get all events (public, for donors)
 export const getEvents = async (req, res, next) => {
   try {
-    const { status } = req.query;
+    const { status, search } = req.query;
     
     let query = `
       SELECT 
@@ -23,11 +23,23 @@ export const getEvents = async (req, res, next) => {
     `;
 
     const params = [];
+    const whereConditions = [];
+    
     if (status) {
-      query += ' WHERE sk.trang_thai = ?';
+      whereConditions.push('sk.trang_thai = ?');
       params.push(status);
     } else {
-      query += ' WHERE sk.trang_thai = "da_duyet"';
+      whereConditions.push('sk.trang_thai = "da_duyet"');
+    }
+
+    if (search) {
+      whereConditions.push('(sk.ten_su_kien LIKE ? OR sk.dia_chi LIKE ? OR sk.ten_dia_diem LIKE ? OR tc.ten_don_vi LIKE ? OR bv.ten_benh_vien LIKE ?)');
+      const searchPattern = `%${search}%`;
+      params.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
+    }
+
+    if (whereConditions.length > 0) {
+      query += ' WHERE ' + whereConditions.join(' AND ');
     }
 
     query += ' ORDER BY sk.ngay_bat_dau DESC';

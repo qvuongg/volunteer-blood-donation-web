@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import HomeHeader from '../components/HomeHeader';
+import HomeFooter from '../components/HomeFooter';
+import { useAuth } from '../contexts/AuthContext';
 
 const ForgotPassword = () => {
   const [step, setStep] = useState(1); // 1: nhập email, 2: nhập OTP, 3: đặt mật khẩu mới
@@ -14,6 +17,27 @@ const ForgotPassword = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [language, setLanguage] = useState('vi');
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleFindDrive = () => {
+    const q = searchQuery.trim();
+    if (user && user.ten_vai_tro === 'nguoi_hien') {
+      navigate(q ? `/donor/events?search=${encodeURIComponent(q)}` : '/donor/events');
+    } else {
+      navigate(q ? `/events?search=${encodeURIComponent(q)}` : '/events');
+    }
+  };
+
+  const handlePrimaryCta = () => {
+    if (user && user.ten_vai_tro === 'nguoi_hien') {
+      navigate('/donor/events');
+    } else {
+      navigate('/register');
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -98,9 +122,20 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <div className="auth-header">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <HomeHeader
+        user={user}
+        logout={logout}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        language={language}
+        setLanguage={setLanguage}
+        handleFindDrive={handleFindDrive}
+        handlePrimaryCta={handlePrimaryCta}
+      />
+      <div className="auth-container" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-4xl) var(--spacing-xl)' }}>
+        <div className="auth-card">
+          <div className="auth-header">
           <div className="auth-logo">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="currentColor">
               <path d="M16 2C16 2 8 10 8 16C8 20.4183 11.5817 24 16 24C20.4183 24 24 20.4183 24 16C24 10 16 2 16 2Z" />
@@ -259,7 +294,13 @@ const ForgotPassword = () => {
         <div className="auth-footer">
           Nhớ mật khẩu? <Link to="/login">Đăng nhập ngay</Link>
         </div>
+        </div>
       </div>
+      <HomeFooter
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        handleFindDrive={handleFindDrive}
+      />
     </div>
   );
 };

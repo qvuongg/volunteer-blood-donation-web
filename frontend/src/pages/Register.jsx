@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import HomeHeader from '../components/HomeHeader';
+import HomeFooter from '../components/HomeFooter';
+import { useAuth } from '../contexts/AuthContext';
 
 const Register = () => {
   const [step, setStep] = useState(1); // 1: Form, 2: OTP, 3: Complete
@@ -17,7 +20,27 @@ const Register = () => {
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [language, setLanguage] = useState('vi');
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleFindDrive = () => {
+    const q = searchQuery.trim();
+    if (user && user.ten_vai_tro === 'nguoi_hien') {
+      navigate(q ? `/donor/events?search=${encodeURIComponent(q)}` : '/donor/events');
+    } else {
+      navigate(q ? `/events?search=${encodeURIComponent(q)}` : '/events');
+    }
+  };
+
+  const handlePrimaryCta = () => {
+    if (user && user.ten_vai_tro === 'nguoi_hien') {
+      navigate('/donor/events');
+    } else {
+      navigate('/register');
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -106,21 +129,49 @@ const Register = () => {
 
   if (loading && step === 3) {
     return (
-      <div className="auth-container">
-        <div className="auth-card">
-          <div style={{ textAlign: 'center', padding: 'var(--spacing-3xl)' }}>
-            <div style={{ fontSize: '64px', marginBottom: 'var(--spacing-lg)' }}>✅</div>
-            <h2 style={{ color: 'var(--success-600)', marginBottom: 'var(--spacing-md)' }}>Đăng ký thành công!</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>Đang chuyển đến trang đăng nhập...</p>
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+        <HomeHeader
+          user={user}
+          logout={logout}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          language={language}
+          setLanguage={setLanguage}
+          handleFindDrive={handleFindDrive}
+          handlePrimaryCta={handlePrimaryCta}
+        />
+        <div className="auth-container" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-4xl) var(--spacing-xl)' }}>
+          <div className="auth-card">
+            <div style={{ textAlign: 'center', padding: 'var(--spacing-3xl)' }}>
+              <div style={{ fontSize: '64px', marginBottom: 'var(--spacing-lg)' }}>✅</div>
+              <h2 style={{ color: 'var(--success-600)', marginBottom: 'var(--spacing-md)' }}>Đăng ký thành công!</h2>
+              <p style={{ color: 'var(--text-secondary)' }}>Đang chuyển đến trang đăng nhập...</p>
+            </div>
           </div>
         </div>
+        <HomeFooter
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          handleFindDrive={handleFindDrive}
+        />
       </div>
     );
   }
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <HomeHeader
+        user={user}
+        logout={logout}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        language={language}
+        setLanguage={setLanguage}
+        handleFindDrive={handleFindDrive}
+        handlePrimaryCta={handlePrimaryCta}
+      />
+      <div className="auth-container" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-4xl) var(--spacing-xl)' }}>
+        <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="currentColor">
@@ -343,7 +394,13 @@ const Register = () => {
         </div>
           </form>
         )}
+        </div>
       </div>
+      <HomeFooter
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        handleFindDrive={handleFindDrive}
+      />
     </div>
   );
 };

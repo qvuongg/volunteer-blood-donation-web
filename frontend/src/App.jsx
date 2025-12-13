@@ -4,6 +4,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
+import PublicEvents from './pages/PublicEvents';
 import ProtectedRoute from './components/ProtectedRoute';
 import DonorDashboard from './pages/donor/Dashboard';
 import DonorProfile from './pages/donor/Profile';
@@ -43,6 +44,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/events" element={<PublicEvents />} />
           
           {/* Donor routes */}
           <Route 

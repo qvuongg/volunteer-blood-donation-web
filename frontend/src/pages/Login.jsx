@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import HomeHeader from '../components/HomeHeader';
+import HomeFooter from '../components/HomeFooter';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -10,8 +12,27 @@ const Login = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [language, setLanguage] = useState('vi');
+  const { login, logout, user } = useAuth();
   const navigate = useNavigate();
+
+  const handleFindDrive = () => {
+    const q = searchQuery.trim();
+    if (user && user.ten_vai_tro === 'nguoi_hien') {
+      navigate(q ? `/donor/events?search=${encodeURIComponent(q)}` : '/donor/events');
+    } else {
+      navigate(q ? `/events?search=${encodeURIComponent(q)}` : '/events');
+    }
+  };
+
+  const handlePrimaryCta = () => {
+    if (user && user.ten_vai_tro === 'nguoi_hien') {
+      navigate('/donor/events');
+    } else {
+      navigate('/register');
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -64,8 +85,19 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <HomeHeader
+        user={user}
+        logout={logout}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        language={language}
+        setLanguage={setLanguage}
+        handleFindDrive={handleFindDrive}
+        handlePrimaryCta={handlePrimaryCta}
+      />
+      <div className="auth-container" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-4xl) var(--spacing-xl)' }}>
+        <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="currentColor">
@@ -136,7 +168,13 @@ const Login = () => {
         <div className="auth-footer">
         Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
         </div>
+        </div>
       </div>
+      <HomeFooter
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        handleFindDrive={handleFindDrive}
+      />
     </div>
   );
 };
