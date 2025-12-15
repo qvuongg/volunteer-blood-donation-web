@@ -97,16 +97,16 @@ const Login = () => {
         handlePrimaryCta={handlePrimaryCta}
       />
       <div className="auth-container" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-4xl) var(--spacing-xl)' }}>
-        <div className="auth-card">
-        <div className="auth-header">
-          <div className="auth-logo">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="currentColor">
-              <path d="M16 2C16 2 8 10 8 16C8 20.4183 11.5817 24 16 24C20.4183 24 24 20.4183 24 16C24 10 16 2 16 2Z" />
-            </svg>
+        <div className="auth-card" style={{ marginTop: '-158px' }}>
+          <div className="auth-header">
+            <div className="auth-logo">
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="currentColor">
+                <path d="M16 2C16 2 8 10 8 16C8 20.4183 11.5817 24 16 24C20.4183 24 24 20.4183 24 16C24 10 16 2 16 2Z" />
+              </svg>
+            </div>
+            <h1 className="auth-title">Đăng nhập</h1>
+            <p className="auth-subtitle">Chào mừng bạn trở lại</p>
           </div>
-          <h1 className="auth-title">Đăng nhập</h1>
-          <p className="auth-subtitle">Chào mừng bạn trở lại</p>
-        </div>
 
       {error && (
           <div className="alert alert-danger">
@@ -146,6 +146,18 @@ const Login = () => {
               className="form-input"
               placeholder="••••••••"
           />
+             {/* Ghi nhớ đăng nhập */}
+          <div className="form-group" style={{ marginTop: '12px', marginBottom: '-4px' }}>
+            <label style={{ display: 'flex', alignItems: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 400, color: 'var(--text-secondary)', gap: '8px', userSelect: 'none', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                name="remember"
+                // You may add checked, onChange to handle state if needed
+                style={{ width: 14, height: 14, marginRight: 8 }}
+              />
+              Ghi nhớ đăng nhập
+            </label>
+          </div>
         </div>
 
         <button

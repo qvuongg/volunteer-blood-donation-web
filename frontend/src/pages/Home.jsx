@@ -517,78 +517,543 @@ const Home = () => {
           }}>
             {[
               {
-                image: '/images/2.jpeg',
-                title: 'Cứu Sống Người Khác',
-                desc: 'Mỗi đơn vị máu có thể cứu sống đến 3 người. Đây là món quà vô giá nhất bạn có thể trao tặng cho cộng đồng.'
+                title: 'Được bồi dưỡng trực tiếp',
+                bullets: [
+                  'Ăn nhẹ, nước uống tại chỗ: 1 trà xanh không độ, 1 chocopie 66g, 1 bánh Goute 35,5g (≈ 30.000đ).',
+                  'Hỗ trợ chi phí đi lại: 50.000đ (tiền mặt).',
+                  'Quà tặng tương đương: 100.000đ (250ml), 150.000đ (350ml), 180.000đ (450ml).'
+                ]
               },
               {
-                image: '/images/3.jpeg',
-                title: 'Kiểm Tra Sức Khỏe Miễn Phí',
-                desc: 'Được kiểm tra sức khỏe tổng quát và xét nghiệm máu miễn phí mỗi lần hiến máu, giúp phát hiện sớm các vấn đề sức khỏe.'
+                title: 'Được cấp Giấy chứng nhận hiến máu',
+                bullets: [
+                  'Nhận giấy chứng nhận mỗi lần hiến máu tình nguyện.',
+                  'Được truyền máu miễn phí với số lượng đã hiến tại mọi cơ sở y tế công lập.',
+                  'Xuất trình giấy chứng nhận để được miễn phí truyền máu.',
+                  'Cơ sở y tế ký, đóng dấu, xác nhận số lượng máu đã truyền miễn phí.'
+                ]
               },
               {
-                image: '/images/4.jpeg',
-                title: 'Tốt Cho Sức Khỏe',
-                desc: 'Hiến máu giúp giảm nguy cơ mắc bệnh tim mạch, kích thích tạo hồng cầu mới và cải thiện tuần hoàn máu.'
-              },
-              {
-                image: '/images/5.jpeg',
-                title: 'Kết Nối Cộng Đồng',
-                desc: 'Tham gia vào cộng đồng tình nguyện ý nghĩa, lan tỏa yêu thương và giá trị nhân văn đến mọi người xung quanh.'
-              },
-              {
-                image: '/images/6.jpeg',
-                title: 'Quản Lý Dễ Dàng',
-                desc: 'Theo dõi lịch sử hiến máu, nhận thông báo sự kiện và quản lý hồ sơ sức khỏe trực tuyến một cách tiện lợi.'
-              },
-              {
-                image: '/images/7.jpeg',
-                title: 'Ghi Nhận Đóng Góp',
-                desc: 'Nhận chứng nhận và huy hiệu vinh danh cho những đóng góp cao cả của bạn cho cộng đồng và xã hội.'
+                title: 'Được tư vấn về sức khỏe',
+                bullets: [
+                  'Giải thích quy trình hiến máu và các tai biến có thể xảy ra.',
+                  'Thông tin về dấu hiệu/triệu chứng nhiễm vi rút viêm gan, HIV và bệnh lây qua đường máu, tình dục.',
+                  'Xét nghiệm sàng lọc vi rút lây qua đường máu, tình dục (HIV, Giang mai, viêm gan,...).',
+                  'Tư vấn chăm sóc sức khỏe và kết quả bất thường sau hiến máu.',
+                  'Bảo mật kết quả khám lâm sàng và xét nghiệm.'
+                ]
               }
             ].map((feature, idx) => (
-              <div key={idx} style={{
-                background: 'white',
-                borderRadius: 'var(--radius-lg)',
-                overflow: 'hidden',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-                cursor: 'pointer',
-                margin: 'var(--spacing-sm)'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-8px)';
-                e.currentTarget.style.boxShadow = '0 12px 32px rgba(220, 38, 38, 0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
-              }}>
-                <div style={{
-                  height: '240px',
-                  backgroundImage: `url(${feature.image})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center'
-                }} />
-                <div style={{ padding: 'var(--spacing-xl)' }}>
-                  <h3 style={{
-                    fontSize: 'var(--font-size-xl)',
-                    fontWeight: 'var(--font-weight-bold)',
-                    color: '#dc2626',
-                    marginBottom: 'var(--spacing-sm)'
-                  }}>
-                    {feature.title}
-                  </h3>
-                  <p style={{
-                    color: 'var(--text-secondary)',
-                    lineHeight: 1.7,
-                    fontSize: 'var(--font-size-base)'
-                  }}>
-                    {feature.desc}
-                  </p>
-                </div>
+              <div
+                key={idx}
+                style={{
+                  background: 'white',
+                  borderRadius: 'var(--radius-lg)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                  cursor: 'pointer',
+                  padding: 'var(--spacing-xl)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 'var(--spacing-sm)',
+                  margin: 'var(--spacing-sm)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-8px)';
+                  e.currentTarget.style.boxShadow = '0 12px 32px rgba(220, 38, 38, 0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
+                }}
+              >
+                <h3 style={{
+                  fontSize: 'var(--font-size-xl)',
+                  fontWeight: 'var(--font-weight-bold)',
+                  color: '#dc2626',
+                  marginBottom: 'var(--spacing-xs)'
+                }}>
+                  {feature.title}
+                </h3>
+                <ul style={{ paddingLeft: '20px', margin: 0, color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 'var(--font-size-base)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {feature.bullets.map((item, bulletIdx) => (
+                    <li key={bulletIdx}>{item}</li>
+                  ))}
+                </ul>
               </div>
             ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Blood Donation Activities */}
+      <div
+        style={{
+          background: 'white',
+          padding: 'var(--spacing-5xl) var(--spacing-xl)',
+          marginTop: 'var(--spacing-3xl)'
+        }}
+      >
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-3xl)' }}>
+            <h2 style={{
+              fontSize: 'clamp(30px, 4vw, 50px)',
+              fontWeight: 'var(--font-weight-bold)',
+              color: '#dc2626',
+              marginBottom: 'var(--spacing-sm)'
+            }}>
+              Các Hoạt Động Hiến Máu Nhân Đạo
+            </h2>
+            <p style={{
+              fontSize: 'clamp(16px, 2vw, 20px)',
+              color: 'var(--text-secondary)',
+              maxWidth: '820px',
+              margin: '0 auto',
+              lineHeight: 1.7
+            }}>
+              Những khoảnh khắc ý nghĩa trong các chương trình hiến máu và kết nối cộng đồng.
+            </p>
+          </div>
+
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+            gap: 'var(--spacing-xl)',
+            paddingLeft: 'var(--spacing-2xl)',
+            paddingRight: 'var(--spacing-2xl)'
+          }}>
+            {[
+              '/images/1.jpg',
+              '/images/2.jpeg',
+              '/images/3.jpeg',
+              '/images/4.jpeg',
+              '/images/5.jpeg',
+              '/images/6.jpeg'
+            ].map((img, idx) => (
+              <div
+                key={idx}
+                style={{
+                  borderRadius: 'var(--radius-lg)',
+                  overflow: 'hidden',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                  background: 'white',
+                  transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-6px)';
+                  e.currentTarget.style.boxShadow = '0 12px 28px rgba(220, 38, 38, 0.12)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
+                }}
+              >
+                <div
+                  style={{
+                    height: '220px',
+                    backgroundImage: `url(${img})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Eligibility Section */}
+      <div
+        style={{
+          background: 'white',
+          padding: 'var(--spacing-5xl) var(--spacing-3xl)',
+          marginTop: 'var(--spacing-3xl)',
+          borderTop: '1px solid var(--gray-200)'
+        }}
+      >
+        <div style={{ maxWidth: '1400px', margin: '0 auto', display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 3fr)', gap: 'var(--spacing-2xl)', alignItems: 'stretch' }}>
+          {/* Left banner / title area */}
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #fff5e6 0%, #ffe8cc 100%)',
+              borderRadius: 'var(--radius-xl)',
+              padding: 'var(--spacing-3xl)',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              boxShadow: '0 10px 26px rgba(0,0,0,0.08)',
+              minHeight: 260,
+              border: '1px solid #ffe0b3'
+            }}
+          >
+            <h2
+              style={{
+                fontSize: 'clamp(32px, 4vw, 48px)',
+                fontWeight: 'var(--font-weight-bold)',
+                color: '#b91c1c',
+                margin: 0,
+                lineHeight: 1.25
+              }}
+            >
+              Tiêu Chuẩn<br />Tham Gia Hiến Máu
+            </h2>
+            <p style={{ marginTop: 'var(--spacing-md)', color: 'var(--text-secondary)', lineHeight: 1.6, fontSize: 'var(--font-size-base)' }}>
+              Đáp ứng đủ điều kiện sức khỏe, chỉ số xét nghiệm và hành vi an toàn trước khi hiến máu.
+            </p>
+          </div>
+
+          {/* Right cards */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+              gap: 'var(--spacing-lg)'
+            }}
+          >
+            {[
+              {
+                icon: '🪪',
+                text: 'Mang theo chứng minh nhân dân/hộ chiếu khi đi hiến máu.'
+              },
+              {
+                icon: '💉',
+                text: 'Không nghiện ma túy, rượu bia và các chất kích thích.'
+              },
+              {
+                icon: '🦠',
+                text: 'Không mắc hoặc không có hành vi nguy cơ lây nhiễm HIV, viêm gan B, viêm gan C và các virus lây qua đường truyền máu.'
+              },
+              {
+                icon: '⚖️',
+                text: 'Cân nặng: Nam ≥ 45kg, Nữ ≥ 45kg.'
+              },
+              {
+                icon: '❤️',
+                text: 'Không mắc các bệnh mạn tính hoặc cấp tính về tim mạch, huyết áp, hô hấp, dạ dày...'
+              },
+              {
+                icon: '🩸',
+                text: 'Chỉ số huyết sắc tố (Hb) ≥ 120g/l (≥ 125g/l nếu hiến từ 350ml trở lên).'
+              },
+              {
+                icon: '🎂',
+                text: 'Người khỏe mạnh trong độ tuổi từ 18 đến 60.'
+              },
+              {
+                icon: '📅',
+                text: 'Thời gian tối thiểu giữa 2 lần hiến máu là 12 tuần cho cả Nam và Nữ.'
+              },
+              {
+                icon: '🧪',
+                text: 'Kết quả test nhanh âm tính với kháng nguyên bề mặt của siêu vi B.'
+              }
+            ].map((item, idx) => (
+              <div
+                key={idx}
+                style={{
+                  background: 'white',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: 'var(--spacing-lg)',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 'var(--spacing-md)',
+                  boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+                  border: '1px solid var(--gray-200)'
+                }}
+              >
+                <div
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: '12px',
+                    background: '#fef2f2',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#dc2626',
+                    fontSize: 22,
+                    flexShrink: 0
+                  }}
+                >
+                  {item.icon}
+                </div>
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 'var(--font-size-base)',
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1.7,
+                    fontWeight: 'var(--font-weight-medium)'
+                  }}
+                >
+                  {item.text}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Advice Before & After Donation */}
+      <div
+        style={{
+          background: 'white',
+          padding: 'var(--spacing-5xl) var(--spacing-3xl)',
+          marginTop: 'var(--spacing-3xl)',
+          borderTop: '1px solid var(--gray-200)'
+        }}
+      >
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+          <h2
+            style={{
+              textAlign: 'center',
+              fontSize: 'clamp(30px, 4vw, 50px)',
+              fontWeight: 'var(--font-weight-bold)',
+              color: '#b91c1c',
+              marginBottom: 'var(--spacing-4xl)'
+            }}
+          >
+            Những Lời Khuyên Trước Và Sau Khi Hiến Máu
+          </h2>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+              gap: 'var(--spacing-xl)'
+            }}
+          >
+            {/* Nên */}
+            <div
+              style={{
+                background: 'white',
+                borderRadius: 'var(--radius-lg)',
+                padding: 'var(--spacing-xl)',
+                boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+                border: '1px solid var(--gray-200)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--spacing-sm)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: 'var(--spacing-sm)' }}>
+                <span
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    border: '2px solid #10b981',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#10b981',
+                    fontSize: 20
+                  }}
+                >
+                  ✓
+                </span>
+                <h3
+                  style={{
+                    fontSize: 'var(--font-size-xl)',
+                    fontWeight: 'var(--font-weight-bold)',
+                    color: '#111827',
+                    margin: 0
+                  }}
+                >
+                  Nên
+                </h3>
+              </div>
+              <ul
+                style={{
+                  paddingLeft: 20,
+                  margin: 0,
+                  fontSize: 'var(--font-size-base)',
+                  color: 'var(--text-secondary)',
+                  fontWeight: 'var(--font-weight-medium)',
+                  lineHeight: 1.7,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6
+                }}
+              >
+                <li>Ăn nhẹ và uống nhiều nước (300–500ml) trước khi hiến máu.</li>
+                <li>Đè chặt miếng bông gòn cầm máu tại vị trí kim chích 10 phút, giữ băng trong 4–6 giờ.</li>
+                <li>Nằm/ngồi nghỉ tại chỗ khoảng 10 phút sau khi hiến máu.</li>
+                <li>Nằm đầu thấp, kê chân cao nếu thấy chóng mặt, mệt, buồn nôn.</li>
+                <li>Chườm lạnh (túi chườm chuyên dụng hoặc khăn bọc đá) nếu vùng chích sưng hoặc bầm tím.</li>
+              </ul>
+              <div
+                style={{
+                  marginTop: 'var(--spacing-lg)',
+                  textAlign: 'right',
+                  fontSize: 'var(--font-size-sm)',
+                  lineHeight: 1.5
+                }}
+              >
+                <div style={{ fontWeight: 'var(--font-weight-bold)', color: '#111827' }}>
+                  Bác sĩ Ngô Văn Tân
+                </div>
+                <div style={{ fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
+                  Trưởng khoa Khoa Tiếp nhận hiến máu.
+                </div>
+                <div style={{ fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
+                  Bệnh viện Truyền máu Huyết học
+                </div>
+              </div>
+            </div>
+
+            {/* Không nên */}
+            <div
+              style={{
+                background: 'white',
+                borderRadius: 'var(--radius-lg)',
+                padding: 'var(--spacing-xl)',
+                boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+                border: '1px solid var(--gray-200)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--spacing-sm)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: 'var(--spacing-sm)' }}>
+                <span
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    border: '2px solid #ef4444',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#ef4444',
+                    fontSize: 20
+                  }}
+                >
+                  ✕
+                </span>
+                <h3
+                  style={{
+                    fontSize: 'var(--font-size-xl)',
+                    fontWeight: 'var(--font-weight-bold)',
+                    color: '#111827',
+                    margin: 0
+                  }}
+                >
+                  Không nên
+                </h3>
+              </div>
+              <ul
+                style={{
+                  paddingLeft: 20,
+                  margin: 0,
+                  fontSize: 'var(--font-size-base)',
+                  color: 'var(--text-secondary)',
+                  fontWeight: 'var(--font-weight-medium)',
+                  lineHeight: 1.7,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6
+                }}
+              >
+                <li>Uống sữa, rượu bia trước khi hiến máu.</li>
+                <li>Lái xe đi xa, khuân vác nặng, làm việc nặng hoặc luyện tập thể thao gắng sức trong ngày hiến máu.</li>
+              </ul>
+              <div
+                style={{
+                  marginTop: 'var(--spacing-lg)',
+                  textAlign: 'right',
+                  fontSize: 'var(--font-size-sm)',
+                  lineHeight: 1.5
+                }}
+              >
+                <div style={{ fontWeight: 'var(--font-weight-bold)', color: '#111827' }}>
+                  Bác sĩ Ngô Văn Tân
+                </div>
+                <div style={{ fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
+                  Trưởng khoa Khoa Tiếp nhận hiến máu.
+                </div>
+                <div style={{ fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
+                  Bệnh viện Truyền máu Huyết học
+                </div>
+              </div>
+            </div>
+
+            {/* Lưu ý */}
+            <div
+              style={{
+                background: 'white',
+                borderRadius: 'var(--radius-lg)',
+                padding: 'var(--spacing-xl)',
+                boxShadow: '0 8px 20px rgba(0,0,0,0.08)',
+                border: '1px solid var(--gray-200)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 'var(--spacing-sm)'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: 'var(--spacing-sm)' }}>
+                <span
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: '50%',
+                    border: '2px solid #f59e0b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#f59e0b',
+                    fontSize: 20
+                  }}
+                >
+                  !
+                </span>
+                <h3
+                  style={{
+                    fontSize: 'var(--font-size-xl)',
+                    fontWeight: 'var(--font-weight-bold)',
+                    color: '#111827',
+                    margin: 0
+                  }}
+                >
+                  Lưu ý
+                </h3>
+              </div>
+              <ul
+                style={{
+                  paddingLeft: 20,
+                  margin: 0,
+                  fontSize: 'var(--font-size-base)',
+                  color: 'var(--text-secondary)',
+                  fontWeight: 'var(--font-weight-medium)',
+                  lineHeight: 1.7,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6
+                }}
+              >
+                <li>Nếu thấy chảy máu tại chỗ chích: giơ tay cao và ấn nhẹ lên miếng bông/băng dính.</li>
+                <li>Ăn nhẹ và uống thêm nước nếu cảm thấy mệt.</li>
+                <li>Liên hệ nhân viên y tế khi có bất kỳ dấu hiệu bất thường nào.</li>
+              </ul>
+              <div
+                style={{
+                  marginTop: 'var(--spacing-lg)',
+                  textAlign: 'right',
+                  fontSize: 'var(--font-size-sm)',
+                  lineHeight: 1.5
+                }}
+              >
+                <div style={{ fontWeight: 'var(--font-weight-bold)', color: '#111827' }}>
+                  Bác sĩ Ngô Văn Tân
+                </div>
+                <div style={{ fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
+                  Trưởng khoa Khoa Tiếp nhận hiến máu.
+                </div>
+                <div style={{ fontWeight: 'var(--font-weight-medium)', color: 'var(--text-secondary)' }}>
+                  Bệnh viện Truyền máu Huyết học
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

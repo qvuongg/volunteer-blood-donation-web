@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -11,7 +12,9 @@ import DonorProfile from './pages/donor/Profile';
 import DonorBloodInfo from './pages/donor/BloodInfo';
 import DonorEvents from './pages/donor/Events';
 import DonorEventDetail from './pages/donor/EventDetail';
+import EventRegistrationForm from './pages/donor/EventRegistrationForm';
 import DonorRegistrations from './pages/donor/Registrations';
+import RegistrationDetail from './pages/donor/RegistrationDetail';
 import DonorHistory from './pages/donor/History';
 import OrgDashboard from './pages/organization/Dashboard';
 import OrgEvents from './pages/organization/Events';
@@ -38,8 +41,9 @@ import './App.css';
 function App() {
   return (
     <AuthProvider>
-      <Router>
-        <Routes>
+      <ToastProvider>
+        <Router>
+          <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -88,10 +92,26 @@ function App() {
             } 
           />
           <Route 
+            path="/donor/events/:eventId/register" 
+            element={
+              <ProtectedRoute allowedRoles={['nguoi_hien']}>
+                <EventRegistrationForm />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path="/donor/registrations" 
             element={
               <ProtectedRoute allowedRoles={['nguoi_hien']}>
                 <DonorRegistrations />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/donor/registrations/:id" 
+            element={
+              <ProtectedRoute allowedRoles={['nguoi_hien']}>
+                <RegistrationDetail />
               </ProtectedRoute>
             } 
           />
@@ -283,6 +303,7 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
+      </ToastProvider>
     </AuthProvider>
   );
 }

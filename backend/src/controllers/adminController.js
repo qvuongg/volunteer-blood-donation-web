@@ -138,6 +138,41 @@ export const updateUserStatus = async (req, res, next) => {
     const { id } = req.params;
     const { trang_thai } = req.body;
 
+    // Lấy thông tin người yêu cầu (admin đang đăng nhập)
+    const requesterId = req.user?.id_nguoi_dung || req.user?.id;
+
+    // Lấy thông tin người dùng mục tiêu
+    const [targetRows] = await pool.execute(
+      'SELECT id_vai_tro FROM nguoidung WHERE id_nguoi_dung = ?',
+      [id]
+    );
+
+    if (targetRows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy người dùng.'
+      });
+    }
+
+    const targetRoleId = targetRows[0].id_vai_tro;
+    const ADMIN_ROLE_ID = 5; // giả định id_vai_tro = 5 là quản trị viên
+
+    // Chặn tự vô hiệu hóa chính mình
+    if (requesterId && Number(requesterId) === Number(id)) {
+      return res.status(403).json({
+        success: false,
+        message: 'Không thể tự vô hiệu hóa tài khoản của chính bạn.'
+      });
+    }
+
+    // Chặn vô hiệu hóa tài khoản quản trị viên khác
+    if (Number(targetRoleId) === ADMIN_ROLE_ID) {
+      return res.status(403).json({
+        success: false,
+        message: 'Không thể thay đổi trạng thái tài khoản quản trị viên khác.'
+      });
+    }
+
     await pool.execute(
       'UPDATE nguoidung SET trang_thai = ? WHERE id_nguoi_dung = ?',
       [trang_thai, id]

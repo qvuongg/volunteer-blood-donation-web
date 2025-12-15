@@ -134,8 +134,8 @@ const ForgotPassword = () => {
         handlePrimaryCta={handlePrimaryCta}
       />
       <div className="auth-container" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 'var(--spacing-4xl) var(--spacing-xl)' }}>
-        <div className="auth-card">
-          <div className="auth-header">
+      <div className="auth-card">
+        <div className="auth-header">
           <div className="auth-logo">
             <svg width="32" height="32" viewBox="0 0 32 32" fill="currentColor">
               <path d="M16 2C16 2 8 10 8 16C8 20.4183 11.5817 24 16 24C20.4183 24 24 20.4183 24 16C24 10 16 2 16 2Z" />
@@ -294,7 +294,7 @@ const ForgotPassword = () => {
         <div className="auth-footer">
           Nhớ mật khẩu? <Link to="/login">Đăng nhập ngay</Link>
         </div>
-        </div>
+      </div>
       </div>
       <HomeFooter
         searchQuery={searchQuery}

@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
 
 const Registrations = () => {
+  const navigate = useNavigate();
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -74,23 +76,43 @@ const Registrations = () => {
             <thead>
               <tr>
                 <th>Sự kiện</th>
-                <th>Ngày bắt đầu</th>
+                <th>Ngày hẹn</th>
+                <th>Khung giờ</th>
                 <th>Ngày đăng ký</th>
                 <th>Trạng thái</th>
-                <th>Ghi chú</th>
+                <th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {registrations.map(reg => (
-                <tr key={reg.id_dang_ky}>
+                <tr 
+                  key={reg.id_dang_ky}
+                  onClick={() => navigate(`/donor/registrations/${reg.id_dang_ky}`)}
+                  style={{ cursor: 'pointer' }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--gray-50)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
                   <td style={{ fontWeight: 'var(--font-weight-medium)' }}>
                     {reg.ten_su_kien}
                   </td>
-                  <td>{formatDate(reg.ngay_bat_dau)}</td>
+                  <td style={{ color: '#dc2626', fontWeight: 'var(--font-weight-semibold)' }}>
+                    {reg.ngay_hen_hien ? formatDate(reg.ngay_hen_hien) : '-'}
+                  </td>
+                  <td style={{ color: '#dc2626', fontWeight: 'var(--font-weight-semibold)' }}>
+                    {reg.khung_gio || '-'}
+                  </td>
                   <td>{formatDate(reg.ngay_dang_ky)}</td>
                   <td>{getStatusBadge(reg.trang_thai)}</td>
-                  <td style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)' }}>
-                    {reg.ghi_chu_duyet || '-'}
+                  <td>
+                    <button
+                      className="btn btn-sm btn-primary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/donor/registrations/${reg.id_dang_ky}`);
+                      }}
+                    >
+                      Xem chi tiết
+                    </button>
                   </td>
                 </tr>
               ))}

@@ -9,8 +9,6 @@ const EventDetail = () => {
   const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [registering, setRegistering] = useState(false);
-  const [message, setMessage] = useState('');
   const [isRegistered, setIsRegistered] = useState(false);
 
   useEffect(() => {
@@ -27,7 +25,6 @@ const EventDetail = () => {
       }
     } catch (error) {
       console.error('Error fetching event:', error);
-      setMessage('Không tìm thấy sự kiện.');
     } finally {
       setLoading(false);
     }
@@ -46,27 +43,9 @@ const EventDetail = () => {
     }
   };
 
-  const handleRegister = async () => {
-    if (!window.confirm('Bạn có chắc chắn muốn đăng ký sự kiện này?')) {
-      return;
-    }
-
-    setRegistering(true);
-    setMessage('');
-
-    try {
-      const response = await api.post('/registrations', { id_su_kien: parseInt(id) });
-      if (response.data.success) {
-        setMessage('success');
-        setTimeout(() => {
-          navigate('/donor/registrations');
-        }, 2000);
-      }
-    } catch (error) {
-      setMessage(error.response?.data?.message || 'Có lỗi xảy ra khi đăng ký.');
-    } finally {
-      setRegistering(false);
-    }
+  const handleRegister = () => {
+    // Navigate to registration form instead of direct API call
+    navigate(`/donor/events/${id}/register`);
   };
 
   const formatDate = (dateString) => {
@@ -106,7 +85,7 @@ const EventDetail = () => {
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: 'var(--spacing-3xl)' }}>
             <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-lg)', marginBottom: 'var(--spacing-lg)' }}>
-              {message || 'Không tìm thấy sự kiện.'}
+              Không tìm thấy sự kiện.
             </p>
             <button className="btn btn-primary" onClick={() => navigate('/donor/events')}>
               Quay lại danh sách
@@ -127,17 +106,6 @@ const EventDetail = () => {
           Quay lại
       </button>
       </div>
-
-      {message === 'success' && (
-        <div className="alert alert-success" style={{ marginBottom: 'var(--spacing-lg)' }}>
-          Đăng ký thành công! Vui lòng chờ duyệt. Đang chuyển hướng...
-        </div>
-      )}
-      {message && message !== 'success' && (
-        <div className="alert alert-danger" style={{ marginBottom: 'var(--spacing-lg)' }}>
-          {message}
-        </div>
-      )}
 
       <div className="card">
         <div className="card-body">
@@ -261,21 +229,12 @@ const EventDetail = () => {
           <button
               className="btn btn-primary"
             onClick={handleRegister}
-              disabled={registering || !canRegister}
+              disabled={!canRegister}
             >
-              {registering ? (
-                <>
-                  <LoadingSpinner size="small" />
-                  Đang đăng ký...
-                </>
-              ) : (
-                <>
-                  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M10 5v10m5-5H5"/>
-                  </svg>
-                  Đăng ký hiến máu
-                </>
-              )}
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 5v10m5-5H5"/>
+              </svg>
+              {isRegistered ? 'Xem chi tiết đăng ký' : 'Đăng ký hiến máu'}
           </button>
             {isRegistered && (
               <p style={{ color: 'var(--primary-600)', fontSize: 'var(--font-size-sm)', margin: 0, display: 'flex', alignItems: 'center' }}>

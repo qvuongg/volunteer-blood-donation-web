@@ -130,11 +130,15 @@ CREATE TABLE dang_ky_hien_mau (
     id_nguoi_hien INT NOT NULL,
     id_nguoi_duyet INT,
     ngay_dang_ky TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    ngay_hen_hien DATE,
+    khung_gio VARCHAR(20),
+    phieu_kham_sang_loc JSON,
     trang_thai VARCHAR(50) DEFAULT 'cho_duyet',
     ghi_chu_duyet TEXT,
     FOREIGN KEY (id_su_kien) REFERENCES sukien_hien_mau(id_su_kien),
     FOREIGN KEY (id_nguoi_hien) REFERENCES nguoi_hien_mau(id_nguoi_hien),
-    FOREIGN KEY (id_nguoi_duyet) REFERENCES nguoi_phu_trach_to_chuc(id_nguoi_phu_trach)
+    FOREIGN KEY (id_nguoi_duyet) REFERENCES nguoi_phu_trach_to_chuc(id_nguoi_phu_trach),
+    INDEX idx_ngay_hen_hien (ngay_hen_hien)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================
@@ -270,12 +274,20 @@ INSERT INTO sukien_hien_mau (id_to_chuc, id_benh_vien, ten_su_kien, ngay_bat_dau
 -- Insert đăng ký hiến máu
 -- id_nguoi_duyet tham chiếu đến id_nguoi_phu_trach trong bảng nguoi_phu_trach_to_chuc
 -- User 5 (id_nguoi_phu_trach = 5) phụ trách tổ chức 1
--- id_nguoi_hien: 1 = User 2, 2 = User 3, 3 = User 4
-INSERT INTO dang_ky_hien_mau (id_su_kien, id_nguoi_hien, id_nguoi_duyet, trang_thai, ghi_chu_duyet) VALUES
-(1, 2, 5, 'da_duyet', 'Dang ky thanh cong'), -- User 2 (id_nguoi_hien = 2)
-(1, 3, 5, 'da_duyet', 'Dang ky thanh cong'), -- User 3 (id_nguoi_hien = 3)
-(1, 4, 5, 'da_duyet', 'Dang ky thanh cong'), -- User 4 (id_nguoi_hien = 4) đăng ký sự kiện 1, đã được duyệt nhưng chưa xác thực nhóm máu
-(2, 4, NULL, 'cho_duyet', NULL);
+-- id_nguoi_hien: 2 = User 2, 3 = User 3, 4 = User 4
+INSERT INTO dang_ky_hien_mau (id_su_kien, id_nguoi_hien, id_nguoi_duyet, ngay_hen_hien, khung_gio, phieu_kham_sang_loc, trang_thai, ghi_chu_duyet) VALUES
+(1, 2, 5, '2024-03-15', '08:00 - 10:00', 
+ '{"q1":{"hien_mau_chua":"co"},"q2":{"mac_benh":"khong","benh_gi":null},"q3":{"benh_ly_truoc":"khong","benh_khac":null},"q4":{"items":["khong"],"vacxin":null},"q5":{"items":["khong"]},"q6":{"items":["khong"]},"q7":{"mac_benh":"khong","khac":null},"q8":{"dung_thuoc":"khong","khac":null}}',
+ 'da_duyet', 'Dang ky thanh cong. Du dieu kien suc khoe'),
+(1, 3, 5, '2024-03-15', '10:00 - 12:00',
+ '{"q1":{"hien_mau_chua":"co"},"q2":{"mac_benh":"khong","benh_gi":null},"q3":{"benh_ly_truoc":"khong","benh_khac":null},"q4":{"items":["tiem_vacxin"],"vacxin":"COVID-19"},"q5":{"items":["khong"]},"q6":{"items":["khong"]},"q7":{"mac_benh":"khong","khac":null},"q8":{"dung_thuoc":"khong","khac":null}}',
+ 'da_duyet', 'Dang ky thanh cong. Da tiem vaccine nhung qua 1 thang'),
+(1, 4, 5, '2024-03-15', '13:00 - 15:00',
+ '{"q1":{"hien_mau_chua":"khong"},"q2":{"mac_benh":"khong","benh_gi":null},"q3":{"benh_ly_truoc":"khong","benh_khac":null},"q4":{"items":["khong"],"vacxin":null},"q5":{"items":["khong"]},"q6":{"items":["khong"]},"q7":{"mac_benh":"khong","khac":null},"q8":{"dung_thuoc":"khong","khac":null}}',
+ 'da_duyet', 'Dang ky thanh cong. Nguoi hien mau lan dau'),
+(2, 4, NULL, '2024-04-20', '08:00 - 10:00',
+ '{"q1":{"hien_mau_chua":"co"},"q2":{"mac_benh":"khong","benh_gi":null},"q3":{"benh_ly_truoc":"khong","benh_khac":null},"q4":{"items":["khong"],"vacxin":null},"q5":{"items":["khong"]},"q6":{"items":["khong"]},"q7":{"mac_benh":"khong","khac":null},"q8":{"dung_thuoc":"khong","khac":null}}',
+ 'cho_duyet', NULL);
 
 -- Insert kết quả hiến máu
 -- id_nguoi_hien: 2 = User 2, 3 = User 3

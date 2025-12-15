@@ -317,18 +317,21 @@ const Register = () => {
           </select>
         </div>
 
-        <button
-          type="submit"
-          disabled={loading}
-              className="btn btn-primary btn-block"
-        >
-              {loading ? <LoadingSpinner size="small" /> : 'Tiếp tục'}
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'center', margin: 'var(--spacing-lg) 0' }}>
+          <button
+            type="submit"
+            disabled={loading}
+            className="btn btn-primary btn-block"
+            style={{ maxWidth: 220, width: '100%' }}
+          >
+            {loading ? <LoadingSpinner size="small" /> : 'Tiếp tục'}
+          </button>
+        </div>
 
         <div className="auth-footer">
-              <span>Đã có tài khoản?</span>
-              <Link to="/login" className="auth-link">Đăng nhập ngay</Link>
-            </div>
+          <span>Đã có tài khoản?</span>
+          <Link to="/login" className="auth-link">Đăng nhập ngay</Link>
+        </div>
           </form>
         )}
 
