@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import { sendRegistrationApprovalEmail } from '../utils/email.js';
 
 // Get organization id for user
 const getOrganizationId = async (userId) => {
@@ -106,6 +107,24 @@ export const approveRegistration = async (req, res, next) => {
       });
     }
 
+    // Get donor and event info before updating (for email)
+    const [donorInfo] = await pool.execute(
+      `SELECT 
+        nd.ho_ten,
+        nd.email,
+        dk.ngay_hen_hien,
+        dk.khung_gio,
+        sk.ten_su_kien,
+        sk.ten_dia_diem,
+        sk.dia_chi
+      FROM dang_ky_hien_mau dk
+      JOIN nguoi_hien_mau nhm ON dk.id_nguoi_hien = nhm.id_nguoi_hien
+      JOIN nguoidung nd ON nhm.id_nguoi_hien = nd.id_nguoi_dung
+      JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
+      WHERE dk.id_dang_ky = ?`,
+      [id]
+    );
+
     // Update registration
     await pool.execute(
       `UPDATE dang_ky_hien_mau 
@@ -114,9 +133,29 @@ export const approveRegistration = async (req, res, next) => {
       [coordinatorId, ghi_chu_duyet || null, id]
     );
 
+    // Send email notification
+    if (donorInfo.length > 0) {
+      const donor = donorInfo[0];
+      const eventInfo = {
+        ten_su_kien: donor.ten_su_kien,
+        ngay_hen_hien: donor.ngay_hen_hien,
+        khung_gio: donor.khung_gio,
+        ten_dia_diem: donor.ten_dia_diem,
+        dia_chi: donor.dia_chi
+      };
+      
+      sendRegistrationApprovalEmail(
+        donor.email,
+        donor.ho_ten,
+        eventInfo,
+        'da_duyet',
+        ghi_chu_duyet || ''
+      ).catch(err => console.error('Email sending failed:', err));
+    }
+
     res.json({
       success: true,
-      message: 'Duyệt đăng ký thành công.'
+      message: 'Duyệt đăng ký thành công. Email thông báo đã được gửi.'
     });
   } catch (error) {
     next(error);
@@ -163,6 +202,24 @@ export const rejectRegistration = async (req, res, next) => {
       });
     }
 
+    // Get donor and event info before updating (for email)
+    const [donorInfo] = await pool.execute(
+      `SELECT 
+        nd.ho_ten,
+        nd.email,
+        dk.ngay_hen_hien,
+        dk.khung_gio,
+        sk.ten_su_kien,
+        sk.ten_dia_diem,
+        sk.dia_chi
+      FROM dang_ky_hien_mau dk
+      JOIN nguoi_hien_mau nhm ON dk.id_nguoi_hien = nhm.id_nguoi_hien
+      JOIN nguoidung nd ON nhm.id_nguoi_hien = nd.id_nguoi_dung
+      JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
+      WHERE dk.id_dang_ky = ?`,
+      [id]
+    );
+
     // Update registration
     await pool.execute(
       `UPDATE dang_ky_hien_mau 
@@ -170,6 +227,26 @@ export const rejectRegistration = async (req, res, next) => {
        WHERE id_dang_ky = ?`,
       [coordinatorId, ghi_chu_duyet || null, id]
     );
+
+    // Send email notification
+    if (donorInfo.length > 0) {
+      const donor = donorInfo[0];
+      const eventInfo = {
+        ten_su_kien: donor.ten_su_kien,
+        ngay_hen_hien: donor.ngay_hen_hien,
+        khung_gio: donor.khung_gio,
+        ten_dia_diem: donor.ten_dia_diem,
+        dia_chi: donor.dia_chi
+      };
+      
+      sendRegistrationApprovalEmail(
+        donor.email,
+        donor.ho_ten,
+        eventInfo,
+        'tu_choi',
+        ghi_chu_duyet || ''
+      ).catch(err => console.error('Email sending failed:', err));
+    }
 
     res.json({
       success: true,

@@ -80,6 +80,7 @@ const Registrations = () => {
                 <th>Khung giờ</th>
                 <th>Ngày đăng ký</th>
                 <th>Trạng thái</th>
+                <th>Kết quả</th>
                 <th>Thao tác</th>
               </tr>
             </thead>
@@ -103,6 +104,18 @@ const Registrations = () => {
                   </td>
                   <td>{formatDate(reg.ngay_dang_ky)}</td>
                   <td>{getStatusBadge(reg.trang_thai)}</td>
+                  <td>
+                    {reg.id_ket_qua ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        <span style={{ fontSize: 'var(--font-size-xl)' }}>🎉</span>
+                        <span style={{ color: '#16a34a', fontWeight: 'var(--font-weight-semibold)' }}>
+                          {reg.luong_ml} ml
+                        </span>
+                      </div>
+                    ) : (
+                      <span style={{ color: 'var(--text-secondary)' }}>-</span>
+                    )}
+                  </td>
                   <td>
                     <button
                       className="btn btn-sm btn-primary"

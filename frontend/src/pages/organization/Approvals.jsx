@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
 
 const Approvals = () => {
+  const navigate = useNavigate();
   const [pendingRegistrations, setPendingRegistrations] = useState([]);
   const [allRegistrations, setAllRegistrations] = useState([]);
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     eventId: '',
-    search: ''
+    search: '',
+    status: 'cho_duyet' // Add status filter, default to pending
   });
 
   useEffect(() => {
@@ -24,10 +27,10 @@ const Approvals = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch events and pending registrations in parallel
+      // Fetch events and all registrations in parallel
       const [eventsRes, registrationsRes] = await Promise.all([
         api.get('/organizations/events'),
-        api.get('/approvals/pending')
+        api.get('/registrations/all')
       ]);
 
       if (eventsRes.data.success) {
@@ -50,6 +53,11 @@ const Approvals = () => {
   const filterRegistrations = () => {
     let filtered = [...allRegistrations];
 
+    // Filter by status
+    if (filters.status) {
+      filtered = filtered.filter(reg => reg.trang_thai === filters.status);
+    }
+
     // Filter by event
     if (filters.eventId) {
       filtered = filtered.filter(reg => reg.id_su_kien === parseInt(filters.eventId));
@@ -69,30 +77,20 @@ const Approvals = () => {
     setPendingRegistrations(filtered);
   };
 
-  const handleApprove = async (id) => {
-    if (!window.confirm('Bạn có chắc muốn duyệt đăng ký này?')) return;
-    
-    try {
-      await api.put(`/approvals/registrations/${id}/approve`, {});
-      alert('Đã duyệt thành công');
-      fetchData();
-    } catch (error) {
-      alert('Có lỗi xảy ra: ' + (error.response?.data?.message || error.message));
-    }
+  const getStatusBadge = (status) => {
+    const statusMap = {
+      'da_duyet': { label: 'Đã duyệt', class: 'badge-success', icon: '✅' },
+      'cho_duyet': { label: 'Chờ duyệt', class: 'badge-warning', icon: '⏳' },
+      'tu_choi': { label: 'Từ chối', class: 'badge-danger', icon: '❌' }
+    };
+    const statusInfo = statusMap[status] || { label: status, class: 'badge-gray', icon: '❓' };
+    return (
+      <span className={`badge ${statusInfo.class}`}>
+        {statusInfo.icon} {statusInfo.label}
+      </span>
+    );
   };
 
-  const handleReject = async (id) => {
-    const reason = window.prompt('Lý do từ chối:');
-    if (!reason) return;
-
-    try {
-      await api.put(`/approvals/registrations/${id}/reject`, { ghi_chu_duyet: reason });
-      alert('Đã từ chối');
-      fetchData();
-    } catch (error) {
-      alert('Có lỗi xảy ra: ' + (error.response?.data?.message || error.message));
-    }
-  };
 
   if (loading) {
     return (
@@ -114,7 +112,21 @@ const Approvals = () => {
       {/* Filters */}
       <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
         <div className="card-body">
-          <div className="grid grid-cols-2" style={{ gap: 'var(--spacing-md)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--spacing-md)' }}>
+            <div className="form-group">
+              <label className="form-label">Trạng thái</label>
+              <select
+                className="form-input"
+                value={filters.status}
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+              >
+                <option value="">Tất cả</option>
+                <option value="cho_duyet">Chờ duyệt</option>
+                <option value="da_duyet">Đã duyệt</option>
+                <option value="tu_choi">Từ chối</option>
+              </select>
+            </div>
+
             <div className="form-group">
               <label className="form-label">Lọc theo sự kiện</label>
               <select
@@ -176,6 +188,7 @@ const Approvals = () => {
                       <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Sự kiện</th>
                       <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Ngày đăng ký</th>
                       <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Nhóm máu</th>
+                      <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Trạng thái</th>
                       <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Thao tác</th>
                     </tr>
                   </thead>
@@ -210,20 +223,15 @@ const Approvals = () => {
                           </span>
                         </td>
                         <td style={{ padding: 'var(--spacing-md)' }}>
-                          <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
-                            <button
-                              className="btn btn-sm btn-success"
-                              onClick={() => handleApprove(reg.id_dang_ky)}
-                            >
-                              Duyệt
-                            </button>
-                            <button
-                              className="btn btn-sm btn-danger"
-                              onClick={() => handleReject(reg.id_dang_ky)}
-                            >
-                              Từ chối
-                            </button>
-                          </div>
+                          {getStatusBadge(reg.trang_thai)}
+                        </td>
+                        <td style={{ padding: 'var(--spacing-md)' }}>
+                          <button
+                            className="btn btn-sm btn-primary"
+                            onClick={() => navigate(`/organization/events/${reg.id_su_kien}/registrations/${reg.id_dang_ky}`)}
+                          >
+                            {reg.trang_thai === 'cho_duyet' ? '📋 Duyệt' : '📋 Xem chi tiết'}
+                          </button>
                         </td>
                       </tr>
                     ))}

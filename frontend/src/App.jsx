@@ -22,6 +22,7 @@ import OrgApprovals from './pages/organization/Approvals';
 import EventForm from './pages/organization/EventForm';
 import EventDetail from './pages/organization/EventDetail';
 import EventRegistrations from './pages/organization/EventRegistrations';
+import RegistrationApprovalDetail from './pages/organization/RegistrationApprovalDetail';
 import HospitalDashboard from './pages/hospital/Dashboard';
 import HospitalProfile from './pages/hospital/Profile';
 import HospitalBloodTypeConfirmation from './pages/hospital/BloodTypeConfirmation';
@@ -170,6 +171,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['to_chuc']}>
                 <EventRegistrations />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/organization/events/:eventId/registrations/:registrationId" 
+            element={
+              <ProtectedRoute allowedRoles={['to_chuc']}>
+                <RegistrationApprovalDetail />
               </ProtectedRoute>
             } 
           />

@@ -3,6 +3,7 @@ import { authenticate, authorize } from '../middleware/auth.js';
 import { 
   registerForEvent, 
   getMyRegistrations,
+  getAllOrganizationRegistrations,
   getEventRegistrations,
   updateRegistrationStatus,
   deleteRegistration
@@ -19,6 +20,7 @@ router.get('/my', authorize('nguoi_hien'), getMyRegistrations);
 router.delete('/:registrationId', authorize('nguoi_hien'), deleteRegistration);
 
 // Organization manager routes
+router.get('/all', authorize('to_chuc'), getAllOrganizationRegistrations);
 router.get('/event/:eventId/list', authorize('to_chuc'), getEventRegistrations);
 router.put('/:registrationId/status', authorize('to_chuc'), updateRegistrationStatus);
 
