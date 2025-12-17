@@ -12,6 +12,12 @@ const Home = () => {
   const [language, setLanguage] = useState('vi');
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [filters, setFilters] = useState({
+    status: '', // 'dang_dien_ra', 'sap_dien_ra', 'da_ket_thuc'
+    dateFrom: '',
+    dateTo: ''
+  });
 
   const handlePrimaryCta = () => {
     if (user && user.ten_vai_tro === 'nguoi_hien') {
@@ -23,12 +29,15 @@ const Home = () => {
 
   const handleFindDrive = () => {
     const q = searchQuery.trim();
-    if (user && user.ten_vai_tro === 'nguoi_hien') {
-      navigate(q ? `/donor/events?search=${encodeURIComponent(q)}` : '/donor/events');
-    } else {
-      // Navigate to public events page for non-logged-in users
-      navigate(q ? `/events?search=${encodeURIComponent(q)}` : '/events');
-    }
+    const params = new URLSearchParams();
+    
+    if (q) params.append('search', q);
+    if (filters.status) params.append('status', filters.status);
+    if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
+    if (filters.dateTo) params.append('dateTo', filters.dateTo);
+    
+    const queryString = params.toString();
+    navigate(queryString ? `/search?${queryString}` : '/search');
   };
 
   useEffect(() => {
@@ -89,7 +98,7 @@ const Home = () => {
         backgroundRepeat: 'no-repeat',
         overflow: 'hidden'
       }}>
-        <div style={{
+        <div style={{ 
           position: 'absolute',
           inset: 0,
           background: 'linear-gradient(90deg, rgba(17,24,39,0.70) 0%, rgba(17,24,39,0.35) 55%, rgba(17,24,39,0.05) 100%)'
@@ -98,7 +107,7 @@ const Home = () => {
         <div style={{
           position: 'relative',
           height: '100%',
-          maxWidth: '1400px',
+          maxWidth: '1400px', 
           margin: '0 auto',
           padding: '0 var(--spacing-xl)',
           display: 'flex',
@@ -131,9 +140,9 @@ const Home = () => {
               <br />
               Hãy trở thành người hùng trong câu chuyện của ai đó.
             </p>
-            <button
+            <button 
               onClick={handlePrimaryCta}
-              style={{
+              style={{ 
                 marginTop: '28px',
                 padding: '14px 32px',
                 border: '2px solid white',
@@ -176,125 +185,337 @@ const Home = () => {
           zIndex: 10
         }}
       >
-        <div style={{
+      <div style={{
           background: 'white',
           borderRadius: '18px',
           boxShadow: '0 18px 54px rgba(0,0,0,0.18)',
           padding: '20px 24px',
           display: 'flex',
-          alignItems: 'center',
+          flexDirection: 'column',
           gap: '16px'
-        }}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2">
-            <path d="M12 22s8-4 8-10a8 8 0 10-16 0c0 6 8 10 8 10z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
+      }}>
+          {/* Main Search Row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#dc2626" strokeWidth="2">
+              <path d="M12 22s8-4 8-10a8 8 0 10-16 0c0 6 8 10 8 10z" />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
 
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: '#111827', marginBottom: '6px' }}>
-              Tìm sự kiện hiến máu gần bạn
-            </span>
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleFindDrive();
-              }}
-              placeholder="Nhập địa chỉ, quận/huyện hoặc mã vùng..."
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)', color: '#111827', marginBottom: '6px' }}>
+                Tìm sự kiện hiến máu gần bạn
+              </span>
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleFindDrive();
+                }}
+                placeholder="Nhập địa chỉ, quận/huyện, tên sự kiện..."
+                style={{
+                  border: 'none',
+                  outline: 'none',
+                  padding: 0,
+                  fontSize: 'var(--font-size-base)',
+                  color: '#111827'
+                }}
+              />
+            </div>
+
+            <button 
+              className="btn btn-primary"
+              onClick={handleFindDrive}
               style={{
+                background: '#dc2626',
+                borderColor: '#dc2626',
+                padding: '14px 28px',
+                borderRadius: '999px',
+                fontWeight: 'var(--font-weight-bold)',
+                whiteSpace: 'nowrap',
                 border: 'none',
-                outline: 'none',
-                padding: 0,
-                fontSize: 'var(--font-size-base)',
-                color: '#111827'
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
               }}
-            />
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#b91c1c';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#dc2626';
+              }}
+            >
+              Tìm kiếm
+            </button>
           </div>
 
-          <button
-            className="btn btn-primary"
-            onClick={handleFindDrive}
-            style={{
-              background: '#dc2626',
-              borderColor: '#dc2626',
-              padding: '14px 28px',
-              borderRadius: '999px',
-              fontWeight: 'var(--font-weight-bold)',
-              whiteSpace: 'nowrap',
-              border: 'none',
-              color: 'white',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#b91c1c';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = '#dc2626';
-            }}
-          >
-            Tìm kiếm
-          </button>
+          {/* Advanced Search Toggle */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '8px', borderTop: '1px solid #e5e7eb' }}>
+            <button
+              onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#dc2626',
+                fontSize: 'var(--font-size-sm)',
+                fontWeight: 'var(--font-weight-semibold)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '4px 0'
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d={showAdvancedSearch ? "M4 6l4 4 4-4" : "M6 4l4 4-4 4"} />
+              </svg>
+              Tìm kiếm nâng cao
+            </button>
+            {(filters.status || filters.dateFrom || filters.dateTo) && (
+              <span style={{ fontSize: 'var(--font-size-xs)', color: '#6b7280' }}>
+                Đã áp dụng {[filters.status && 'trạng thái', filters.dateFrom && 'ngày bắt đầu', filters.dateTo && 'ngày kết thúc'].filter(Boolean).length} bộ lọc
+              </span>
+            )}
+          </div>
+
+          {/* Advanced Search Panel */}
+          {showAdvancedSearch && (
+            <div style={{
+              padding: '16px',
+              background: '#f9fafb',
+              borderRadius: '12px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '16px',
+              border: '1px solid #e5e7eb'
+            }}>
+              {/* Status Filter */}
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  fontSize: 'var(--font-size-sm)', 
+                  fontWeight: 'var(--font-weight-semibold)', 
+                  color: '#374151',
+                  marginBottom: '8px'
+                }}>
+                  Trạng thái
+                </label>
+                <select
+                  value={filters.status}
+                  onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: 'var(--font-size-sm)',
+                    background: 'white',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="">Tất cả</option>
+                  <option value="dang_dien_ra">Đang diễn ra</option>
+                  <option value="sap_dien_ra">Sắp diễn ra</option>
+                  <option value="da_ket_thuc">Đã kết thúc</option>
+                </select>
+              </div>
+
+              {/* Date From */}
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  fontSize: 'var(--font-size-sm)', 
+                  fontWeight: 'var(--font-weight-semibold)', 
+                  color: '#374151',
+                  marginBottom: '8px'
+                }}>
+                  Từ ngày
+                </label>
+                <input
+                  type="date"
+                  value={filters.dateFrom}
+                  onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: 'var(--font-size-sm)',
+                    background: 'white'
+                  }}
+                />
+              </div>
+
+              {/* Date To */}
+              <div>
+                <label style={{ 
+                  display: 'block', 
+                  fontSize: 'var(--font-size-sm)', 
+                  fontWeight: 'var(--font-weight-semibold)', 
+                  color: '#374151',
+                  marginBottom: '8px'
+                }}>
+                  Đến ngày
+                </label>
+                <input
+                  type="date"
+                  value={filters.dateTo}
+                  onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+                  min={filters.dateFrom || undefined}
+                  style={{
+                    width: '100%',
+                    padding: '8px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: 'var(--font-size-sm)',
+                    background: 'white'
+                  }}
+                />
+              </div>
+
+              {/* Clear Filters */}
+              {(filters.status || filters.dateFrom || filters.dateTo) && (
+                <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                  <button
+                    onClick={() => setFilters({ status: '', dateFrom: '', dateTo: '' })}
+                    style={{
+                      padding: '8px 16px',
+                      background: 'white',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '8px',
+                      fontSize: 'var(--font-size-sm)',
+                      color: '#6b7280',
+                      cursor: 'pointer',
+                      fontWeight: 'var(--font-weight-medium)',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#f3f4f6';
+                      e.currentTarget.style.borderColor = '#9ca3af';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'white';
+                      e.currentTarget.style.borderColor = '#d1d5db';
+                    }}
+                  >
+                    Xóa bộ lọc
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Statistics Bar */}
-      <div 
-        id="statistics"
-        style={{
-          background: 'white',
-          marginTop: '60px',
-          padding: 'var(--spacing-3xl) var(--spacing-xl)',
-          boxShadow: '0 -4px 16px rgba(0,0,0,0.1)'
-        }}
-      >
-        <div style={{
-          maxWidth: '1400px',
+      {(() => {
+        // Shared icon bubble style
+        const iconBubbleStyle = {
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 56,
+          height: 56,
+          borderRadius: '50%',
+          marginBottom: 16,
+          fontSize: 32,
+          boxShadow: '0 2px 12px #fca5a555',
+          background: 'radial-gradient(circle at 60% 50%, #dc2626 55%, #fef2f2 100%)'
+        };
+
+        const stats = [
+          { 
+            number: '10,000+', label: 'Người Hiến Máu', 
+            icon: <span role="img" aria-label="Người Hiến Máu" style={iconBubbleStyle}>👥</span>
+          },
+          { 
+            number: '500+', label: 'Sự Kiện Đã Tổ Chức', 
+            icon: <span role="img" aria-label="Sự Kiện Đã Tổ Chức" style={iconBubbleStyle}>📅</span>
+          },
+          { 
+            number: '50+', label: 'Tổ Chức Tham Gia', 
+            icon: <span role="img" aria-label="Tổ Chức Tham Gia" style={iconBubbleStyle}>🏢</span>
+          },
+          { 
+            number: '24/7', label: 'Hỗ Trợ Khẩn Cấp', 
+            icon: <span role="img" aria-label="Hỗ Trợ Khẩn Cấp" style={{...iconBubbleStyle, background: 'radial-gradient(circle at 60% 60%, #b91c1c 60%, #fee2e2 100%)'}}>🚨</span>
+          }
+        ];
+
+        const cardStyle = {
+          background: '#fff',
+          borderRadius: '16px',
+          flex: '1 1 220px',
+          boxShadow: '0 4px 24px 0 rgba(220,38,38,0.07)',
+          padding: 'var(--spacing-xl)',
           margin: '0 auto',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-          gap: 'var(--spacing-xl)'
-        }}>
-          {[
-            { number: '10,000+', label: 'Người Hiến Máu', icon: '👥' },
-            { number: '500+', label: 'Sự Kiện Đã Tổ Chức', icon: '📅' },
-            { number: '50+', label: 'Tổ Chức Tham Gia', icon: '🏢' },
-            { number: '24/7', label: 'Hỗ Trợ Khẩn Cấp', icon: '🚨' }
-          ].map((stat, idx) => (
-            <div key={idx} style={{
-              textAlign: 'center',
-              padding: 'var(--spacing-lg)'
+          maxWidth: 300,
+          textAlign: 'center',
+          border: '2px solid #fef2f2',
+          transition: 'transform 0.2s, box-shadow 0.2s'
+        };
+
+        return (
+          <div
+            id="statistics"
+            style={{
+              background: 'linear-gradient(90deg, #fff 70%, #fee2e2 100%)',
+              marginTop: '40px',
+              padding: 'var(--spacing-3xl) 0',
+              boxShadow: '0 2px 24px rgba(220, 38, 38, 0.06)'
+            }}
+          >
+            <div style={{
+              maxWidth: '1200px',
+              margin: '0 auto',
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: 'var(--spacing-2xl)',
+              flexWrap: 'wrap'
             }}>
-              <div style={{ fontSize: '48px', marginBottom: 'var(--spacing-sm)' }}>
-                {stat.icon}
-              </div>
-              <div style={{
-                fontSize: 'var(--font-size-3xl)',
-                fontWeight: 'var(--font-weight-bold)',
-                color: '#dc2626',
-                marginBottom: 'var(--spacing-xs)'
-              }}>
-                {stat.number}
-              </div>
-              <div style={{
-                fontSize: 'var(--font-size-base)',
-                color: 'var(--text-secondary)',
-                fontWeight: 'var(--font-weight-medium)'
-              }}>
-                {stat.label}
-              </div>
+              {stats.map((stat, idx) => (
+                <div
+                  key={idx}
+                  style={cardStyle}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.boxShadow = '0 8px 32px 0 #fca5a5bb';
+                    e.currentTarget.style.transform = 'translateY(-6px) scale(1.045)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.boxShadow = '0 4px 24px 0 rgba(220,38,38,0.07)';
+                    e.currentTarget.style.transform = '';
+                  }}
+                >
+                  {stat.icon}
+                  <div style={{
+                    fontSize: '2.1rem',
+                    fontWeight: 700,
+                    color: '#dc2626',
+                    marginBottom: 4,
+                    textShadow: '0 1px 6px #fca5a570'
+                  }}>
+                    {stat.number}
+                  </div>
+                  <div style={{
+                    fontSize: '1rem',
+                    color: '#1f2937',
+                    fontWeight: 600,
+                  }}>
+                    {stat.label}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
+        );
+      })()}
 
       {/* Upcoming Events Section - Only for logged-in donors */}
       {user && user.ten_vai_tro === 'nguoi_hien' && (
-        <div style={{
+      <div style={{
           background: 'white',
-          padding: 'var(--spacing-4xl) var(--spacing-xl)'
-        }}>
-          <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
+        padding: 'var(--spacing-2xl) calc(var(--spacing-2xl) + 150px)'
+      }}>
+        <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -302,8 +523,8 @@ const Home = () => {
               marginBottom: 'var(--spacing-3xl)'
             }}>
               <div>
-                <h2 style={{
-                  fontSize: 'var(--font-size-4xl)',
+          <h2 style={{
+            fontSize: 'var(--font-size-4xl)',
                   fontWeight: 'var(--font-weight-bold)',
                   color: '#dc2626',
                   marginBottom: 'var(--spacing-sm)'
@@ -492,21 +713,21 @@ const Home = () => {
           <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-4xl)' }}>
             <h2 style={{
               fontSize: 'clamp(32px, 4vw, 56px)',
-              fontWeight: 'var(--font-weight-bold)',
-              color: '#dc2626',
-              marginBottom: 'var(--spacing-md)'
-            }}>
-              Tại Sao Nên Hiến Máu?
-            </h2>
-            <p style={{
+            fontWeight: 'var(--font-weight-bold)',
+            color: '#dc2626',
+            marginBottom: 'var(--spacing-md)'
+          }}>
+            Tại Sao Nên Hiến Máu?
+          </h2>
+          <p style={{
               fontSize: 'clamp(18px, 2vw, 22px)',
-              color: 'var(--text-secondary)',
-              maxWidth: '800px',
+            color: 'var(--text-secondary)',
+            maxWidth: '800px',
               margin: '0 auto',
               lineHeight: 1.7
-            }}>
-              Hiến máu không chỉ giúp đỡ người khác mà còn mang lại nhiều lợi ích cho chính bạn
-            </p>
+          }}>
+            Hiến máu không chỉ giúp đỡ người khác mà còn mang lại nhiều lợi ích cho chính bạn
+          </p>
           </div>
 
           <div style={{
@@ -547,34 +768,34 @@ const Home = () => {
               <div
                 key={idx}
                 style={{
-                  background: 'white',
-                  borderRadius: 'var(--radius-lg)',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-                  transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                background: 'white',
+                borderRadius: 'var(--radius-lg)',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+                transition: 'transform 0.3s ease, box-shadow 0.3s ease',
                   cursor: 'pointer',
                   padding: 'var(--spacing-xl)',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 'var(--spacing-sm)',
                   margin: 'var(--spacing-sm)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-8px)';
-                  e.currentTarget.style.boxShadow = '0 12px 32px rgba(220, 38, 38, 0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-8px)';
+                e.currentTarget.style.boxShadow = '0 12px 32px rgba(220, 38, 38, 0.15)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 16px rgba(0,0,0,0.08)';
                 }}
               >
-                <h3 style={{
-                  fontSize: 'var(--font-size-xl)',
-                  fontWeight: 'var(--font-weight-bold)',
-                  color: '#dc2626',
+                  <h3 style={{
+                    fontSize: 'var(--font-size-xl)',
+                    fontWeight: 'var(--font-weight-bold)',
+                    color: '#dc2626',
                   marginBottom: 'var(--spacing-xs)'
-                }}>
-                  {feature.title}
-                </h3>
+                  }}>
+                    {feature.title}
+                  </h3>
                 <ul style={{ paddingLeft: '20px', margin: 0, color: 'var(--text-secondary)', lineHeight: 1.7, fontSize: 'var(--font-size-base)', display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   {feature.bullets.map((item, bulletIdx) => (
                     <li key={bulletIdx}>{item}</li>
@@ -604,16 +825,16 @@ const Home = () => {
             }}>
               Các Hoạt Động Hiến Máu Nhân Đạo
             </h2>
-            <p style={{
+                  <p style={{
               fontSize: 'clamp(16px, 2vw, 20px)',
-              color: 'var(--text-secondary)',
+                    color: 'var(--text-secondary)',
               maxWidth: '820px',
               margin: '0 auto',
               lineHeight: 1.7
-            }}>
+                  }}>
               Những khoảnh khắc ý nghĩa trong các chương trình hiến máu và kết nối cộng đồng.
-            </p>
-          </div>
+                  </p>
+                </div>
 
           <div style={{
             display: 'grid',
@@ -1062,7 +1283,7 @@ const Home = () => {
       <div 
         id="roles"
         style={{
-          background: 'white',
+        background: 'white',
           padding: 'var(--spacing-5xl) var(--spacing-xl)',
           scrollMarginTop: '120px',
           marginTop: 'var(--spacing-3xl)'
@@ -1070,23 +1291,23 @@ const Home = () => {
       >
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-4xl)' }}>
-            <h2 style={{
+          <h2 style={{
               fontSize: 'clamp(32px, 4vw, 56px)',
-              fontWeight: 'var(--font-weight-bold)',
-              color: '#dc2626',
-              marginBottom: 'var(--spacing-md)'
-            }}>
-              Dành Cho Mọi Đối Tượng
-            </h2>
-            <p style={{
+            fontWeight: 'var(--font-weight-bold)',
+            color: '#dc2626',
+            marginBottom: 'var(--spacing-md)'
+          }}>
+            Dành Cho Mọi Đối Tượng
+          </h2>
+          <p style={{
               fontSize: 'clamp(18px, 2vw, 22px)',
-              color: 'var(--text-secondary)',
-              maxWidth: '800px',
+            color: 'var(--text-secondary)',
+            maxWidth: '800px',
               margin: '0 auto',
               lineHeight: 1.7
-            }}>
-              Nền tảng kết nối toàn diện cho tất cả các bên tham gia
-            </p>
+          }}>
+            Nền tảng kết nối toàn diện cho tất cả các bên tham gia
+          </p>
           </div>
 
           <div style={{
@@ -1249,15 +1470,15 @@ const Home = () => {
               {user && user.ten_vai_tro === 'nguoi_hien' ? 'Xem Sự Kiện' : 'Đăng Ký Ngay'}
             </button>
             {!user && (
-              <button 
-                className="btn btn-outline"
-                onClick={() => navigate('/login')}
-                style={{
-                  borderColor: 'white',
-                  color: 'white',
-                  padding: 'var(--spacing-lg) var(--spacing-3xl)',
+            <button 
+              className="btn btn-outline"
+              onClick={() => navigate('/login')}
+              style={{
+                borderColor: 'white',
+                color: 'white',
+                padding: 'var(--spacing-lg) var(--spacing-3xl)',
                   fontSize: 'clamp(16px, 1.8vw, 20px)',
-                  fontWeight: 'var(--font-weight-bold)',
+                fontWeight: 'var(--font-weight-bold)',
                   background: 'transparent',
                   borderRadius: '999px',
                   transition: 'all 0.3s ease'
@@ -1267,10 +1488,10 @@ const Home = () => {
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent';
-                }}
-              >
-                Đăng Nhập
-              </button>
+              }}
+            >
+              Đăng Nhập
+            </button>
             )}
           </div>
         </div>

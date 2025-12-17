@@ -4,7 +4,7 @@ import { sendRegistrationApprovalEmail } from '../utils/email.js';
 // Get organization id for user
 const getOrganizationId = async (userId) => {
   const [orgs] = await pool.execute(
-    'SELECT id_to_chuc FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_phu_trach = ?',
+    'SELECT id_to_chuc FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_dung = ?',
     [userId]
   );
   return orgs.length > 0 ? orgs[0].id_to_chuc : null;
@@ -13,7 +13,7 @@ const getOrganizationId = async (userId) => {
 // Get my organization coordinator id
 const getCoordinatorId = async (userId) => {
   const [coords] = await pool.execute(
-    'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_phu_trach = ?',
+    'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_dung = ?',
     [userId]
   );
   return coords.length > 0 ? coords[0].id_nguoi_phu_trach : null;
@@ -23,37 +23,29 @@ const getCoordinatorId = async (userId) => {
 export const getPendingRegistrations = async (req, res, next) => {
   try {
     const userId = req.user.id_nguoi_dung;
-    const orgId = await getOrganizationId(userId);
 
-    if (!orgId) {
-      return res.status(404).json({
-        success: false,
-        message: 'Không tìm thấy thông tin tổ chức.'
-      });
-    }
-
-    // Get pending registrations for all organization's events
+    // Get all pending registrations for events managed by this organization
     const [registrations] = await pool.execute(
       `SELECT 
         dk.id_dang_ky,
-        dk.id_nguoi_hien,
         dk.id_su_kien,
         dk.ngay_dang_ky,
         dk.trang_thai,
-        nh.nhom_mau,
         nd.ho_ten,
         nd.email,
         nd.so_dien_thoai,
+        nhm.nhom_mau,
         sk.ten_su_kien,
         sk.ngay_bat_dau,
         sk.ngay_ket_thuc
       FROM dang_ky_hien_mau dk
-      JOIN nguoi_hien_mau nh ON dk.id_nguoi_hien = nh.id_nguoi_hien
-      JOIN nguoidung nd ON nh.id_nguoi_hien = nd.id_nguoi_dung
+      JOIN nguoi_hien_mau nhm ON dk.id_nguoi_hien = nhm.id_nguoi_hien
+      JOIN nguoidung nd ON nhm.id_nguoi_hien = nd.id_nguoi_dung
       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
-      WHERE sk.id_to_chuc = ? AND dk.trang_thai = 'cho_duyet'
+      JOIN nguoi_phu_trach_to_chuc npt ON sk.id_to_chuc = npt.id_to_chuc
+      WHERE npt.id_nguoi_phu_trach = ? AND dk.trang_thai = 'cho_duyet'
       ORDER BY dk.ngay_dang_ky DESC`,
-      [orgId]
+      [userId]
     );
 
     res.json({
@@ -107,24 +99,6 @@ export const approveRegistration = async (req, res, next) => {
       });
     }
 
-    // Get donor and event info before updating (for email)
-    const [donorInfo] = await pool.execute(
-      `SELECT 
-        nd.ho_ten,
-        nd.email,
-        dk.ngay_hen_hien,
-        dk.khung_gio,
-        sk.ten_su_kien,
-        sk.ten_dia_diem,
-        sk.dia_chi
-      FROM dang_ky_hien_mau dk
-      JOIN nguoi_hien_mau nhm ON dk.id_nguoi_hien = nhm.id_nguoi_hien
-      JOIN nguoidung nd ON nhm.id_nguoi_hien = nd.id_nguoi_dung
-      JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
-      WHERE dk.id_dang_ky = ?`,
-      [id]
-    );
-
     // Update registration
     await pool.execute(
       `UPDATE dang_ky_hien_mau 
@@ -133,29 +107,9 @@ export const approveRegistration = async (req, res, next) => {
       [coordinatorId, ghi_chu_duyet || null, id]
     );
 
-    // Send email notification
-    if (donorInfo.length > 0) {
-      const donor = donorInfo[0];
-      const eventInfo = {
-        ten_su_kien: donor.ten_su_kien,
-        ngay_hen_hien: donor.ngay_hen_hien,
-        khung_gio: donor.khung_gio,
-        ten_dia_diem: donor.ten_dia_diem,
-        dia_chi: donor.dia_chi
-      };
-      
-      sendRegistrationApprovalEmail(
-        donor.email,
-        donor.ho_ten,
-        eventInfo,
-        'da_duyet',
-        ghi_chu_duyet || ''
-      ).catch(err => console.error('Email sending failed:', err));
-    }
-
     res.json({
       success: true,
-      message: 'Duyệt đăng ký thành công. Email thông báo đã được gửi.'
+      message: 'Duyệt đăng ký thành công.'
     });
   } catch (error) {
     next(error);
@@ -202,24 +156,6 @@ export const rejectRegistration = async (req, res, next) => {
       });
     }
 
-    // Get donor and event info before updating (for email)
-    const [donorInfo] = await pool.execute(
-      `SELECT 
-        nd.ho_ten,
-        nd.email,
-        dk.ngay_hen_hien,
-        dk.khung_gio,
-        sk.ten_su_kien,
-        sk.ten_dia_diem,
-        sk.dia_chi
-      FROM dang_ky_hien_mau dk
-      JOIN nguoi_hien_mau nhm ON dk.id_nguoi_hien = nhm.id_nguoi_hien
-      JOIN nguoidung nd ON nhm.id_nguoi_hien = nd.id_nguoi_dung
-      JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
-      WHERE dk.id_dang_ky = ?`,
-      [id]
-    );
-
     // Update registration
     await pool.execute(
       `UPDATE dang_ky_hien_mau 
@@ -227,26 +163,6 @@ export const rejectRegistration = async (req, res, next) => {
        WHERE id_dang_ky = ?`,
       [coordinatorId, ghi_chu_duyet || null, id]
     );
-
-    // Send email notification
-    if (donorInfo.length > 0) {
-      const donor = donorInfo[0];
-      const eventInfo = {
-        ten_su_kien: donor.ten_su_kien,
-        ngay_hen_hien: donor.ngay_hen_hien,
-        khung_gio: donor.khung_gio,
-        ten_dia_diem: donor.ten_dia_diem,
-        dia_chi: donor.dia_chi
-      };
-      
-      sendRegistrationApprovalEmail(
-        donor.email,
-        donor.ho_ten,
-        eventInfo,
-        'tu_choi',
-        ghi_chu_duyet || ''
-      ).catch(err => console.error('Email sending failed:', err));
-    }
 
     res.json({
       success: true,

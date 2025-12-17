@@ -131,7 +131,7 @@ export const getMyRegistrations = async (req, res, next) => {
 
     const donorId = donors[0].id_nguoi_hien;
 
-    // Get registrations with donation results
+    // Get registrations
     const [registrations] = await pool.execute(
       `SELECT 
         dk.id_dang_ky,
@@ -141,23 +141,17 @@ export const getMyRegistrations = async (req, res, next) => {
         dk.khung_gio,
         dk.trang_thai,
         dk.ghi_chu_duyet,
-        dk.phieu_kham_sang_loc,
         sk.ten_su_kien,
         sk.ngay_bat_dau,
         sk.ngay_ket_thuc,
         tc.ten_don_vi,
         bv.ten_benh_vien,
         sk.ten_dia_diem,
-        sk.dia_chi,
-        kq.id_ket_qua,
-        kq.ngay_hien,
-        kq.luong_ml,
-        kq.ket_qua as ket_qua_hien_mau
+        sk.dia_chi
       FROM dang_ky_hien_mau dk
       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
       JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
       JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
-      LEFT JOIN ket_qua_hien_mau kq ON dk.id_nguoi_hien = kq.id_nguoi_hien AND dk.id_su_kien = kq.id_su_kien
       WHERE dk.id_nguoi_hien = ?
       ORDER BY dk.ngay_dang_ky DESC`,
       [donorId]
@@ -167,66 +161,6 @@ export const getMyRegistrations = async (req, res, next) => {
       success: true,
       data: {
         registrations
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// Get all registrations for all events of an organization (for organization manager)
-export const getAllOrganizationRegistrations = async (req, res, next) => {
-  try {
-    const userId = req.user.id_nguoi_dung;
-
-    // Get all registrations for all events managed by this organization
-    const [registrations] = await pool.execute(
-      `SELECT 
-        dk.id_dang_ky,
-        dk.id_su_kien,
-        dk.id_nguoi_hien,
-        dk.ngay_dang_ky,
-        dk.ngay_hen_hien,
-        dk.khung_gio,
-        dk.phieu_kham_sang_loc,
-        dk.trang_thai,
-        dk.ghi_chu_duyet,
-        nd.ho_ten,
-        nd.email,
-        nd.so_dien_thoai,
-        nd.gioi_tinh,
-        nd.ngay_sinh,
-        nhm.nhom_mau,
-        nhm.tong_so_lan_hien,
-        nhm.lan_hien_gan_nhat,
-        nhm.nhom_mau_xac_nhan,
-        sk.ten_su_kien,
-        sk.ten_dia_diem,
-        sk.dia_chi,
-        sk.ngay_bat_dau,
-        sk.ngay_ket_thuc
-      FROM dang_ky_hien_mau dk
-      JOIN nguoi_hien_mau nhm ON dk.id_nguoi_hien = nhm.id_nguoi_hien
-      JOIN nguoidung nd ON nhm.id_nguoi_hien = nd.id_nguoi_dung
-      JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
-      JOIN nguoi_phu_trach_to_chuc npt ON sk.id_to_chuc = npt.id_to_chuc
-      WHERE npt.id_nguoi_phu_trach = ?
-      ORDER BY dk.ngay_dang_ky DESC`,
-      [userId]
-    );
-
-    // Parse JSON phieu_kham_sang_loc (if it's still a string)
-    const formattedRegistrations = registrations.map(reg => ({
-      ...reg,
-      phieu_kham_sang_loc: reg.phieu_kham_sang_loc 
-        ? (typeof reg.phieu_kham_sang_loc === 'string' ? JSON.parse(reg.phieu_kham_sang_loc) : reg.phieu_kham_sang_loc)
-        : null
-    }));
-
-    res.json({
-      success: true,
-      data: {
-        registrations: formattedRegistrations
       }
     });
   } catch (error) {
@@ -285,12 +219,10 @@ export const getEventRegistrations = async (req, res, next) => {
       [eventId]
     );
 
-    // Parse JSON phieu_kham_sang_loc (if it's still a string)
+    // Parse JSON phieu_kham_sang_loc
     const formattedRegistrations = registrations.map(reg => ({
       ...reg,
-      phieu_kham_sang_loc: reg.phieu_kham_sang_loc 
-        ? (typeof reg.phieu_kham_sang_loc === 'string' ? JSON.parse(reg.phieu_kham_sang_loc) : reg.phieu_kham_sang_loc)
-        : null
+      phieu_kham_sang_loc: reg.phieu_kham_sang_loc ? JSON.parse(reg.phieu_kham_sang_loc) : null
     }));
 
     res.json({

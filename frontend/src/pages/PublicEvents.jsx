@@ -16,21 +16,27 @@ const PublicEvents = () => {
   const { user, logout } = useAuth();
 
   useEffect(() => {
-    // Get search from URL params
+    // Get all params from URL
     const searchFromUrl = searchParams.get('search') || '';
+    const statusFromUrl = searchParams.get('status') || '';
+    const dateFromFromUrl = searchParams.get('dateFrom') || '';
+    const dateToFromUrl = searchParams.get('dateTo') || '';
+    
     setSearch(searchFromUrl);
     setSearchQuery(searchFromUrl);
-    fetchEvents(searchFromUrl);
+    fetchEvents(searchFromUrl, statusFromUrl, dateFromFromUrl, dateToFromUrl);
   }, [searchParams]);
 
   const handleFindDrive = () => {
     const q = searchQuery.trim();
-    if (q) {
-      navigate(`/events?search=${encodeURIComponent(q)}`);
-    } else {
-      navigate('/events');
-    }
-    fetchEvents(q);
+    const params = new URLSearchParams();
+    if (q) params.append('search', q);
+    if (searchParams.get('status')) params.append('status', searchParams.get('status'));
+    if (searchParams.get('dateFrom')) params.append('dateFrom', searchParams.get('dateFrom'));
+    if (searchParams.get('dateTo')) params.append('dateTo', searchParams.get('dateTo'));
+    
+    const queryString = params.toString();
+    navigate(queryString ? `/events?${queryString}` : '/events');
   };
 
   const handlePrimaryCta = () => {
@@ -41,13 +47,15 @@ const PublicEvents = () => {
     }
   };
 
-  const fetchEvents = async (searchQuery = '') => {
+  const fetchEvents = async (searchQuery = '', status = '', dateFrom = '', dateTo = '') => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (searchQuery) {
-        params.append('search', searchQuery);
-      }
+      if (searchQuery) params.append('search', searchQuery);
+      if (status) params.append('status', status);
+      if (dateFrom) params.append('dateFrom', dateFrom);
+      if (dateTo) params.append('dateTo', dateTo);
+      
       const response = await api.get(`/events?${params.toString()}`);
       if (response.data.success) {
         setEvents(response.data.data.events);
@@ -61,13 +69,15 @@ const PublicEvents = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    const params = new URLSearchParams();
     const query = search.trim();
-    if (query) {
-      navigate(`/events?search=${encodeURIComponent(query)}`);
-    } else {
-      navigate('/events');
-    }
-    fetchEvents(query);
+    if (query) params.append('search', query);
+    if (searchParams.get('status')) params.append('status', searchParams.get('status'));
+    if (searchParams.get('dateFrom')) params.append('dateFrom', searchParams.get('dateFrom'));
+    if (searchParams.get('dateTo')) params.append('dateTo', searchParams.get('dateTo'));
+    
+    const queryString = params.toString();
+    navigate(queryString ? `/events?${queryString}` : '/events');
   };
 
   const formatDate = (dateString) => {

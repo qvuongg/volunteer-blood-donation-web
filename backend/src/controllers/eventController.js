@@ -3,7 +3,7 @@ import pool from '../config/database.js';
 // Get all events (public, for donors)
 export const getEvents = async (req, res, next) => {
   try {
-    const { status, search } = req.query;
+    const { status, search, dateFrom, dateTo } = req.query;
     
     let query = `
       SELECT 
@@ -25,13 +25,35 @@ export const getEvents = async (req, res, next) => {
     const params = [];
     const whereConditions = [];
     
+    // Always filter by approved status
+    whereConditions.push('sk.trang_thai = "da_duyet"');
+
+    // Filter by event status (dang_dien_ra, sap_dien_ra, da_ket_thuc)
     if (status) {
-      whereConditions.push('sk.trang_thai = ?');
-      params.push(status);
-    } else {
-      whereConditions.push('sk.trang_thai = "da_duyet"');
+      const today = new Date().toISOString().split('T')[0];
+      if (status === 'dang_dien_ra') {
+        whereConditions.push('sk.ngay_bat_dau <= ? AND sk.ngay_ket_thuc >= ?');
+        params.push(today, today);
+      } else if (status === 'sap_dien_ra') {
+        whereConditions.push('sk.ngay_bat_dau > ?');
+        params.push(today);
+      } else if (status === 'da_ket_thuc') {
+        whereConditions.push('sk.ngay_ket_thuc < ?');
+        params.push(today);
+      }
     }
 
+    // Filter by date range
+    if (dateFrom) {
+      whereConditions.push('sk.ngay_ket_thuc >= ?');
+      params.push(dateFrom);
+    }
+    if (dateTo) {
+      whereConditions.push('sk.ngay_bat_dau <= ?');
+      params.push(dateTo);
+    }
+
+    // Search filter
     if (search) {
       whereConditions.push('(sk.ten_su_kien LIKE ? OR sk.dia_chi LIKE ? OR sk.ten_dia_diem LIKE ? OR tc.ten_don_vi LIKE ? OR bv.ten_benh_vien LIKE ?)');
       const searchPattern = `%${search}%`;

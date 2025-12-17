@@ -231,9 +231,9 @@ const EventDetail = () => {
             onClick={handleRegister}
               disabled={!canRegister}
             >
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M10 5v10m5-5H5"/>
-              </svg>
+                  <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M10 5v10m5-5H5"/>
+                  </svg>
               {isRegistered ? 'Xem chi tiết đăng ký' : 'Đăng ký hiến máu'}
           </button>
             {isRegistered && (

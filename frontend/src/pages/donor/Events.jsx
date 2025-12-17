@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
@@ -9,14 +9,29 @@ const Events = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   useEffect(() => {
-    fetchEvents();
-  }, []);
+    // Get search from URL params
+    const searchFromUrl = searchParams.get('search') || '';
+    const statusFromUrl = searchParams.get('status') || '';
+    const dateFromFromUrl = searchParams.get('dateFrom') || '';
+    const dateToFromUrl = searchParams.get('dateTo') || '';
+    
+    setSearch(searchFromUrl);
+    fetchEvents(searchFromUrl, statusFromUrl, dateFromFromUrl, dateToFromUrl);
+  }, [searchParams]);
 
-  const fetchEvents = async () => {
+  const fetchEvents = async (searchQuery = '', status = '', dateFrom = '', dateTo = '') => {
+    setLoading(true);
     try {
-      const response = await api.get('/events');
+      const params = new URLSearchParams();
+      if (searchQuery) params.append('search', searchQuery);
+      if (status) params.append('status', status);
+      if (dateFrom) params.append('dateFrom', dateFrom);
+      if (dateTo) params.append('dateTo', dateTo);
+      
+      const response = await api.get(`/events?${params.toString()}`);
       if (response.data.success) {
         setEvents(response.data.data.events);
       }
@@ -25,6 +40,17 @@ const Events = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const params = new URLSearchParams(searchParams);
+    if (search.trim()) {
+      params.set('search', search.trim());
+    } else {
+      params.delete('search');
+    }
+    setSearchParams(params);
   };
 
   const formatDate = (dateString) => {
@@ -61,16 +87,10 @@ const Events = () => {
     return <span className={`badge ${statusInfo.class}`}>{statusInfo.label}</span>;
   };
 
-  const filteredEvents = events.filter(event =>
-    event.ten_su_kien.toLowerCase().includes(search.toLowerCase()) ||
-    event.ten_don_vi.toLowerCase().includes(search.toLowerCase()) ||
-    event.ten_benh_vien.toLowerCase().includes(search.toLowerCase())
-  );
-
   // Sắp xếp lại phía frontend để khớp với yêu cầu:
   // - Sự kiện đang/sắp diễn ra trước, đã kết thúc sau
   // - Sự kiện càng cũ càng ở cuối
-  const sortedEvents = [...filteredEvents].sort((a, b) => {
+  const sortedEvents = [...events].sort((a, b) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -109,15 +129,21 @@ const Events = () => {
 
       <div className="card" style={{ marginBottom: 'var(--spacing-xl)' }}>
         <div className="card-body">
-          <div className="form-group" style={{ marginBottom: 0 }}>
-            <input
-              type="text"
-              placeholder="Tìm kiếm sự kiện, tổ chức, bệnh viện..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="form-input"
-            />
-          </div>
+          <form onSubmit={handleSearch}>
+            <div className="form-group" style={{ marginBottom: 0, display: 'flex', gap: 'var(--spacing-sm)' }}>
+              <input
+                type="text"
+                placeholder="Tìm kiếm sự kiện, tổ chức, bệnh viện..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="form-input"
+                style={{ flex: 1 }}
+              />
+              <button type="submit" className="btn btn-primary">
+                Tìm kiếm
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 

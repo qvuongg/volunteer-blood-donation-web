@@ -6,6 +6,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import PublicEvents from './pages/PublicEvents';
+import SearchEvents from './pages/SearchEvents';
 import ProtectedRoute from './components/ProtectedRoute';
 import DonorDashboard from './pages/donor/Dashboard';
 import DonorProfile from './pages/donor/Profile';
@@ -22,7 +23,6 @@ import OrgApprovals from './pages/organization/Approvals';
 import EventForm from './pages/organization/EventForm';
 import EventDetail from './pages/organization/EventDetail';
 import EventRegistrations from './pages/organization/EventRegistrations';
-import RegistrationApprovalDetail from './pages/organization/RegistrationApprovalDetail';
 import HospitalDashboard from './pages/hospital/Dashboard';
 import HospitalProfile from './pages/hospital/Profile';
 import HospitalBloodTypeConfirmation from './pages/hospital/BloodTypeConfirmation';
@@ -50,6 +50,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/events" element={<PublicEvents />} />
+          <Route path="/search" element={<SearchEvents />} />
           
           {/* Donor routes */}
           <Route 
@@ -171,14 +172,6 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['to_chuc']}>
                 <EventRegistrations />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/organization/events/:eventId/registrations/:registrationId" 
-            element={
-              <ProtectedRoute allowedRoles={['to_chuc']}>
-                <RegistrationApprovalDetail />
               </ProtectedRoute>
             } 
           />

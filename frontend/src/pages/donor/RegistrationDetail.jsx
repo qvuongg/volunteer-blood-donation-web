@@ -108,9 +108,6 @@ const RegistrationDetail = () => {
       <div className="page-header">
         <div style={{ flex: 1 }}>
           <h1 className="page-title">Chi tiết đơn đăng ký hiến máu</h1>
-          <p className="page-description">
-            Mã đơn: #{registration.id_dang_ky}
-          </p>
         </div>
         <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
           <button className="btn btn-outline" onClick={() => navigate('/donor/registrations')}>
@@ -251,19 +248,8 @@ const RegistrationDetail = () => {
                   4. Trong 12 tháng gần đây
                 </div>
                 <div style={{ fontSize: 'var(--font-size-lg)' }}>
-                  {phieu.q4?.items?.includes('Không') ? (
-                    '✅ Không'
-                  ) : (
-                    <div>
-                      <div style={{ color: '#f59e0b', marginBottom: '4px' }}>⚠️ Có:</div>
-                      <ul style={{ margin: '4px 0', paddingLeft: '20px', fontSize: 'var(--font-size-sm)' }}>
-                        {phieu.q4?.items?.filter(item => item !== 'Không').map((item, idx) => (
-                          <li key={idx} style={{ marginBottom: '2px' }}>{item}</li>
-                        ))}
-                      </ul>
-                      {phieu.q4?.vacxin && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-sm)' }}>Vacxin: {phieu.q4.vacxin}</div>}
-                    </div>
-                  )}
+                  {phieu.q4?.items?.includes('khong') ? '✅ Không' : `⚠️ ${phieu.q4?.items?.join(', ')}`}
+                  {phieu.q4?.vacxin && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-sm)' }}>Vacxin: {phieu.q4.vacxin}</div>}
                 </div>
               </div>
 
@@ -272,18 +258,7 @@ const RegistrationDetail = () => {
                   5. Trong 6 tháng gần đây
                 </div>
                 <div style={{ fontSize: 'var(--font-size-lg)' }}>
-                  {phieu.q5?.items?.includes('Không') ? (
-                    '✅ Không'
-                  ) : (
-                    <div>
-                      <div style={{ color: '#f59e0b', marginBottom: '4px' }}>⚠️ Có:</div>
-                      <ul style={{ margin: '4px 0', paddingLeft: '20px', fontSize: 'var(--font-size-sm)' }}>
-                        {phieu.q5?.items?.filter(item => item !== 'Không').map((item, idx) => (
-                          <li key={idx} style={{ marginBottom: '2px' }}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {phieu.q5?.items?.includes('khong') ? '✅ Không' : '⚠️ Có'}
                 </div>
               </div>
 
@@ -292,162 +267,28 @@ const RegistrationDetail = () => {
                   6. Trong 1 tháng gần đây
                 </div>
                 <div style={{ fontSize: 'var(--font-size-lg)' }}>
-                  {phieu.q6?.items?.includes('Không') ? (
-                    '✅ Không'
-                  ) : (
-                    <div>
-                      <div style={{ color: '#f59e0b', marginBottom: '4px' }}>⚠️ Có:</div>
-                      <ul style={{ margin: '4px 0', paddingLeft: '20px', fontSize: 'var(--font-size-sm)' }}>
-                        {phieu.q6?.items?.filter(item => item !== 'Không').map((item, idx) => (
-                          <li key={idx} style={{ marginBottom: '2px' }}>{item}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
+                  {phieu.q6?.items?.includes('khong') ? '✅ Không' : '⚠️ Có'}
                 </div>
               </div>
 
               <div style={{ padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
                 <div style={{ fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--spacing-sm)' }}>
-                  7. Trong 14 ngày gần đây
+                  7. Trong 14 ngày gần đây (cúm, cảm lạnh, sốt...)
                 </div>
                 <div style={{ fontSize: 'var(--font-size-lg)' }}>
-                  {phieu.q7?.mac_benh === 'Không' ? (
-                    '✅ Không'
-                  ) : (
-                    <div>
-                      <div style={{ color: '#f59e0b' }}>⚠️ {phieu.q7?.mac_benh}</div>
-                      {phieu.q7?.khac && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-sm)' }}>Chi tiết khác: {phieu.q7.khac}</div>}
-                    </div>
-                  )}
+                  {phieu.q7?.mac_benh === 'khong' ? '✅ Không' : `⚠️ Có`}
+                  {phieu.q7?.khac && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-sm)' }}>({phieu.q7.khac})</div>}
                 </div>
               </div>
 
               <div style={{ padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
                 <div style={{ fontWeight: 'var(--font-weight-semibold)', marginBottom: 'var(--spacing-sm)' }}>
-                  8. Trong 7 ngày gần đây
+                  8. Trong 7 ngày gần đây (sử dụng thuốc)
                 </div>
                 <div style={{ fontSize: 'var(--font-size-lg)' }}>
-                  {phieu.q8?.dung_thuoc === 'Không' ? (
-                    '✅ Không'
-                  ) : (
-                    <div>
-                      <div style={{ color: '#f59e0b' }}>⚠️ {phieu.q8?.dung_thuoc}</div>
-                      {phieu.q8?.khac && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-sm)' }}>Chi tiết khác: {phieu.q8.khac}</div>}
-                    </div>
-                  )}
+                  {phieu.q8?.dung_thuoc === 'khong' ? '✅ Không' : `⚠️ Có`}
+                  {phieu.q8?.khac && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-sm)' }}>({phieu.q8.khac})</div>}
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Donation Result */}
-      {registration.id_ket_qua && (
-        <div className="card" style={{ marginTop: 'var(--spacing-lg)' }}>
-          <div className="card-body">
-            <h3 style={{ 
-              fontSize: 'var(--font-size-xl)', 
-              fontWeight: 'var(--font-weight-bold)', 
-              marginBottom: 'var(--spacing-lg)', 
-              color: '#16a34a',
-              paddingBottom: 'var(--spacing-md)',
-              borderBottom: '2px solid #16a34a',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--spacing-sm)'
-            }}>
-              <span style={{ fontSize: 'var(--font-size-2xl)' }}>🎉</span>
-              Kết Quả Hiến Máu
-            </h3>
-
-            <div style={{ 
-              background: 'linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%)',
-              padding: 'var(--spacing-2xl)',
-              borderRadius: 'var(--radius-lg)',
-              border: '2px solid #16a34a'
-            }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--spacing-2xl)' }}>
-                {/* Ngày hiến */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ 
-                    fontSize: 'var(--font-size-3xl)', 
-                    marginBottom: 'var(--spacing-sm)',
-                    color: '#16a34a'
-                  }}>
-                    📅
-                  </div>
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: '#166534', marginBottom: '4px' }}>
-                    Ngày hiến máu
-                  </div>
-                  <div style={{ 
-                    fontSize: 'var(--font-size-xl)', 
-                    fontWeight: 'var(--font-weight-bold)',
-                    color: '#15803d'
-                  }}>
-                    {new Date(registration.ngay_hien).toLocaleDateString('vi-VN')}
-                  </div>
-                </div>
-
-                {/* Lượng máu */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ 
-                    fontSize: 'var(--font-size-3xl)', 
-                    marginBottom: 'var(--spacing-sm)',
-                    color: '#dc2626'
-                  }}>
-                    🩸
-                  </div>
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: '#166534', marginBottom: '4px' }}>
-                    Lượng máu hiến
-                  </div>
-                  <div style={{ 
-                    fontSize: 'var(--font-size-3xl)', 
-                    fontWeight: 'var(--font-weight-bold)',
-                    color: '#dc2626'
-                  }}>
-                    {registration.luong_ml} ml
-                  </div>
-                </div>
-
-                {/* Kết quả */}
-                <div style={{ textAlign: 'center' }}>
-                  <div style={{ 
-                    fontSize: 'var(--font-size-3xl)', 
-                    marginBottom: 'var(--spacing-sm)',
-                    color: '#16a34a'
-                  }}>
-                    ✅
-                  </div>
-                  <div style={{ fontSize: 'var(--font-size-sm)', color: '#166534', marginBottom: '4px' }}>
-                    Kết quả
-                  </div>
-                  <div style={{ 
-                    fontSize: 'var(--font-size-xl)', 
-                    fontWeight: 'var(--font-weight-bold)',
-                    color: '#15803d'
-                  }}>
-                    {registration.ket_qua_hien_mau}
-                  </div>
-                </div>
-              </div>
-
-              {/* Thank you message */}
-              <div style={{ 
-                marginTop: 'var(--spacing-2xl)',
-                textAlign: 'center',
-                padding: 'var(--spacing-lg)',
-                background: 'white',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid #86efac'
-              }}>
-                <div style={{ fontSize: 'var(--font-size-2xl)', marginBottom: 'var(--spacing-sm)' }}>
-                  ❤️ Cảm ơn bạn đã hiến máu! ❤️
-                </div>
-                <p style={{ color: '#166534', fontSize: 'var(--font-size-lg)', margin: 0 }}>
-                  Giọt máu bạn hiến là món quà vô giá cho những người đang cần. Cảm ơn bạn đã lan tỏa yêu thương!
-                </p>
               </div>
             </div>
           </div>
