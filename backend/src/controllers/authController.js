@@ -172,7 +172,36 @@ export const login = async (req, res, next) => {
       [user.id_vai_tro]
     );
 
-    console.log('👤 Role:', roles[0]?.ten_vai_tro);
+    const roleName = roles[0]?.ten_vai_tro;
+    console.log('👤 Role:', roleName);
+
+    // Get organization/hospital/volunteer group name based on role
+    let organizationName = null;
+    if (roleName === 'benh_vien') {
+      const [hospital] = await pool.execute(
+        `SELECT bv.ten_benh_vien
+         FROM nguoi_phu_trach_benh_vien nptbv
+         JOIN benh_vien bv ON nptbv.id_benh_vien = bv.id_benh_vien
+         WHERE nptbv.id_nguoi_phu_trach = ?`,
+        [user.id_nguoi_dung]
+      );
+      organizationName = hospital[0]?.ten_benh_vien || null;
+    } else if (roleName === 'to_chuc') {
+      const [organization] = await pool.execute(
+        `SELECT tc.ten_don_vi
+         FROM nguoi_phu_trach_to_chuc nptc
+         JOIN to_chuc tc ON nptc.id_to_chuc = tc.id_to_chuc
+         WHERE nptc.id_nguoi_phu_trach = ?`,
+        [user.id_nguoi_dung]
+      );
+      organizationName = organization[0]?.ten_don_vi || null;
+    } else if (roleName === 'nhom_tinh_nguyen') {
+      const [volunteerGroup] = await pool.execute(
+        `SELECT ten_nhom FROM nhom_tinh_nguyen WHERE id_nguoi_dung = ?`,
+        [user.id_nguoi_dung]
+      );
+      organizationName = volunteerGroup[0]?.ten_nhom || null;
+    }
 
     // Generate JWT token
     const token = jwt.sign(
@@ -193,7 +222,8 @@ export const login = async (req, res, next) => {
         token,
         user: {
           ...userWithoutPassword,
-          ten_vai_tro: roles[0]?.ten_vai_tro
+          ten_vai_tro: roleName,
+          ten_to_chuc: organizationName // Tên bệnh viện/tổ chức/nhóm tình nguyện
         }
       }
     };
@@ -214,10 +244,44 @@ export const login = async (req, res, next) => {
 // Get current user
 export const getMe = async (req, res, next) => {
   try {
+    const userId = req.user.id_nguoi_dung;
+    const userRole = req.user.ten_vai_tro;
+
+    // Get organization/hospital/volunteer group name based on role
+    let organizationName = null;
+    if (userRole === 'benh_vien') {
+      const [hospital] = await pool.execute(
+        `SELECT bv.ten_benh_vien
+         FROM nguoi_phu_trach_benh_vien nptbv
+         JOIN benh_vien bv ON nptbv.id_benh_vien = bv.id_benh_vien
+         WHERE nptbv.id_nguoi_phu_trach = ?`,
+        [userId]
+      );
+      organizationName = hospital[0]?.ten_benh_vien || null;
+    } else if (userRole === 'to_chuc') {
+      const [organization] = await pool.execute(
+        `SELECT tc.ten_don_vi
+         FROM nguoi_phu_trach_to_chuc nptc
+         JOIN to_chuc tc ON nptc.id_to_chuc = tc.id_to_chuc
+         WHERE nptc.id_nguoi_phu_trach = ?`,
+        [userId]
+      );
+      organizationName = organization[0]?.ten_don_vi || null;
+    } else if (userRole === 'nhom_tinh_nguyen') {
+      const [volunteerGroup] = await pool.execute(
+        `SELECT ten_nhom FROM nhom_tinh_nguyen WHERE id_nguoi_dung = ?`,
+        [userId]
+      );
+      organizationName = volunteerGroup[0]?.ten_nhom || null;
+    }
+
     res.json({
       success: true,
       data: {
-        user: req.user
+        user: {
+          ...req.user,
+          ten_to_chuc: organizationName
+        }
       }
     });
   } catch (error) {

@@ -57,9 +57,8 @@ const EventDetail = () => {
   return (
     <Layout>
       <div className="page-header">
-        <div style={{ flex: 1 }}>
+        <div style={{ flex: 1, padding: 'var(--spacing-md) 0' }}>
           <h1 className="page-title">{event.ten_su_kien}</h1>
-          <p className="page-description">Chi tiết sự kiện hiến máu</p>
         </div>
         <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
           {event.trang_thai === 'cho_duyet' && (
@@ -252,6 +251,8 @@ const EventDetail = () => {
 };
 
 export default EventDetail;
+
+
 
 
 

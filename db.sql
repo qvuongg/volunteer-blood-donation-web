@@ -285,7 +285,7 @@ INSERT INTO dang_ky_hien_mau (id_su_kien, id_nguoi_hien, id_nguoi_duyet, ngay_he
 (1, 4, 5, '2024-03-15', '13:00 - 15:00',
  '{"q1":{"hien_mau_chua":"khong"},"q2":{"mac_benh":"khong","benh_gi":null},"q3":{"benh_ly_truoc":"khong","benh_khac":null},"q4":{"items":["khong"],"vacxin":null},"q5":{"items":["khong"]},"q6":{"items":["khong"]},"q7":{"mac_benh":"khong","khac":null},"q8":{"dung_thuoc":"khong","khac":null}}',
  'da_duyet', 'Dang ky thanh cong. Nguoi hien mau lan dau'),
-(2, 4, NULL, '2024-04-20', '08:00 - 10:00',
+(1, 4, NULL, '2024-04-20', '08:00 - 10:00',
  '{"q1":{"hien_mau_chua":"co"},"q2":{"mac_benh":"khong","benh_gi":null},"q3":{"benh_ly_truoc":"khong","benh_khac":null},"q4":{"items":["khong"],"vacxin":null},"q5":{"items":["khong"]},"q6":{"items":["khong"]},"q7":{"mac_benh":"khong","khac":null},"q8":{"dung_thuoc":"khong","khac":null}}',
  'cho_duyet', NULL);
 

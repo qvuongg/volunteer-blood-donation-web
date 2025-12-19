@@ -36,6 +36,29 @@ const Events = () => {
     return <span className={`badge ${statusInfo.class}`}>{statusInfo.label}</span>;
   };
 
+  const getEventStatusBadge = (event) => {
+    if (event.trang_thai !== 'da_duyet') {
+      return null; // Chỉ hiển thị trạng thái diễn ra cho sự kiện đã duyệt
+    }
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(event.ngay_bat_dau);
+    startDate.setHours(0, 0, 0, 0);
+    const endDate = event.ngay_ket_thuc ? new Date(event.ngay_ket_thuc) : null;
+    if (endDate) {
+      endDate.setHours(23, 59, 59, 999);
+    }
+
+    if (endDate && today > endDate) {
+      return <span className="badge badge-gray">Đã kết thúc</span>;
+    } else if (today >= startDate && (!endDate || today <= endDate)) {
+      return <span className="badge badge-success">Đang diễn ra</span>;
+    } else {
+      return <span className="badge badge-info">Sắp diễn ra</span>;
+    }
+  };
+
   const handleDelete = async (id, name) => {
     if (!window.confirm(`Bạn có chắc muốn xóa sự kiện "${name}"?`)) {
       return;
@@ -89,7 +112,10 @@ const Events = () => {
               <div className="card-body">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 'var(--spacing-md)' }}>
                   <h3 style={{ margin: 0, fontSize: 'var(--font-size-lg)' }}>{event.ten_su_kien}</h3>
-                  {getStatusBadge(event.trang_thai)}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', alignItems: 'flex-end' }}>
+                    {getStatusBadge(event.trang_thai)}
+                    {getEventStatusBadge(event)}
+                  </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', marginBottom: 'var(--spacing-md)' }}>
                   <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
@@ -115,13 +141,6 @@ const Events = () => {
                     onClick={() => navigate(`/organization/events/${event.id_su_kien}`)}
                   >
                     Chi tiết
-                  </button>
-                  <button
-                    className="btn btn-outline btn-sm"
-                    style={{ flex: 1 }}
-                    onClick={() => navigate(`/organization/events/${event.id_su_kien}/registrations`)}
-                  >
-                    Đăng ký
                   </button>
                 </div>
                 {event.trang_thai === 'cho_duyet' && (

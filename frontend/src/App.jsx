@@ -23,6 +23,7 @@ import OrgApprovals from './pages/organization/Approvals';
 import EventForm from './pages/organization/EventForm';
 import EventDetail from './pages/organization/EventDetail';
 import EventRegistrations from './pages/organization/EventRegistrations';
+import OrgRegistrationList from './pages/organization/RegistrationList';
 import HospitalDashboard from './pages/hospital/Dashboard';
 import HospitalProfile from './pages/hospital/Profile';
 import HospitalBloodTypeConfirmation from './pages/hospital/BloodTypeConfirmation';
@@ -43,8 +44,8 @@ function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <Router>
-          <Routes>
+      <Router>
+        <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -172,6 +173,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['to_chuc']}>
                 <EventRegistrations />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/organization/registrations" 
+            element={
+              <ProtectedRoute allowedRoles={['to_chuc']}>
+                <OrgRegistrationList />
               </ProtectedRoute>
             } 
           />

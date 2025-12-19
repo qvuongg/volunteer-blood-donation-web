@@ -133,11 +133,20 @@ const EventForm = () => {
       if (isEdit) {
         await api.put(`/organizations/events/${id}`, payload);
         alert('Cập nhật sự kiện thành công!');
+        // Kiểm tra xem sự kiện có phải chưa được duyệt không
+        const eventResponse = await api.get(`/organizations/events/${id}`);
+        if (eventResponse.data.success && eventResponse.data.data.event.trang_thai === 'cho_duyet') {
+          // Nếu chưa được duyệt, chuyển đến trang chi tiết
+          navigate(`/organization/events/${id}`);
+        } else {
+          // Nếu đã được duyệt hoặc bị từ chối, quay về danh sách
+          navigate('/organization/events');
+        }
       } else {
         await api.post('/organizations/events', payload);
         alert('Tạo sự kiện thành công! Đang chờ bệnh viện duyệt.');
+        navigate('/organization/events');
       }
-      navigate('/organization/events');
     } catch (error) {
       console.error('Error:', error);
       alert('Có lỗi xảy ra: ' + (error.response?.data?.message || error.message));

@@ -29,7 +29,8 @@ const menuConfig = {
       title: 'Quản lý tổ chức',
       items: [
         { path: '/organization/dashboard', label: 'Dashboard', icon: 'dashboard' },
-        { path: '/organization/events', label: 'Quản lý sự kiện', icon: 'calendar' }
+        { path: '/organization/events', label: 'Quản lý sự kiện', icon: 'calendar' },
+        { path: '/organization/registrations', label: 'Danh sách đăng ký', icon: 'list' }
       ]
     }
   ],

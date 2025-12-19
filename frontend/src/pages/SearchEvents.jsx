@@ -140,7 +140,13 @@ const SearchEvents = () => {
         handlePrimaryCta={handlePrimaryCta}
       />
       
-      <div style={{ flex: 1, padding: 'var(--spacing-4xl) calc(var(--spacing-xl) + 200px)', maxWidth: '1400px', margin: '0 auto', width: '100%', padding: 'var(--spacing-2xl) calc(var(--spacing-2xl) + 150px)' }}>
+      <div style={{ 
+        flex: 1, 
+        padding: 'var(--spacing-2xl) calc(var(--spacing-2xl) + 150px)', 
+        maxWidth: '1400px', 
+        margin: '0 auto', 
+        width: '100%' 
+      }}>
         <div style={{ marginBottom: 'var(--spacing-3xl)' }}>
           <h1 style={{ fontSize: 'clamp(32px, 4vw, 48px)', fontWeight: 'var(--font-weight-bold)', marginBottom: 'var(--spacing-md)', color: '#1f2937' }}>
             Tìm Kiếm Sự Kiện Hiến Máu

@@ -219,10 +219,12 @@ export const getEventRegistrations = async (req, res, next) => {
       [eventId]
     );
 
-    // Parse JSON phieu_kham_sang_loc
+    // Parse JSON phieu_kham_sang_loc (if it's still a string)
     const formattedRegistrations = registrations.map(reg => ({
       ...reg,
-      phieu_kham_sang_loc: reg.phieu_kham_sang_loc ? JSON.parse(reg.phieu_kham_sang_loc) : null
+      phieu_kham_sang_loc: reg.phieu_kham_sang_loc 
+        ? (typeof reg.phieu_kham_sang_loc === 'string' ? JSON.parse(reg.phieu_kham_sang_loc) : reg.phieu_kham_sang_loc)
+        : null
     }));
 
     res.json({

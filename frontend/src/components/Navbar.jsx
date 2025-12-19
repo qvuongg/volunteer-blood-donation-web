@@ -12,12 +12,29 @@ const Navbar = ({ onMenuClick }) => {
     navigate('/login');
   };
 
-  const getRoleName = (role) => {
+  const getRoleName = (role, organizationName) => {
+    if (!organizationName) {
+      const roleNames = {
+        'nguoi_hien': 'Người hiến máu',
+        'to_chuc': 'Tổ chức',
+        'benh_vien': 'Bệnh viện',
+        'nhom_tinh_nguyen': 'Tình nguyện viên',
+        'admin': 'Quản trị viên'
+      };
+      return roleNames[role] || role;
+    }
+
+    // Hiển thị tên cụ thể cho các role có tổ chức
+    if (role === 'benh_vien') {
+      return `${organizationName}`;
+    } else if (role === 'to_chuc') {
+      return `${organizationName}`;
+    } else if (role === 'nhom_tinh_nguyen') {
+      return `${organizationName}`;
+    }
+
     const roleNames = {
       'nguoi_hien': 'Người hiến máu',
-      'to_chuc': 'Tổ chức',
-      'benh_vien': 'Bệnh viện',
-      'nhom_tinh_nguyen': 'Tình nguyện viên',
       'admin': 'Quản trị viên'
     };
     return roleNames[role] || role;
@@ -56,7 +73,7 @@ const Navbar = ({ onMenuClick }) => {
                 </div>
                 <div className="user-details">
                   <span className="user-name">{user.ho_ten}</span>
-                  <span className="user-role">{getRoleName(user.ten_vai_tro)}</span>
+                  <span className="user-role">{getRoleName(user.ten_vai_tro, user.ten_to_chuc)}</span>
                 </div>
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                   <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>

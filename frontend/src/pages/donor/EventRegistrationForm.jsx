@@ -363,40 +363,24 @@ const EventRegistrationForm = () => {
                 4. Trong 12 tháng gần đây, anh/chị có: <span style={{ color: '#dc2626' }}>*</span>
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)', paddingLeft: '20px' }}>
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    name="q4_12_thang"
-                    value="khoi_benh"
-                    checked={formData.q4_12_thang.includes('khoi_benh')}
-                    onChange={handleChange}
-                    style={{ marginTop: '4px' }}
-                  />
-                  <span>Khỏi bệnh sau khi mắc một trong các bệnh: sốt rét, giang mai, lao, viêm não-màng não, uốn ván, phẫu thuật ngoại khoa?</span>
-                </label>
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    name="q4_12_thang"
-                    value="truyen_mau"
-                    checked={formData.q4_12_thang.includes('truyen_mau')}
-                    onChange={handleChange}
-                    style={{ marginTop: '4px' }}
-                  />
-                  <span>Được truyền máu hoặc các chế phẩm máu?</span>
-                </label>
-                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    name="q4_12_thang"
-                    value="tiem_vacxin"
-                    checked={formData.q4_12_thang.includes('tiem_vacxin')}
-                    onChange={handleChange}
-                    style={{ marginTop: '4px' }}
-                  />
-                  <span>Tiêm Vacxin?</span>
-                </label>
-                {formData.q4_12_thang.includes('tiem_vacxin') && (
+                {[
+                  'Khỏi bệnh sau khi mắc một trong các bệnh: sốt rét, giang mai, lao, viêm não-màng não, uốn ván, phẫu thuật ngoại khoa?',
+                  'Được truyền máu hoặc các chế phẩm máu?',
+                  'Tiêm Vacxin?'
+                ].map((text, idx) => (
+                  <label key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      name="q4_12_thang"
+                      value={text}
+                      checked={formData.q4_12_thang.includes(text)}
+                      onChange={handleChange}
+                      style={{ marginTop: '4px' }}
+                    />
+                    <span>{text}</span>
+                  </label>
+                ))}
+                {formData.q4_12_thang.includes('Tiêm Vacxin?') && (
                   <input
                     type="text"
                     name="q4_vacxin"
@@ -447,8 +431,8 @@ const EventRegistrationForm = () => {
                     <input
                       type="checkbox"
                       name="q5_6_thang"
-                      value={`q5_${idx}`}
-                      checked={formData.q5_6_thang.includes(`q5_${idx}`)}
+                      value={text}
+                      checked={formData.q5_6_thang.includes(text)}
                       onChange={handleChange}
                       style={{ marginTop: '4px' }}
                     />
@@ -487,8 +471,8 @@ const EventRegistrationForm = () => {
                     <input
                       type="checkbox"
                       name="q6_1_thang"
-                      value={`q6_${idx}`}
-                      checked={formData.q6_1_thang.includes(`q6_${idx}`)}
+                      value={text}
+                      checked={formData.q6_1_thang.includes(text)}
                       onChange={handleChange}
                       style={{ marginTop: '4px' }}
                     />

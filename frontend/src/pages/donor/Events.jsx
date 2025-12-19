@@ -131,18 +131,18 @@ const Events = () => {
         <div className="card-body">
           <form onSubmit={handleSearch}>
             <div className="form-group" style={{ marginBottom: 0, display: 'flex', gap: 'var(--spacing-sm)' }}>
-              <input
-                type="text"
-                placeholder="Tìm kiếm sự kiện, tổ chức, bệnh viện..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="form-input"
+            <input
+              type="text"
+              placeholder="Tìm kiếm sự kiện, tổ chức, bệnh viện..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="form-input"
                 style={{ flex: 1 }}
-              />
+            />
               <button type="submit" className="btn btn-primary">
                 Tìm kiếm
               </button>
-            </div>
+          </div>
           </form>
         </div>
       </div>
