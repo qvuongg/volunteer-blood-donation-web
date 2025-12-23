@@ -1,5 +1,6 @@
 import pool from '../config/database.js';
 import { sendRegistrationApprovalEmail } from '../utils/email.js';
+import { createNotification } from './notificationController.js';
 
 // Register for event
 export const registerForEvent = async (req, res, next) => {
@@ -314,11 +315,13 @@ export const updateRegistrationStatus = async (req, res, next) => {
       });
     }
 
-    // Get donor and event info before updating (for email)
+    // Get donor and event info before updating (for email and notification)
     const [donorInfo] = await pool.execute(
       `SELECT 
+        nd.id_nguoi_dung,
         nd.ho_ten,
         nd.email,
+        dk.id_su_kien,
         dk.ngay_hen_hien,
         dk.khung_gio,
         sk.ten_su_kien,
@@ -342,7 +345,7 @@ export const updateRegistrationStatus = async (req, res, next) => {
       [trang_thai, ghi_chu_duyet || null, userId, registrationId]
     );
 
-    // Send email notification
+    // Send email and in-app notification
     if (donorInfo.length > 0) {
       const donor = donorInfo[0];
       const eventInfo = {
@@ -361,6 +364,23 @@ export const updateRegistrationStatus = async (req, res, next) => {
         trang_thai,
         ghi_chu_duyet || ''
       ).catch(err => console.error('Email sending failed:', err));
+
+      // Create in-app notification
+      const notifTitle = trang_thai === 'da_duyet' 
+        ? `Đăng ký hiến máu đã được duyệt`
+        : `Đăng ký hiến máu bị từ chối`;
+      
+      const notifContent = trang_thai === 'da_duyet'
+        ? `Đăng ký tham gia sự kiện "${donor.ten_su_kien}" của bạn đã được phê duyệt. Vui lòng đến đúng giờ: ${donor.khung_gio}, ngày ${new Date(donor.ngay_hen_hien).toLocaleDateString('vi-VN')}.`
+        : `Đăng ký tham gia sự kiện "${donor.ten_su_kien}" của bạn bị từ chối. ${ghi_chu_duyet ? `Lý do: ${ghi_chu_duyet}` : ''}`;
+
+      await createNotification(
+        donor.id_nguoi_dung,
+        'dang_ky_duyet',
+        notifTitle,
+        notifContent,
+        `/donor/events/${donor.id_su_kien}`
+      );
     }
 
     // Get updated registration

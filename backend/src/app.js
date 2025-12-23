@@ -1,7 +1,9 @@
 import express from 'express';
+import { createServer } from 'http';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { errorHandler } from './middleware/errorHandler.js';
+import { initializeSocket } from './config/socket.js';
 import authRoutes from './routes/auth.js';
 import donorRoutes from './routes/donors.js';
 import eventRoutes from './routes/events.js';
@@ -12,12 +14,17 @@ import approvalRoutes from './routes/approvals.js';
 import hospitalRoutes from './routes/hospitals.js';
 import volunteerRoutes from './routes/volunteers.js';
 import adminRoutes from './routes/admin.js';
+import notificationRoutes from './routes/notifications.js';
 import './config/database.js'; // Initialize database connection
 
 dotenv.config();
 
 const app = express();
+const server = createServer(app);
 const PORT = process.env.PORT || 5000;
+
+// Initialize Socket.IO
+initializeSocket(server);
 
 // CORS Configuration - MUST be first middleware
 const corsOptions = {
@@ -67,7 +74,7 @@ app.use('/api/approvals', approvalRoutes);
 app.use('/api/hospitals', hospitalRoutes);
 app.use('/api/volunteers', volunteerRoutes);
 app.use('/api/admin', adminRoutes);
-// etc.
+app.use('/api/notifications', notificationRoutes);
 
 // 404 handler
 app.use((req, res) => {
@@ -80,9 +87,10 @@ app.use((req, res) => {
 // Error handling middleware (must be last)
 app.use(errorHandler);
 
-// Start server
-app.listen(PORT, () => {
+// Start server with Socket.IO support
+server.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🔌 WebSocket server initialized`);
   console.log(`📝 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 

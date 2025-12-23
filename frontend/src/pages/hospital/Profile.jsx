@@ -93,11 +93,11 @@ const HospitalProfile = () => {
   }
 
   return (
-    <Layout> 
+    <Layout>
       <div className="page-header">
         <div style={{ flex: 1 }}>
-          <h1 className="page-title">Hồ sơ bệnh viện</h1>
-          <p className="page-description">Thông tin tài khoản và bệnh viện</p>
+        <h1 className="page-title">Hồ sơ bệnh viện</h1>
+        <p className="page-description">Thông tin tài khoản và bệnh viện</p>
         </div>
       </div>
 
@@ -241,101 +241,101 @@ const HospitalProfile = () => {
         </form>
       ) : (
         <>
-          <div className="grid grid-cols-2">
-            <div className="card">
-              <div className="card-header">
-                <h3 className="card-title">Thông tin tài khoản</h3>
+      <div className="grid grid-cols-2">
+        <div className="card">
+          <div className="card-header">
+            <h3 className="card-title">Thông tin tài khoản</h3>
+          </div>
+          <div className="card-body">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+              <div>
+                <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                  Họ và tên
+                </label>
+                <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)' }}>
+                  {profile?.user?.ho_ten}
+                </p>
               </div>
-              <div className="card-body">
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-                  <div>
-                    <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
-                      Họ và tên
-                    </label>
-                    <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)' }}>
-                      {profile?.user?.ho_ten}
-                    </p>
-                  </div>
 
-                  <div>
-                    <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
-                      Email
-                    </label>
-                    <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)' }}>
-                      {profile?.user?.email}
-                    </p>
-                  </div>
+              <div>
+                <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                  Email
+                </label>
+                <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)' }}>
+                  {profile?.user?.email}
+                </p>
+              </div>
 
-                  <div>
-                    <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
-                      Số điện thoại
-                    </label>
-                    <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)' }}>
-                      {profile?.user?.so_dien_thoai || 'Chưa cập nhật'}
-                    </p>
-                  </div>
+              <div>
+                <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                  Số điện thoại
+                </label>
+                <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)' }}>
+                  {profile?.user?.so_dien_thoai || 'Chưa cập nhật'}
+                </p>
+              </div>
 
-                  <div>
-                    <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
-                      Vai trò
-                    </label>
+              <div>
+                <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                  Vai trò
+                </label>
                     <span className="badge badge-info">Người phụ trách bệnh viện</span>
-                  </div>
-                </div>
               </div>
             </div>
+          </div>
+        </div>
 
-            {profile?.hospital && (
-              <div className="card">
-                <div className="card-header">
-                  <h3 className="card-title">Thông tin bệnh viện</h3>
+        {profile?.hospital && (
+          <div className="card">
+            <div className="card-header">
+              <h3 className="card-title">Thông tin bệnh viện</h3>
+            </div>
+            <div className="card-body">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+                <div>
+                  <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                    Tên bệnh viện
+                  </label>
+                  <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)', fontSize: 'var(--font-size-lg)' }}>
+                    {profile.hospital.ten_benh_vien}
+                  </p>
                 </div>
-                <div className="card-body">
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-                    <div>
-                      <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
-                        Tên bệnh viện
-                      </label>
-                      <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)', fontSize: 'var(--font-size-lg)' }}>
-                        {profile.hospital.ten_benh_vien}
-                      </p>
-                    </div>
 
+                <div>
+                  <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                    Địa chỉ
+                  </label>
+                  <p style={{ margin: 0 }}>
+                    {profile.hospital.dia_chi}
+                  </p>
+                </div>
+
+                {profile.coordinator && (
+                  <>
                     <div>
                       <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
-                        Địa chỉ
+                        Chức vụ
                       </label>
                       <p style={{ margin: 0 }}>
-                        {profile.hospital.dia_chi}
+                        {profile.coordinator.chuc_vu || 'Chưa cập nhật'}
                       </p>
                     </div>
 
-                    {profile.coordinator && (
-                      <>
-                        <div>
-                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
-                            Chức vụ
-                          </label>
-                          <p style={{ margin: 0 }}>
-                            {profile.coordinator.chuc_vu || 'Chưa cập nhật'}
-                          </p>
-                        </div>
-
-                        <div>
-                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
-                            Người liên hệ
-                          </label>
-                          <p style={{ margin: 0 }}>
-                            {profile.coordinator.nguoi_lien_he || 'Chưa cập nhật'}
-                          </p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
+                    <div>
+                      <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                        Người liên hệ
+                      </label>
+                      <p style={{ margin: 0 }}>
+                        {profile.coordinator.nguoi_lien_he || 'Chưa cập nhật'}
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
-            )}
+            </div>
           </div>
+        )}
+      </div>
 
           <div style={{ display: 'flex', justifyContent: 'center', marginTop: 'var(--spacing-xl)' }}>
             <button

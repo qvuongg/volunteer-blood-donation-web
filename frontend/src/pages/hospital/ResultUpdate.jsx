@@ -120,7 +120,7 @@ const ResultUpdate = () => {
     // Validate donation date
     const donationDate = new Date(bulkFormData.ngay_hien);
     const eventStartDate = new Date(selectedEvent.ngay_bat_dau);
-    
+
     if (donationDate < eventStartDate) {
       toast.error('Ngày hiến không thể trước ngày bắt đầu sự kiện');
       return;
@@ -159,14 +159,14 @@ const ResultUpdate = () => {
       {/* Event Selection */}
       <div className="card">
         <div className="card-body">
-          <div className="form-group">
+            <div className="form-group">
             <label className="form-label">Chọn sự kiện *</label>
-            <select
+              <select
               className="form-input"
               value={selectedEvent?.id_su_kien || ''}
               onChange={handleEventChange}
-            >
-              <option value="">-- Chọn sự kiện --</option>
+              >
+                <option value="">-- Chọn sự kiện --</option>
               {events.map(event => {
                 const status = getEventStatus(event);
                 return (
@@ -175,11 +175,11 @@ const ResultUpdate = () => {
                   </option>
                 );
               })}
-            </select>
-            <small style={{ display: 'block', marginTop: 'var(--spacing-xs)', color: 'var(--text-secondary)' }}>
-              Chỉ hiển thị các sự kiện đã được phê duyệt
-            </small>
-          </div>
+              </select>
+              <small style={{ display: 'block', marginTop: 'var(--spacing-xs)', color: 'var(--text-secondary)' }}>
+                Chỉ hiển thị các sự kiện đã được phê duyệt
+              </small>
+            </div>
 
           {selectedEvent && (
             <div style={{ 
@@ -205,12 +205,12 @@ const ResultUpdate = () => {
       </div>
 
       {/* Registrations List */}
-      {selectedEvent && (
-        <>
-          {loadingRegs ? (
+            {selectedEvent && (
+              <>
+                {loadingRegs ? (
             <div className="card">
               <div className="card-body" style={{ textAlign: 'center', padding: 'var(--spacing-3xl)' }}>
-                <LoadingSpinner />
+                    <LoadingSpinner />
               </div>
             </div>
           ) : registrations.length === 0 ? (
@@ -220,9 +220,9 @@ const ResultUpdate = () => {
                   Không có đăng ký nào được duyệt cho sự kiện này
                 </p>
               </div>
-            </div>
-          ) : (
-            <>
+                  </div>
+                ) : (
+                  <>
               <div className="card">
                 <div className="card-header">
                   <h3 className="card-title">Danh sách người hiến ({registrations.length})</h3>
@@ -318,70 +318,70 @@ const ResultUpdate = () => {
                     <form onSubmit={handleBulkSubmit}>
                       <div className="alert alert-info" style={{ marginBottom: 'var(--spacing-lg)' }}>
                         ℹ️ Thông tin này sẽ được áp dụng cho tất cả {selectedDonors.length} người đã chọn
-                      </div>
+                    </div>
 
                       <div className="grid grid-cols-3">
-                        <div className="form-group">
-                          <label className="form-label">Ngày hiến *</label>
-                          <input
-                            type="date"
-                            name="ngay_hien"
+                      <div className="form-group">
+                        <label className="form-label">Ngày hiến *</label>
+                        <input
+                          type="date"
+                          name="ngay_hien"
                             className="form-input"
                             value={bulkFormData.ngay_hien}
                             onChange={handleBulkChange}
                             min={selectedEvent.ngay_bat_dau}
-                            required
-                          />
-                        </div>
+                          required
+                        />
+                      </div>
 
-                        <div className="form-group">
-                          <label className="form-label">Lượng máu (ml) *</label>
+                      <div className="form-group">
+                        <label className="form-label">Lượng máu (ml) *</label>
                           <select
-                            name="luong_ml"
+                          name="luong_ml"
                             className="form-input"
                             value={bulkFormData.luong_ml}
                             onChange={handleBulkChange}
-                            required
+                          required
                           >
                             <option value="250">250 ml</option>
                             <option value="350">350 ml</option>
                             <option value="450">450 ml</option>
                           </select>
-                        </div>
+                    </div>
 
-                        <div className="form-group">
-                          <label className="form-label">Kết quả *</label>
-                          <select
-                            name="ket_qua"
+                    <div className="form-group">
+                      <label className="form-label">Kết quả *</label>
+                      <select
+                        name="ket_qua"
                             className="form-input"
                             value={bulkFormData.ket_qua}
                             onChange={handleBulkChange}
-                            required
-                          >
-                            <option value="Dat">Đạt</option>
-                            <option value="Khong dat">Không đạt</option>
-                            <option value="Can xem xet">Cần xem xét</option>
-                          </select>
+                        required
+                      >
+                        <option value="Dat">Đạt</option>
+                        <option value="Khong dat">Không đạt</option>
+                        <option value="Can xem xet">Cần xem xét</option>
+                      </select>
                         </div>
-                      </div>
+                    </div>
 
-                      <div style={{ 
-                        padding: 'var(--spacing-lg)', 
+                    <div style={{ 
+                      padding: 'var(--spacing-lg)', 
                         background: 'var(--warning-50)', 
-                        borderRadius: 'var(--radius-md)',
+                      borderRadius: 'var(--radius-md)',
                         marginBottom: 'var(--spacing-lg)',
                         border: '1px solid var(--warning-200)'
-                      }}>
+                    }}>
                         <h4 style={{ marginTop: 0, fontSize: 'var(--font-size-base)', color: 'var(--warning-700)' }}>
                           ⚠️ Lưu ý quan trọng
-                        </h4>
-                        <ul style={{ margin: 0, paddingLeft: 'var(--spacing-lg)', fontSize: 'var(--font-size-sm)', lineHeight: 'var(--line-height-relaxed)' }}>
-                          <li>Kiểm tra kỹ thông tin trước khi lưu</li>
-                          <li>Kết quả "Đạt" sẽ tăng số lần hiến máu của người tham gia</li>
+                      </h4>
+                      <ul style={{ margin: 0, paddingLeft: 'var(--spacing-lg)', fontSize: 'var(--font-size-sm)', lineHeight: 'var(--line-height-relaxed)' }}>
+                        <li>Kiểm tra kỹ thông tin trước khi lưu</li>
+                        <li>Kết quả "Đạt" sẽ tăng số lần hiến máu của người tham gia</li>
                           <li>Không thể cập nhật kết quả cho người đã có kết quả trong sự kiện này</li>
                           <li>Sau khi lưu, hãy xác thực nhóm máu cho người chưa xác thực</li>
-                        </ul>
-                      </div>
+                      </ul>
+                    </div>
 
                       <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'flex-end' }}>
                         <button
@@ -392,20 +392,20 @@ const ResultUpdate = () => {
                         >
                           Bỏ chọn tất cả
                         </button>
-                        <button
-                          type="submit"
-                          className="btn btn-primary"
-                          disabled={saving}
-                        >
-                          {saving ? (
-                            <>
-                              <LoadingSpinner size="small" />
-                              Đang lưu...
-                            </>
-                          ) : (
+                      <button
+                        type="submit"
+                        className="btn btn-primary"
+                        disabled={saving}
+                      >
+                        {saving ? (
+                          <>
+                            <LoadingSpinner size="small" />
+                            Đang lưu...
+                          </>
+                        ) : (
                             `Lưu kết quả (${selectedDonors.length})`
-                          )}
-                        </button>
+                        )}
+                      </button>
                       </div>
                     </form>
                   </div>
@@ -445,9 +445,9 @@ const ResultUpdate = () => {
               Bạn chắc chắn muốn cập nhật kết quả cho <strong>{selectedDonors.length}</strong> người hiến máu?
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-md)' }}>
-              <button
-                type="button"
-                className="btn btn-outline"
+                      <button
+                        type="button"
+                        className="btn btn-outline"
                 onClick={() => setShowConfirmModal(false)}
                 disabled={saving}
               >
@@ -475,10 +475,10 @@ const ResultUpdate = () => {
                       toast.success(response.data.message);
                       setSelectedDonors([]);
                       setBulkFormData({
-                        ngay_hien: new Date().toISOString().split('T')[0],
+                            ngay_hien: new Date().toISOString().split('T')[0],
                         luong_ml: '350',
-                        ket_qua: 'Dat'
-                      });
+                            ket_qua: 'Dat'
+                          });
                       fetchRegistrations(selectedEvent.id_su_kien);
                     }
                   } catch (error) {
@@ -491,8 +491,8 @@ const ResultUpdate = () => {
                 disabled={saving}
               >
                 {saving ? 'Đang lưu...' : 'Xác nhận'}
-              </button>
-            </div>
+                      </button>
+                    </div>
           </div>
         </div>
       )}

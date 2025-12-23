@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import { createNotification } from './notificationController.js';
 
 // Get pending events for hospital approval
 export const getPendingEvents = async (req, res, next) => {
@@ -233,7 +234,7 @@ export const confirmBloodType = async (req, res, next) => {
 
     // Get updated donor info
     const [donor] = await pool.execute(
-      `SELECT nh.*, nd.ho_ten, bv.ten_benh_vien
+      `SELECT nh.*, nd.ho_ten, nd.id_nguoi_dung, bv.ten_benh_vien
        FROM nguoi_hien_mau nh
        JOIN nguoidung nd ON nh.id_nguoi_hien = nd.id_nguoi_dung
        LEFT JOIN nguoi_phu_trach_benh_vien nptbv ON nh.id_nguoi_phu_trach_benh_vien = nptbv.id_nguoi_phu_trach
@@ -241,6 +242,18 @@ export const confirmBloodType = async (req, res, next) => {
        WHERE nh.id_nguoi_hien = ?`,
       [id_nguoi_hien]
     );
+
+    // Send notification to donor
+    if (donor.length > 0) {
+      const donorData = donor[0];
+      await createNotification(
+        donorData.id_nguoi_dung,
+        'nhom_mau_xac_nhan',
+        'Nhóm máu của bạn đã được xác thực',
+        `Nhóm máu ${nhom_mau} của bạn đã được xác thực chính thức bởi ${donorData.ten_benh_vien || 'bệnh viện'}. ${ghi_chu || ''}`,
+        '/donor/profile'
+      );
+    }
 
     res.json({
       success: true,
@@ -274,10 +287,39 @@ export const updateEventStatus = async (req, res, next) => {
 
     const coordinatorId = coordinator[0].id_nguoi_phu_trach;
 
+    // Get event and organization info for notification
+    const [eventInfo] = await pool.execute(
+      `SELECT sk.ten_su_kien, sk.id_to_chuc, nptc.id_nguoi_phu_trach
+       FROM sukien_hien_mau sk
+       JOIN nguoi_phu_trach_to_chuc nptc ON sk.id_to_chuc = nptc.id_to_chuc
+       WHERE sk.id_su_kien = ?`,
+      [id]
+    );
+
     await pool.execute(
       'UPDATE sukien_hien_mau SET trang_thai = ?, id_phe_duyet_boi = ? WHERE id_su_kien = ?',
       [trang_thai, coordinatorId, id]
     );
+
+    // Send notification to organization coordinator
+    if (eventInfo.length > 0) {
+      const event = eventInfo[0];
+      const notifTitle = trang_thai === 'da_duyet'
+        ? `Sự kiện "${event.ten_su_kien}" đã được phê duyệt`
+        : `Sự kiện "${event.ten_su_kien}" bị từ chối`;
+      
+      const notifContent = trang_thai === 'da_duyet'
+        ? `Sự kiện hiến máu của bạn đã được bệnh viện phê duyệt. Bạn có thể bắt đầu tổ chức và quản lý đăng ký.`
+        : `Sự kiện hiến máu của bạn bị từ chối bởi bệnh viện. Vui lòng liên hệ để biết thêm chi tiết.`;
+
+      await createNotification(
+        event.id_nguoi_phu_trach,
+        'su_kien_duyet',
+        notifTitle,
+        notifContent,
+        `/organization/events/${id}`
+      );
+    }
 
     res.json({
       success: true,
@@ -516,6 +558,9 @@ export const createBulkResults = async (req, res, next) => {
       let skipCount = 0;
       const errors = [];
 
+      // Get event name for notification
+      const eventName = event[0]?.ten_su_kien || 'sự kiện';
+
       for (const result of results) {
         const { id_nguoi_hien, luong_ml, ket_qua } = result;
 
@@ -557,6 +602,30 @@ export const createBulkResults = async (req, res, next) => {
           );
         }
 
+        // Send notification to donor
+        const [donorUser] = await connection.execute(
+          'SELECT id_nguoi_dung FROM nguoidung WHERE id_nguoi_dung = ?',
+          [id_nguoi_hien]
+        );
+        
+        if (donorUser.length > 0) {
+          const notifTitle = ket_qua === 'Dat'
+            ? 'Kết quả hiến máu của bạn đã được cập nhật'
+            : 'Thông báo kết quả hiến máu';
+          
+          const notifContent = ket_qua === 'Dat'
+            ? `Chúc mừng! Bạn đã hiến thành công ${luong_ml}ml máu tại ${eventName}. Cảm ơn bạn đã đóng góp vào cộng đồng!`
+            : `Kết quả hiến máu của bạn tại ${eventName}: ${ket_qua}. Vui lòng liên hệ bệnh viện để biết thêm chi tiết.`;
+
+          await createNotification(
+            donorUser[0].id_nguoi_dung,
+            'ket_qua_hien_mau',
+            notifTitle,
+            notifContent,
+            '/donor/history'
+          );
+        }
+
         successCount++;
       }
 
@@ -582,8 +651,8 @@ export const createBulkResults = async (req, res, next) => {
   }
 };
 
-// Create notification
-export const createNotification = async (req, res, next) => {
+// Create notification for hospital (legacy - now using centralized notification system)
+export const createHospitalNotification = async (req, res, next) => {
   try {
     const { id_nhom, tieu_de, noi_dung } = req.body;
     const userId = req.user.id_nguoi_dung;
@@ -601,14 +670,22 @@ export const createNotification = async (req, res, next) => {
       });
     }
 
-    const hospitalId = hospital[0].id_benh_vien;
-
-    // Insert notification
-    await pool.execute(
-      `INSERT INTO thong_bao (id_benh_vien, id_nhom, tieu_de, noi_dung) 
-       VALUES (?, ?, ?, ?)`,
-      [hospitalId, id_nhom, tieu_de, noi_dung]
+    // Get all members of the volunteer group to send notifications
+    const [members] = await pool.execute(
+      'SELECT id_nguoi_dung FROM nhom_tinh_nguyen WHERE id_nhom = ?',
+      [id_nhom]
     );
+
+    // Send notification to each member using centralized notification system
+    for (const member of members) {
+      await createNotification(
+        member.id_nguoi_dung,
+        'benh_vien_notification',
+        tieu_de,
+        noi_dung,
+        null
+      );
+    }
 
     res.json({
       success: true,

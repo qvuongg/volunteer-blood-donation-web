@@ -7,7 +7,7 @@ import {
   getApprovedRegistrations,
   createResult,
   createBulkResults,
-  createNotification,
+  createHospitalNotification,
   getUnconfirmedBloodTypes,
   confirmBloodType,
   getStats,
@@ -28,7 +28,7 @@ router.put('/events/:id/status', updateEventStatus);
 router.get('/events/:id/registrations', getApprovedRegistrations);
 router.post('/results', createResult);
 router.post('/results/bulk', createBulkResults);
-router.post('/notifications', createNotification);
+router.post('/notifications', createHospitalNotification);
 
 // Blood type confirmation routes
 router.get('/blood-types/unconfirmed', getUnconfirmedBloodTypes);

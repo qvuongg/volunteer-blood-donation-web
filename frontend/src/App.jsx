@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
+import { SocketProvider } from './contexts/SocketContext';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -43,8 +44,9 @@ import './App.css';
 function App() {
   return (
     <AuthProvider>
-      <ToastProvider>
-      <Router>
+      <SocketProvider>
+        <ToastProvider>
+          <Router>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -313,8 +315,9 @@ function App() {
           
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
-      </Router>
-      </ToastProvider>
+          </Router>
+        </ToastProvider>
+      </SocketProvider>
     </AuthProvider>
   );
 }

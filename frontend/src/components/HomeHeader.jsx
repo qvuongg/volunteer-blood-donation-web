@@ -1,4 +1,6 @@
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import NotificationBell from './NotificationBell';
 
 const HomeHeader = ({ 
   user, 
@@ -11,6 +13,7 @@ const HomeHeader = ({
   handlePrimaryCta 
 }) => {
   const navigate = useNavigate();
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   return (
     <nav style={{
@@ -113,57 +116,202 @@ const HomeHeader = ({
 
           {/* Actions right */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            {user && user.ten_vai_tro === 'nguoi_hien' ? (
+            {user ? (
               <>
-                <button
-                  onClick={() => navigate('/donor/dashboard')}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    fontSize: 'var(--font-size-sm)',
-                    fontWeight: 'var(--font-weight-semibold)',
-                    color: '#111827'
-                  }}
-                >
-                  <span style={{
-                    width: '28px',
-                    height: '28px',
-                    borderRadius: '999px',
-                    background: '#dc2626',
-                    color: 'white',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '12px'
-                  }}>
-                    {user.ho_ten?.charAt(0)}
-                  </span>
-                  <span>{user.ho_ten || 'Tài khoản'}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    logout();
-                    navigate('/');
-                  }}
-                  style={{
-                    border: '1px solid rgba(17, 24, 39, 0.14)',
-                    background: 'white',
-                    borderRadius: '999px',
-                    padding: '8px 12px',
-                    cursor: 'pointer',
-                    fontSize: 'var(--font-size-sm)',
-                    fontWeight: 'var(--font-weight-semibold)',
-                    color: '#111827'
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(17, 24, 39, 0.04)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; }}
-                >
-                  Đăng xuất
-                </button>
+                {/* Notification Bell */}
+                <NotificationBell />
+                <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              style={{
+                padding: '8px 10px',
+                borderRadius: '999px',
+                border: '1px solid rgba(17, 24, 39, 0.14)',
+                background: 'white',
+                cursor: 'pointer',
+                fontSize: 'var(--font-size-sm)',
+                fontWeight: 'var(--font-weight-semibold)'
+              }}
+              aria-label="Chọn ngôn ngữ"
+            >
+              <option value="vi">VN</option>
+              <option value="en">EN</option>
+            </select>
+
+                {/* User Dropdown */}
+                <div style={{ position: 'relative' }}>
+                  <button
+                    onClick={() => setShowUserDropdown(!showUserDropdown)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      border: 'none',
+                      background: 'transparent',
+                      cursor: 'pointer',
+                      fontSize: 'var(--font-size-sm)',
+                      fontWeight: 'var(--font-weight-semibold)',
+                      color: '#111827'
+                    }}
+                  >
+                    <span style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '999px',
+                      background: '#dc2626',
+                      color: 'white',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px'
+                    }}>
+                      {user.ho_ten?.charAt(0)}
+                    </span>
+                    <span>{user.ho_ten || 'Tài khoản'}</span>
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                    </svg>
+                  </button>
+
+                  {showUserDropdown && (
+                    <>
+                      <div 
+                        onClick={() => setShowUserDropdown(false)}
+                        style={{
+                          position: 'fixed',
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          zIndex: 999
+                        }}
+                      />
+                      <div style={{
+                        position: 'absolute',
+                        top: 'calc(100% + 8px)',
+                        right: 0,
+                        background: 'white',
+                        borderRadius: 'var(--radius-lg)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                        minWidth: '200px',
+                        zIndex: 1000,
+                        overflow: 'hidden'
+                      }}>
+                        <button
+                          onClick={() => {
+                            setShowUserDropdown(false);
+                            navigate(`/${user.ten_vai_tro === 'nguoi_hien' ? 'donor' : user.ten_vai_tro === 'to_chuc' ? 'organization' : user.ten_vai_tro === 'benh_vien' ? 'hospital' : 'admin'}/dashboard`);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            border: 'none',
+                            background: 'transparent',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            fontSize: 'var(--font-size-sm)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--gray-50)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M3 3h10v10H3z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                          </svg>
+                          Dashboard
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            setShowUserDropdown(false);
+                            navigate('/notifications');
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            border: 'none',
+                            background: 'transparent',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            fontSize: 'var(--font-size-sm)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--gray-50)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor">
+                            <path d="M12 5.33333C12 4.27247 11.5786 3.25505 10.8284 2.50491C10.0783 1.75476 9.06087 1.33333 8 1.33333C6.93913 1.33333 5.92172 1.75476 5.17157 2.50491C4.42143 3.25505 4 4.27247 4 5.33333C4 10 2 11.3333 2 11.3333H14C14 11.3333 12 10 12 5.33333Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M9.15335 14C9.03614 14.2021 8.86791 14.3698 8.66552 14.4864C8.46313 14.603 8.23344 14.6643 8 14.6643C7.76656 14.6643 7.53687 14.603 7.33448 14.4864C7.13209 14.3698 6.96386 14.2021 6.84665 14" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                          </svg>
+                          Thông báo
+                        </button>
+
+                        {(user.ten_vai_tro === 'nguoi_hien' || user.ten_vai_tro === 'benh_vien') && (
+                          <button
+                            onClick={() => {
+                              setShowUserDropdown(false);
+                              navigate(`/${user.ten_vai_tro === 'nguoi_hien' ? 'donor' : 'hospital'}/profile`);
+                            }}
+                            style={{
+                              width: '100%',
+                              padding: '12px 16px',
+                              border: 'none',
+                              background: 'transparent',
+                              textAlign: 'left',
+                              cursor: 'pointer',
+                              fontSize: 'var(--font-size-sm)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '10px'
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--gray-50)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                              <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                              <path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                            </svg>
+                            Hồ sơ
+                          </button>
+                        )}
+
+                        <div style={{ height: '1px', background: 'var(--gray-200)', margin: '4px 0' }} />
+
+                        <button
+                          onClick={() => {
+                            setShowUserDropdown(false);
+                            logout();
+                            navigate('/');
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '12px 16px',
+                            border: 'none',
+                            background: 'transparent',
+                            textAlign: 'left',
+                            cursor: 'pointer',
+                            fontSize: 'var(--font-size-sm)',
+                            color: 'var(--danger-600)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--danger-50)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M6 14H3V2h3M10 11l3-3-3-3M13 8H6" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                          </svg>
+                          Đăng xuất
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               </>
             ) : (
               <>
@@ -200,10 +348,7 @@ const HomeHeader = ({
                 >
                   Tuyển dụng
                 </button>
-              </>
-            )}
-
-            <select
+                <select
               value={language}
               onChange={(e) => setLanguage(e.target.value)}
               style={{
@@ -220,6 +365,10 @@ const HomeHeader = ({
               <option value="vi">VN</option>
               <option value="en">EN</option>
             </select>
+              </>
+            )}
+
+            
           </div>
         </div>
 

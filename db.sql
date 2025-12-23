@@ -163,15 +163,19 @@ CREATE TABLE ket_qua_hien_mau (
 -- ============================================
 CREATE TABLE thong_bao (
     id_thong_bao INT PRIMARY KEY AUTO_INCREMENT,
-    id_benh_vien INT NOT NULL,
-    id_nhom INT NOT NULL,
-    tieu_de VARCHAR(200) NOT NULL,
-    noi_dung TEXT NOT NULL,
-    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    da_doc BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (id_benh_vien) REFERENCES benh_vien(id_benh_vien),
-    FOREIGN KEY (id_nhom) REFERENCES nhom_tinh_nguyen(id_nhom)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    id_nguoi_nhan INT NOT NULL COMMENT 'ID người nhận thông báo',
+    loai_thong_bao VARCHAR(50) NOT NULL COMMENT 'Loại: dang_ky_duyet, su_kien_duyet, nhom_mau_xac_nhan, ket_qua_hien_mau',
+    tieu_de VARCHAR(200) NOT NULL COMMENT 'Tiêu đề thông báo',
+    noi_dung TEXT NOT NULL COMMENT 'Nội dung thông báo',
+    link_lien_ket VARCHAR(255) COMMENT 'Link liên quan đến thông báo',
+    da_doc BOOLEAN DEFAULT FALSE COMMENT 'Đã đọc hay chưa',
+    ngay_tao TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT 'Thời gian tạo',
+    FOREIGN KEY (id_nguoi_nhan) REFERENCES nguoidung(id_nguoi_dung) ON DELETE CASCADE,
+    INDEX idx_nguoi_nhan (id_nguoi_nhan),
+    INDEX idx_da_doc (da_doc),
+    INDEX idx_ngay_tao (ngay_tao)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci 
+COMMENT='Bảng quản lý thông báo cho người dùng';
 
 -- ============================================
 -- 14. BẢNG MÃ OTP
@@ -295,7 +299,7 @@ INSERT INTO ket_qua_hien_mau (id_nguoi_hien, id_su_kien, id_benh_vien, ngay_hien
 (2, 1, 1, '2024-03-15', 450, 'Dat'), -- User 2 (id_nguoi_hien = 2)
 (3, 1, 1, '2024-03-15', 450, 'Dat'); -- User 3 (id_nguoi_hien = 3)
 
--- Insert thông báo
-INSERT INTO thong_bao (id_benh_vien, id_nhom, tieu_de, noi_dung, da_doc) VALUES
-(1, 1, 'Khan Cap: Can Nhom Mau O', 'Benh vien dang can gap nhom mau O de cap cuu benh nhan. Mong quy nhom tinh nguyen chia se thong tin.', FALSE),
-(2, 2, 'Can Nhom Mau A', 'Benh vien can bo sung nhom mau A cho kho du tru. Xin cam on!', FALSE);
+-- Insert thông báo (sample notifications for testing)
+INSERT INTO thong_bao (id_nguoi_nhan, loai_thong_bao, tieu_de, noi_dung, link_lien_ket, da_doc) VALUES
+(2, 'dang_ky_duyet', 'Đăng ký hiến máu đã được duyệt', 'Đăng ký tham gia sự kiện "Ngay Hien Mau Mua Xuan" của bạn đã được phê duyệt. Vui lòng đến đúng giờ.', '/donor/events/1', FALSE),
+(5, 'su_kien_duyet', 'Sự kiện đã được phê duyệt', 'Sự kiện hiến máu của bạn đã được bệnh viện phê duyệt. Bạn có thể bắt đầu tổ chức và quản lý đăng ký.', '/organization/events/1', FALSE);
