@@ -33,7 +33,10 @@ import HospitalRegistrationList from './pages/hospital/RegistrationList';
 import HospitalResultUpdate from './pages/hospital/ResultUpdate';
 import HospitalNotificationCreate from './pages/hospital/NotificationCreate';
 import VolunteerDashboard from './pages/volunteer/Dashboard';
+import VolunteerProfile from './pages/volunteer/Profile';
 import AdminDashboard from './pages/admin/Dashboard';
+import AdminProfile from './pages/admin/Profile';
+import OrganizationProfile from './pages/organization/Profile';
 import AdminUsers from './pages/admin/Users';
 import AdminEvents from './pages/admin/Events';
 import AdminRegistrations from './pages/admin/Registrations';
@@ -135,6 +138,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['to_chuc']}>
                 <OrgDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/organization/profile" 
+            element={
+              <ProtectedRoute allowedRoles={['to_chuc']}>
+                <OrganizationProfile />
               </ProtectedRoute>
             } 
           />
@@ -262,6 +273,14 @@ function App() {
               </ProtectedRoute>
             } 
           />
+          <Route 
+            path="/volunteer/profile" 
+            element={
+              <ProtectedRoute allowedRoles={['nhom_tinh_nguyen']}>
+                <VolunteerProfile />
+              </ProtectedRoute>
+            } 
+          />
           
           {/* Admin routes */}
           <Route 
@@ -269,6 +288,14 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AdminDashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/profile" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminProfile />
               </ProtectedRoute>
             } 
           />

@@ -11,7 +11,7 @@ const NotificationCreate = () => {
   const [saving, setSaving] = useState(false);
 
   const [formData, setFormData] = useState({
-    id_nhom: '',
+    selectedGroupIds: [],
     tieu_de: '',
     noi_dung: ''
   });
@@ -66,6 +66,28 @@ const NotificationCreate = () => {
     }));
   };
 
+  const handleToggleGroup = (groupId) => {
+    setFormData(prev => {
+      const exists = prev.selectedGroupIds.includes(groupId);
+      return {
+        ...prev,
+        selectedGroupIds: exists
+          ? prev.selectedGroupIds.filter(id => id !== groupId)
+          : [...prev.selectedGroupIds, groupId]
+      };
+    });
+  };
+
+  const handleToggleAllGroups = () => {
+    setFormData(prev => ({
+      ...prev,
+      selectedGroupIds:
+        prev.selectedGroupIds.length === volunteerGroups.length
+          ? []
+          : volunteerGroups.map(g => g.id_nhom)
+    }));
+  };
+
   const applyTemplate = (templateKey) => {
     const template = bloodTypeTemplates[templateKey];
     setFormData(prev => ({
@@ -78,14 +100,22 @@ const NotificationCreate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.id_nhom || !formData.tieu_de || !formData.noi_dung) {
-      alert('Vui lòng điền đầy đủ thông tin');
+    if (!formData.tieu_de || !formData.noi_dung || formData.selectedGroupIds.length === 0) {
+      alert('Vui lòng chọn ít nhất một nhóm và điền đầy đủ thông tin');
       return;
     }
 
     setSaving(true);
     try {
-      const response = await api.post('/hospitals/notifications', formData);
+      const payload = {
+        id_nhoms: formData.selectedGroupIds,
+        // Giữ id_nhom đầu tiên để tương thích backend cũ (nếu cần)
+        id_nhom: formData.selectedGroupIds[0],
+        tieu_de: formData.tieu_de,
+        noi_dung: formData.noi_dung
+      };
+
+      const response = await api.post('/hospitals/notifications', payload);
 
       if (response.data.success) {
         alert('Gửi thông báo thành công!');
@@ -111,30 +141,79 @@ const NotificationCreate = () => {
       <div className="page-header">
         <h1 className="page-title">Tạo thông báo</h1>
         <p className="page-description">
-          Gửi thông báo đến nhóm tình nguyện
+          Gửi thông báo khẩn cấp đến một hoặc nhiều nhóm tình nguyện.
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 'var(--spacing-lg)' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: 'var(--spacing-lg)', alignItems: 'flex-start' }}>
         <div className="card">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label className="form-label">Nhóm tình nguyện *</label>
-                <select
-                  name="id_nhom"
-                  className="form-control"
-                  value={formData.id_nhom}
-                  onChange={handleChange}
-                  required
+                <label className="form-label">Nhóm tình nguyện nhận thông báo *</label>
+                <div
+                  style={{
+                    border: '1px solid var(--gray-200)',
+                    borderRadius: 'var(--radius-lg)',
+                    padding: 'var(--spacing-md)',
+                    maxHeight: 260,
+                    overflow: 'auto',
+                    background: 'var(--gray-50)'
+                  }}
                 >
-                  <option value="">-- Chọn nhóm tình nguyện --</option>
-                  {volunteerGroups.map(group => (
-                    <option key={group.id_nhom} value={group.id_nhom}>
-                      {group.ten_nhom}
-                    </option>
-                  ))}
-                </select>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: 'var(--spacing-sm)'
+                    }}
+                  >
+                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                      Đã chọn {formData.selectedGroupIds.length}/{volunteerGroups.length} nhóm
+                    </span>
+                    <button
+                      type="button"
+                      className="btn btn-xs btn-outline"
+                      onClick={handleToggleAllGroups}
+                    >
+                      {formData.selectedGroupIds.length === volunteerGroups.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {volunteerGroups.map(group => {
+                      const checked = formData.selectedGroupIds.includes(group.id_nhom);
+                      return (
+                        <label
+                          key={group.id_nhom}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '6px 8px',
+                            borderRadius: 'var(--radius-md)',
+                            background: checked ? 'white' : 'transparent',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => handleToggleGroup(group.id_nhom)}
+                          />
+                          <span style={{ fontSize: 'var(--font-size-sm)' }}>
+                            {group.ten_nhom}
+                          </span>
+                        </label>
+                      );
+                    })}
+                    {volunteerGroups.length === 0 && (
+                      <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', margin: 0 }}>
+                        Chưa có nhóm tình nguyện nào.
+                      </p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="form-group">

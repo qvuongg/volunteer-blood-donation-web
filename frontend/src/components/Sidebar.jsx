@@ -26,9 +26,15 @@ const menuConfig = {
   ],
   to_chuc: [
     {
-      title: 'Quản lý tổ chức',
+      title: 'Tổng quan',
       items: [
         { path: '/organization/dashboard', label: 'Dashboard', icon: 'dashboard' },
+        { path: '/organization/profile', label: 'Hồ sơ', icon: 'user' }
+      ]
+    },
+    {
+      title: 'Quản lý',
+      items: [
         { path: '/organization/events', label: 'Quản lý sự kiện', icon: 'calendar' },
         { path: '/organization/registrations', label: 'Danh sách đăng ký', icon: 'list' }
       ]
@@ -61,14 +67,23 @@ const menuConfig = {
   nhom_tinh_nguyen: [
     {
       title: 'Tổng quan',
-      items: [{ path: '/volunteer/dashboard', label: 'Dashboard', icon: 'dashboard' }]
+      items: [
+        { path: '/volunteer/dashboard', label: 'Thông báo', icon: 'bell' },
+        { path: '/volunteer/profile', label: 'Thông tin nhóm', icon: 'user' }
+      ]
     }
   ],
   admin: [
     {
-      title: 'Quản trị hệ thống',
+      title: 'Tổng quan',
       items: [
         { path: '/admin/dashboard', label: 'Tổng quan', icon: 'dashboard' },
+        { path: '/admin/profile', label: 'Hồ sơ', icon: 'user' }
+      ]
+    },
+    {
+      title: 'Quản trị hệ thống',
+      items: [
         { path: '/admin/users', label: 'Quản lý người dùng', icon: 'user' },
         { path: '/admin/events', label: 'Quản lý sự kiện', icon: 'calendar' },
         { path: '/admin/registrations', label: 'Đăng ký hiến máu', icon: 'list' },

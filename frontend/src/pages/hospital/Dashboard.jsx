@@ -69,11 +69,11 @@ const Dashboard = () => {
           subtitle="Đã thu được"
         />
         <StatCard
-          title="Thông báo"
+          title="Thông báo khẩn cấp"
           value={stats?.notificationsSent || 0}
           icon="bell"
           color="success"
-          subtitle="Đã gửi"
+          subtitle="Lượt gửi tới nhóm TN"
         />
       </div>
 

@@ -508,3 +508,94 @@ export const getReportsByHospital = async (req, res, next) => {
   }
 };
 
+// Get admin profile
+export const getProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id_nguoi_dung;
+
+    // Get user info
+    const [users] = await pool.execute(
+      `SELECT id_nguoi_dung, ho_ten, email, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro, trang_thai 
+       FROM nguoidung WHERE id_nguoi_dung = ?`,
+      [userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy người dùng.'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        user: users[0]
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update admin profile
+export const updateProfile = async (req, res, next) => {
+  try {
+    const userId = req.user.id_nguoi_dung;
+    const { ho_ten, so_dien_thoai } = req.body;
+
+    // Check if phone is already used by another user
+    if (so_dien_thoai) {
+      const [existingPhones] = await pool.execute(
+        'SELECT id_nguoi_dung FROM nguoidung WHERE so_dien_thoai = ? AND id_nguoi_dung != ?',
+        [so_dien_thoai, userId]
+      );
+
+      if (existingPhones.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Số điện thoại đã được sử dụng.'
+        });
+      }
+    }
+
+    // Update user info
+    const updateUserFields = [];
+    const updateUserValues = [];
+
+    if (ho_ten) {
+      updateUserFields.push('ho_ten = ?');
+      updateUserValues.push(ho_ten);
+    }
+    if (so_dien_thoai !== undefined) {
+      updateUserFields.push('so_dien_thoai = ?');
+      updateUserValues.push(so_dien_thoai || null);
+    }
+
+    if (updateUserFields.length > 0) {
+      updateUserValues.push(userId);
+      await pool.execute(
+        `UPDATE nguoidung SET ${updateUserFields.join(', ')} WHERE id_nguoi_dung = ?`,
+        updateUserValues
+      );
+    }
+
+    // Get updated profile
+    const [users] = await pool.execute(
+      `SELECT id_nguoi_dung, ho_ten, email, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro, trang_thai 
+       FROM nguoidung WHERE id_nguoi_dung = ?`,
+      [userId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Cập nhật thông tin thành công.',
+      data: {
+        user: users[0]
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+

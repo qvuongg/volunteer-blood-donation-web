@@ -7,7 +7,9 @@ import {
   updateEvent,
   deleteEvent,
   getEventRegistrations,
-  getStats
+  getStats,
+  getProfile,
+  updateProfile
 } from '../controllers/organizationController.js';
 import pool from '../config/database.js';
 
@@ -17,8 +19,10 @@ const router = express.Router();
 router.use(authenticate);
 router.use(authorize('to_chuc'));
 
-// Stats route
+// Stats and profile routes
 router.get('/stats', getStats);
+router.get('/profile', getProfile);
+router.put('/profile', updateProfile);
 
 // Get hospitals list for event creation
 router.get('/hospitals', async (req, res, next) => {

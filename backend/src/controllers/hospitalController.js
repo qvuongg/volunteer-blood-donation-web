@@ -1,5 +1,11 @@
 import pool from '../config/database.js';
 import { createNotification } from './notificationController.js';
+import { 
+  sendBloodTypeConfirmationEmail, 
+  sendEventApprovalEmail, 
+  sendDonationResultEmail,
+  sendEmergencyNotificationEmail
+} from '../utils/email.js';
 
 // Get pending events for hospital approval
 export const getPendingEvents = async (req, res, next) => {
@@ -243,16 +249,35 @@ export const confirmBloodType = async (req, res, next) => {
       [id_nguoi_hien]
     );
 
-    // Send notification to donor
+    // Send notification and email to donor
     if (donor.length > 0) {
       const donorData = donor[0];
+      const hospitalName = donorData.ten_benh_vien || 'bệnh viện';
+      
+      // Send in-app notification
       await createNotification(
         donorData.id_nguoi_dung,
         'nhom_mau_xac_nhan',
         'Nhóm máu của bạn đã được xác thực',
-        `Nhóm máu ${nhom_mau} của bạn đã được xác thực chính thức bởi ${donorData.ten_benh_vien || 'bệnh viện'}. ${ghi_chu || ''}`,
+        `Nhóm máu ${nhom_mau} của bạn đã được xác thực chính thức bởi ${hospitalName}. ${ghi_chu || ''}`,
         '/donor/profile'
       );
+
+      // Send email notification
+      const [donorEmail] = await pool.execute(
+        'SELECT email FROM nguoidung WHERE id_nguoi_dung = ?',
+        [donorData.id_nguoi_dung]
+      );
+
+      if (donorEmail.length > 0) {
+        sendBloodTypeConfirmationEmail(
+          donorEmail[0].email,
+          donorData.ho_ten,
+          nhom_mau,
+          hospitalName,
+          ghi_chu
+        ).catch(err => console.error('Email sending failed:', err));
+      }
     }
 
     res.json({
@@ -287,13 +312,18 @@ export const updateEventStatus = async (req, res, next) => {
 
     const coordinatorId = coordinator[0].id_nguoi_phu_trach;
 
-    // Get event and organization info for notification
+    // Get event, organization coordinator, and hospital info for notification
     const [eventInfo] = await pool.execute(
-      `SELECT sk.ten_su_kien, sk.id_to_chuc, nptc.id_nguoi_phu_trach
+      `SELECT sk.ten_su_kien, sk.id_to_chuc, 
+              nptc.id_nguoi_phu_trach, nd.ho_ten, nd.email,
+              bv.ten_benh_vien
        FROM sukien_hien_mau sk
        JOIN nguoi_phu_trach_to_chuc nptc ON sk.id_to_chuc = nptc.id_to_chuc
+       JOIN nguoidung nd ON nptc.id_nguoi_phu_trach = nd.id_nguoi_dung
+       JOIN nguoi_phu_trach_benh_vien nptbv ON nptbv.id_nguoi_phu_trach = ?
+       JOIN benh_vien bv ON nptbv.id_benh_vien = bv.id_benh_vien
        WHERE sk.id_su_kien = ?`,
-      [id]
+      [userId, id]
     );
 
     await pool.execute(
@@ -301,7 +331,7 @@ export const updateEventStatus = async (req, res, next) => {
       [trang_thai, coordinatorId, id]
     );
 
-    // Send notification to organization coordinator
+    // Send notification and email to organization coordinator
     if (eventInfo.length > 0) {
       const event = eventInfo[0];
       const notifTitle = trang_thai === 'da_duyet'
@@ -312,6 +342,7 @@ export const updateEventStatus = async (req, res, next) => {
         ? `Sự kiện hiến máu của bạn đã được bệnh viện phê duyệt. Bạn có thể bắt đầu tổ chức và quản lý đăng ký.`
         : `Sự kiện hiến máu của bạn bị từ chối bởi bệnh viện. Vui lòng liên hệ để biết thêm chi tiết.`;
 
+      // Send in-app notification
       await createNotification(
         event.id_nguoi_phu_trach,
         'su_kien_duyet',
@@ -319,6 +350,15 @@ export const updateEventStatus = async (req, res, next) => {
         notifContent,
         `/organization/events/${id}`
       );
+
+      // Send email notification
+      sendEventApprovalEmail(
+        event.email,
+        event.ho_ten,
+        event.ten_su_kien,
+        trang_thai,
+        event.ten_benh_vien
+      ).catch(err => console.error('Email sending failed:', err));
     }
 
     res.json({
@@ -558,8 +598,15 @@ export const createBulkResults = async (req, res, next) => {
       let skipCount = 0;
       const errors = [];
 
-      // Get event name for notification
-      const eventName = event[0]?.ten_su_kien || 'sự kiện';
+      // Get event and hospital name for notifications
+      const [eventDetails] = await connection.execute(
+        `SELECT sk.ten_su_kien, bv.ten_benh_vien
+         FROM sukien_hien_mau sk
+         JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
+         WHERE sk.id_su_kien = ?`,
+        [id_su_kien]
+      );
+      const eventName = eventDetails[0]?.ten_su_kien || 'sự kiện';
 
       for (const result of results) {
         const { id_nguoi_hien, luong_ml, ket_qua } = result;
@@ -602,13 +649,14 @@ export const createBulkResults = async (req, res, next) => {
           );
         }
 
-        // Send notification to donor
+        // Send notification and email to donor
         const [donorUser] = await connection.execute(
-          'SELECT id_nguoi_dung FROM nguoidung WHERE id_nguoi_dung = ?',
+          'SELECT nd.id_nguoi_dung, nd.ho_ten, nd.email FROM nguoidung nd WHERE nd.id_nguoi_dung = ?',
           [id_nguoi_hien]
         );
         
         if (donorUser.length > 0) {
+          const donor = donorUser[0];
           const notifTitle = ket_qua === 'Dat'
             ? 'Kết quả hiến máu của bạn đã được cập nhật'
             : 'Thông báo kết quả hiến máu';
@@ -617,13 +665,24 @@ export const createBulkResults = async (req, res, next) => {
             ? `Chúc mừng! Bạn đã hiến thành công ${luong_ml}ml máu tại ${eventName}. Cảm ơn bạn đã đóng góp vào cộng đồng!`
             : `Kết quả hiến máu của bạn tại ${eventName}: ${ket_qua}. Vui lòng liên hệ bệnh viện để biết thêm chi tiết.`;
 
+          // Send in-app notification
           await createNotification(
-            donorUser[0].id_nguoi_dung,
+            donor.id_nguoi_dung,
             'ket_qua_hien_mau',
             notifTitle,
             notifContent,
             '/donor/history'
           );
+
+          // Send email notification
+          sendDonationResultEmail(
+            donor.email,
+            donor.ho_ten,
+            eventName,
+            ket_qua,
+            luong_ml,
+            ngay_hien
+          ).catch(err => console.error('Email sending failed:', err));
         }
 
         successCount++;
@@ -651,10 +710,10 @@ export const createBulkResults = async (req, res, next) => {
   }
 };
 
-// Create notification for hospital (legacy - now using centralized notification system)
+// Create notification for volunteer groups from hospital coordinator
 export const createHospitalNotification = async (req, res, next) => {
   try {
-    const { id_nhom, tieu_de, noi_dung } = req.body;
+    const { id_nhom, id_nhoms, tieu_de, noi_dung } = req.body;
     const userId = req.user.id_nguoi_dung;
 
     // Get hospital ID
@@ -670,21 +729,83 @@ export const createHospitalNotification = async (req, res, next) => {
       });
     }
 
-    // Get all members of the volunteer group to send notifications
-    const [members] = await pool.execute(
-      'SELECT id_nguoi_dung FROM nhom_tinh_nguyen WHERE id_nhom = ?',
-      [id_nhom]
+    // Determine target groups: support both single id_nhom and multiple id_nhoms (array)
+    let targetGroupIds = [];
+    if (Array.isArray(id_nhoms) && id_nhoms.length > 0) {
+      targetGroupIds = id_nhoms.map((id) => Number(id)).filter((id) => !Number.isNaN(id));
+    } else if (id_nhom) {
+      const singleId = Number(id_nhom);
+      if (!Number.isNaN(singleId)) {
+        targetGroupIds = [singleId];
+      }
+    }
+
+    if (targetGroupIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng chọn ít nhất một nhóm tình nguyện.'
+      });
+    }
+
+    // Collect all member user IDs from selected volunteer groups
+    const memberIdsSet = new Set();
+    for (const groupId of targetGroupIds) {
+      const [members] = await pool.execute(
+        'SELECT id_nguoi_dung FROM nhom_tinh_nguyen WHERE id_nhom = ?',
+        [groupId]
+      );
+      for (const member of members) {
+        if (member.id_nguoi_dung) {
+          memberIdsSet.add(member.id_nguoi_dung);
+        }
+      }
+    }
+
+    // If no members found, still return success but with warning message
+    if (memberIdsSet.size === 0) {
+      return res.json({
+        success: true,
+        message: 'Không tìm thấy thành viên nào trong các nhóm đã chọn để gửi thông báo.'
+      });
+    }
+
+    // Get hospital name for email
+    const [hospitalInfo] = await pool.execute(
+      `SELECT bv.ten_benh_vien
+       FROM nguoi_phu_trach_benh_vien nptbv
+       JOIN benh_vien bv ON nptbv.id_benh_vien = bv.id_benh_vien
+       WHERE nptbv.id_nguoi_phu_trach = ?`,
+      [userId]
     );
 
-    // Send notification to each member using centralized notification system
-    for (const member of members) {
+    const hospitalName = hospitalInfo[0]?.ten_benh_vien || 'Bệnh viện';
+
+    // Send notification and email to each unique member
+    for (const memberId of memberIdsSet) {
+      // Send in-app notification
       await createNotification(
-        member.id_nguoi_dung,
+        memberId,
         'benh_vien_notification',
         tieu_de,
         noi_dung,
         null
       );
+
+      // Send email notification
+      const [memberInfo] = await pool.execute(
+        'SELECT ho_ten, email FROM nguoidung WHERE id_nguoi_dung = ?',
+        [memberId]
+      );
+
+      if (memberInfo.length > 0) {
+        sendEmergencyNotificationEmail(
+          memberInfo[0].email,
+          memberInfo[0].ho_ten,
+          tieu_de,
+          noi_dung,
+          hospitalName
+        ).catch(err => console.error('Email sending failed:', err));
+      }
     }
 
     res.json({
@@ -801,12 +922,13 @@ export const getStats = async (req, res, next) => {
       [hospitalId]
     );
 
-    // Get notifications sent count
+    // Get emergency notifications sent count to volunteer groups
+    // Hiện tại hệ thống không lưu id_benh_vien trong bảng thong_bao cho loại 'benh_vien_notification',
+    // nên tạm thời đếm tổng số thông báo loại này (giả định chỉ có 1 bệnh viện sử dụng).
     const [notificationsSent] = await pool.execute(
       `SELECT COUNT(*) as count
        FROM thong_bao
-       WHERE id_benh_vien = ?`,
-      [hospitalId]
+       WHERE loai_thong_bao = 'benh_vien_notification'`
     );
 
     res.json({

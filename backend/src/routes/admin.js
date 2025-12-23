@@ -11,13 +11,19 @@ import {
   getReportsOverview,
   getReportsByBloodType,
   getReportsByOrganization,
-  getReportsByHospital
+  getReportsByHospital,
+  getProfile,
+  updateProfile
 } from '../controllers/adminController.js';
 
 const router = express.Router();
 
 router.use(authenticate);
 router.use(authorize('admin'));
+
+// Profile
+router.get('/profile', getProfile);
+router.put('/profile', updateProfile);
 
 // User management
 router.get('/users', getUsers);
