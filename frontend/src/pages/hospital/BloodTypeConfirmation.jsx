@@ -1,12 +1,24 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useToast } from '../../contexts/ToastContext';
+import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 
 const BloodTypeConfirmation = () => {
+  const toast = useToast();
+  const { user } = useAuth();
+  const hospitalName = user?.ten_to_chuc || 'bệnh viện';
+  const defaultNote = `Xác thực nhóm máu qua xét nghiệm tại ${hospitalName}`;
   const [donors, setDonors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(null);
+  const [showChangeModal, setShowChangeModal] = useState(false);
+  const [selectedDonor, setSelectedDonor] = useState(null);
+  const [changeFormData, setChangeFormData] = useState({
+    nhom_mau: '',
+    ghi_chu: ''
+  });
 
   useEffect(() => {
     fetchUnconfirmedDonors();
@@ -42,49 +54,57 @@ const BloodTypeConfirmation = () => {
       const response = await api.post('/hospitals/blood-types/confirm', {
         id_nguoi_hien: donor.id_nguoi_hien,
         nhom_mau: donor.nhom_mau,
-        ghi_chu: `Xác thực nhóm máu ${donor.nhom_mau} sau xét nghiệm tại bệnh viện`
+        ghi_chu: `${defaultNote}. Nhóm máu: ${donor.nhom_mau}`
       });
 
       if (response.data.success) {
-        alert('Xác thực nhóm máu thành công!');
-        // Remove from list
+        toast.success('Xác thực nhóm máu thành công!');
         setDonors(donors.filter(d => d.id_nguoi_hien !== donor.id_nguoi_hien));
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Có lỗi xảy ra');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
     } finally {
       setConfirming(null);
     }
   };
 
-  const handleChangeAndConfirm = async (donor) => {
-    const bloodTypes = ['A', 'B', 'AB', 'O'];
-    const newBloodType = window.prompt(
-      `Nhóm máu hiện tại: ${donor.nhom_mau}\n` +
-      `Nhập nhóm máu mới (${bloodTypes.join(', ')}):`,
-      donor.nhom_mau
-    );
+  const openChangeModal = (donor) => {
+    setSelectedDonor(donor);
+    setChangeFormData({
+      nhom_mau: donor.nhom_mau,
+      ghi_chu: defaultNote
+    });
+    setShowChangeModal(true);
+  };
 
-    if (!newBloodType || !bloodTypes.includes(newBloodType.toUpperCase())) {
-      alert('Nhóm máu không hợp lệ');
+  const handleChangeAndConfirm = async () => {
+    if (!changeFormData.nhom_mau) {
+      toast.error('Vui lòng chọn nhóm máu');
       return;
     }
 
-    setConfirming(donor.id_nguoi_hien);
+    setConfirming(selectedDonor.id_nguoi_hien);
 
     try {
+      const trimmedNote = (changeFormData.ghi_chu || defaultNote).trim() || defaultNote;
+      const ghiChu = changeFormData.nhom_mau === selectedDonor.nhom_mau
+        ? `${trimmedNote}. Nhóm máu: ${changeFormData.nhom_mau}`
+        : `${trimmedNote}. Nhóm máu: ${changeFormData.nhom_mau} (đã điều chỉnh từ ${selectedDonor.nhom_mau})`;
+
       const response = await api.post('/hospitals/blood-types/confirm', {
-        id_nguoi_hien: donor.id_nguoi_hien,
-        nhom_mau: newBloodType.toUpperCase(),
-        ghi_chu: `Xác thực nhóm máu ${newBloodType.toUpperCase()} sau xét nghiệm tại bệnh viện (đã điều chỉnh từ ${donor.nhom_mau})`
+        id_nguoi_hien: selectedDonor.id_nguoi_hien,
+        nhom_mau: changeFormData.nhom_mau,
+        ghi_chu: ghiChu.trim()
       });
 
       if (response.data.success) {
-        alert('Xác thực nhóm máu thành công!');
-        setDonors(donors.filter(d => d.id_nguoi_hien !== donor.id_nguoi_hien));
+        toast.success('Xác thực nhóm máu thành công!');
+        setDonors(donors.filter(d => d.id_nguoi_hien !== selectedDonor.id_nguoi_hien));
+        setShowChangeModal(false);
+        setSelectedDonor(null);
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Có lỗi xảy ra');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
     } finally {
       setConfirming(null);
     }
@@ -188,7 +208,7 @@ const BloodTypeConfirmation = () => {
                         </button>
                         <button
                           className="btn btn-sm btn-outline"
-                          onClick={() => handleChangeAndConfirm(donor)}
+                          onClick={() => openChangeModal(donor)}
                           disabled={confirming === donor.id_nguoi_hien}
                         >
                           Điều chỉnh & Xác nhận
@@ -213,6 +233,116 @@ const BloodTypeConfirmation = () => {
             </div>
           </div>
         </>
+      )}
+
+      {/* Change Blood Type Modal */}
+      {showChangeModal && selectedDonor && (
+        <div
+          onClick={() => setShowChangeModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: 'var(--spacing-lg)'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: 'var(--radius-lg)',
+              padding: 'var(--spacing-2xl)',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
+          >
+            <h2 style={{
+              fontSize: 'var(--font-size-2xl)',
+              fontWeight: 'var(--font-weight-bold)',
+              marginBottom: 'var(--spacing-lg)',
+              color: '#dc2626'
+            }}>
+              Điều chỉnh & Xác nhận nhóm máu
+            </h2>
+
+            <div style={{ marginBottom: 'var(--spacing-lg)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ marginBottom: 'var(--spacing-xs)' }}>
+                <strong>Người hiến:</strong> {selectedDonor.ho_ten}
+              </div>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                Email: {selectedDonor.email}
+              </div>
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                Nhóm máu tự khai: <span className="badge badge-danger">{selectedDonor.nhom_mau}</span>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                Nhóm máu sau xét nghiệm <span style={{ color: '#dc2626' }}>*</span>
+              </label>
+              <select
+                className="form-input"
+                value={changeFormData.nhom_mau}
+                onChange={(e) => setChangeFormData({ ...changeFormData, nhom_mau: e.target.value })}
+                required
+              >
+                <option value="">-- Chọn nhóm máu --</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="AB">AB</option>
+                <option value="O">O</option>
+              </select>
+              {changeFormData.nhom_mau && changeFormData.nhom_mau !== selectedDonor.nhom_mau && (
+                <p style={{ fontSize: 'var(--font-size-sm)', color: '#dc2626', marginTop: 'var(--spacing-xs)' }}>
+                  ⚠️ Nhóm máu khác với khai báo ban đầu ({selectedDonor.nhom_mau} → {changeFormData.nhom_mau})
+                </p>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Ghi chú</label>
+              <textarea
+                className="form-input"
+                rows="4"
+                value={changeFormData.ghi_chu}
+                onChange={(e) => setChangeFormData({ ...changeFormData, ghi_chu: e.target.value })}
+                placeholder="Nhập ghi chú thêm (nếu có)..."
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'flex-end', marginTop: 'var(--spacing-xl)' }}>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => {
+                  setShowChangeModal(false);
+                  setSelectedDonor(null);
+                }}
+                disabled={confirming === selectedDonor?.id_nguoi_hien}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                className="btn btn-success"
+                onClick={handleChangeAndConfirm}
+                disabled={confirming === selectedDonor?.id_nguoi_hien || !changeFormData.nhom_mau}
+              >
+                {confirming === selectedDonor?.id_nguoi_hien ? 'Đang xử lý...' : 'Xác nhận'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </Layout>
   );

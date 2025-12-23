@@ -14,14 +14,14 @@ export const AuthProvider = ({ children }) => {
     
     if (token) {
       if (savedUser) {
-        try {
-          setUser(JSON.parse(savedUser));
-        } catch (error) {
-          console.error('Error parsing user data:', error);
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-        }
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
       }
+    }
       
       // Refresh user data from server to get latest info (including ten_to_chuc)
       api.get('/auth/me')
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
           setLoading(false);
         });
     } else {
-      setLoading(false);
+    setLoading(false);
     }
   }, []);
 

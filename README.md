@@ -64,8 +64,8 @@ cd backend
 npm install
 cp .env.example .env
 # Chỉnh sửa .env với thông tin database của bạn
-2) Khởi động MySQL
-# Cách 1: dùng script mysql.server
+2 Khởi động MySQL
+################################################### Cách 1: dùng script mysql.server ###############
 sudo /usr/local/mysql/support-files/mysql.server start
 
 npm run dev

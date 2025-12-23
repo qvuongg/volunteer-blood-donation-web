@@ -314,7 +314,7 @@ export const getProfile = async (req, res, next) => {
         `SELECT nptbv.*, bv.ten_benh_vien, bv.dia_chi
          FROM nguoi_phu_trach_benh_vien nptbv
          JOIN benh_vien bv ON nptbv.id_benh_vien = bv.id_benh_vien
-         WHERE nptbv.id_nguoi_dung = ?`,
+         WHERE nptbv.id_nguoi_phu_trach = ?`,
         [userId]
       );
       if (coordinator.length > 0) {

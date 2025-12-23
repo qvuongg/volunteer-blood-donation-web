@@ -113,7 +113,7 @@ const Events = () => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 'var(--spacing-md)' }}>
                   <h3 style={{ margin: 0, fontSize: 'var(--font-size-lg)' }}>{event.ten_su_kien}</h3>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', alignItems: 'flex-end' }}>
-                    {getStatusBadge(event.trang_thai)}
+                  {getStatusBadge(event.trang_thai)}
                     {getEventStatusBadge(event)}
                   </div>
                 </div>
