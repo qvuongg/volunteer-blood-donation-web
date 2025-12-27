@@ -21,12 +21,12 @@ const BloodTypeConfirmation = () => {
   });
 
   useEffect(() => {
-    fetchUnconfirmedDonors();
+    fetchAllDonors();
   }, []);
 
-  const fetchUnconfirmedDonors = async () => {
+  const fetchAllDonors = async () => {
     try {
-      const response = await api.get('/hospitals/blood-types/unconfirmed');
+      const response = await api.get('/hospitals/blood-types/all');
       console.log('📋 Response from API:', response.data);
       if (response.data.success) {
         const donorList = response.data.data.donors || [];
@@ -34,7 +34,7 @@ const BloodTypeConfirmation = () => {
         setDonors(donorList);
       }
     } catch (error) {
-      console.error('❌ Error fetching unconfirmed donors:', error);
+      console.error('❌ Error fetching donors:', error);
       console.error('Response:', error.response?.data);
     } finally {
       setLoading(false);
@@ -59,7 +59,7 @@ const BloodTypeConfirmation = () => {
 
       if (response.data.success) {
         toast.success('Xác thực nhóm máu thành công!');
-        setDonors(donors.filter(d => d.id_nguoi_hien !== donor.id_nguoi_hien));
+        fetchAllDonors(); // Refresh to show updated status
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
@@ -99,7 +99,7 @@ const BloodTypeConfirmation = () => {
 
       if (response.data.success) {
         toast.success('Xác thực nhóm máu thành công!');
-        setDonors(donors.filter(d => d.id_nguoi_hien !== selectedDonor.id_nguoi_hien));
+        fetchAllDonors(); // Refresh to show updated status
         setShowChangeModal(false);
         setSelectedDonor(null);
       }
@@ -123,7 +123,7 @@ const BloodTypeConfirmation = () => {
       <div className="page-header">
         <h1 className="page-title">Xác thực nhóm máu</h1>
         <p className="page-description">
-          Xác thực nhóm máu cho người hiến máu sau khi xét nghiệm
+          Danh sách tất cả người hiến máu (chưa xác thực và đã xác thực nhóm máu)
         </p>
       </div>
 
@@ -135,14 +135,14 @@ const BloodTypeConfirmation = () => {
               <path d="M22 28l4 4 8-8"/>
             </svg>
             <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-lg)' }}>
-              Không có người hiến máu nào cần xác thực nhóm máu
+              Không có người hiến máu nào
             </p>
           </div>
         </div>
       ) : (
         <>
           <div className="alert alert-info" style={{ marginBottom: 'var(--spacing-xl)' }}>
-            ℹ️ Danh sách người hiến máu đã tham gia sự kiện tại bệnh viện của bạn nhưng nhóm máu chưa được xác thực chính thức.
+            ℹ️ Danh sách tất cả người hiến máu đã tham gia sự kiện tại bệnh viện của bạn. Những người có tag "Chưa xác thực" cần được xác thực nhóm máu sau khi xét nghiệm.
           </div>
 
           <div className="table-container">
@@ -175,7 +175,11 @@ const BloodTypeConfirmation = () => {
                         }}>
                           {donor.nhom_mau}
                         </span>
-                        <span className="badge badge-warning">Chưa xác thực</span>
+                        {donor.nhom_mau_xac_nhan ? (
+                          <span className="badge badge-success">Đã xác thực</span>
+                        ) : (
+                          <span className="badge badge-warning">Chưa xác thực</span>
+                        )}
                       </div>
                     </td>
                     <td>{donor.tong_so_lan_hien}</td>
@@ -186,34 +190,40 @@ const BloodTypeConfirmation = () => {
                       }
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
-                        <button
-                          className="btn btn-sm btn-success"
-                          onClick={() => handleConfirm(donor)}
-                          disabled={confirming === donor.id_nguoi_hien}
-                        >
-                          {confirming === donor.id_nguoi_hien ? (
-                            <>
-                              <LoadingSpinner size="small" />
-                              Đang xử lý...
-                            </>
-                          ) : (
-                            <>
-                              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                <path d="M6 8l2 2 4-4"/>
-                              </svg>
-                              Xác nhận
-                            </>
-                          )}
-                        </button>
-                        <button
-                          className="btn btn-sm btn-outline"
-                          onClick={() => openChangeModal(donor)}
-                          disabled={confirming === donor.id_nguoi_hien}
-                        >
-                          Điều chỉnh & Xác nhận
-                        </button>
-                      </div>
+                      {donor.nhom_mau_xac_nhan ? (
+                        <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+                          Đã xác thực
+                        </span>
+                      ) : (
+                        <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+                          <button
+                            className="btn btn-sm btn-success"
+                            onClick={() => handleConfirm(donor)}
+                            disabled={confirming === donor.id_nguoi_hien}
+                          >
+                            {confirming === donor.id_nguoi_hien ? (
+                              <>
+                                <LoadingSpinner size="small" />
+                                Đang xử lý...
+                              </>
+                            ) : (
+                              <>
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                  <path d="M6 8l2 2 4-4"/>
+                                </svg>
+                                Xác nhận
+                              </>
+                            )}
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={() => openChangeModal(donor)}
+                            disabled={confirming === donor.id_nguoi_hien}
+                          >
+                            Điều chỉnh & Xác nhận
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}

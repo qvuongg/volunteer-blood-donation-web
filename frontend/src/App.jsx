@@ -42,6 +42,7 @@ import AdminEvents from './pages/admin/Events';
 import AdminRegistrations from './pages/admin/Registrations';
 import AdminReports from './pages/admin/Reports';
 import AdminSettings from './pages/admin/Settings';
+import Notifications from './pages/Notifications';
 import './App.css';
 
 function App() {
@@ -57,6 +58,16 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/events" element={<PublicEvents />} />
           <Route path="/search" element={<SearchEvents />} />
+          
+          {/* Notifications route - accessible by all logged-in users */}
+          <Route 
+            path="/notifications" 
+            element={
+              <ProtectedRoute allowedRoles={['nguoi_hien', 'to_chuc', 'benh_vien', 'nhom_tinh_nguyen', 'admin']}>
+                <Notifications />
+              </ProtectedRoute>
+            } 
+          />
           
           {/* Donor routes */}
           <Route 

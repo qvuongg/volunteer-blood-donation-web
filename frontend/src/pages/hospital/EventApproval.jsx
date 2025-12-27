@@ -9,12 +9,12 @@ const EventApproval = () => {
   const [processing, setProcessing] = useState(null);
 
   useEffect(() => {
-    fetchPendingEvents();
+    fetchAllEvents();
   }, []);
 
-  const fetchPendingEvents = async () => {
+  const fetchAllEvents = async () => {
     try {
-      const response = await api.get('/hospitals/events/pending');
+      const response = await api.get('/hospitals/events/all');
       if (response.data.success) {
         setEvents(response.data.data.events || []);
       }
@@ -36,7 +36,7 @@ const EventApproval = () => {
 
       if (response.data.success) {
         alert('Phê duyệt sự kiện thành công!');
-        setEvents(events.filter(e => e.id_su_kien !== eventId));
+        fetchAllEvents(); // Refresh to show updated status
       }
     } catch (error) {
       alert(error.response?.data?.message || 'Có lỗi xảy ra');
@@ -58,7 +58,7 @@ const EventApproval = () => {
 
       if (response.data.success) {
         alert('Đã từ chối sự kiện.');
-        setEvents(events.filter(e => e.id_su_kien !== eventId));
+        fetchAllEvents(); // Refresh to show updated status
       }
     } catch (error) {
       alert(error.response?.data?.message || 'Có lỗi xảy ra');
@@ -80,7 +80,7 @@ const EventApproval = () => {
       <div className="page-header">
         <h1 className="page-title">Phê duyệt sự kiện</h1>
         <p className="page-description">
-          Danh sách sự kiện hiến máu chờ phê duyệt
+          Danh sách tất cả sự kiện hiến máu (chờ duyệt, đã duyệt, đã từ chối)
         </p>
       </div>
 
@@ -91,17 +91,31 @@ const EventApproval = () => {
               <path d="M16 8h32M16 56h32M48 8v48M16 8v48M24 20h16M24 32h16M24 44h16"/>
             </svg>
             <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-lg)' }}>
-              Không có sự kiện nào chờ phê duyệt
+              Không có sự kiện nào
             </p>
           </div>
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-          {events.map(event => (
+          {events.map(event => {
+            const getStatusBadge = (trang_thai) => {
+              switch (trang_thai) {
+                case 'cho_duyet':
+                  return <span className="badge badge-warning">Chờ duyệt</span>;
+                case 'da_duyet':
+                  return <span className="badge badge-success">Đã duyệt</span>;
+                case 'tu_choi':
+                  return <span className="badge badge-danger">Đã từ chối</span>;
+                default:
+                  return <span className="badge badge-secondary">{trang_thai}</span>;
+              }
+            };
+
+            return (
             <div key={event.id_su_kien} className="card">
               <div className="card-header">
                 <h3 className="card-title">{event.ten_su_kien}</h3>
-                <span className="badge badge-warning">Chờ duyệt</span>
+                {getStatusBadge(event.trang_thai)}
               </div>
               <div className="card-body">
                 <div className="grid grid-cols-2">
@@ -153,37 +167,40 @@ const EventApproval = () => {
                   </div>
                 </div>
 
-                <div style={{ marginTop: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
-                  <button
-                    className="btn btn-success"
-                    onClick={() => handleApprove(event.id_su_kien)}
-                    disabled={processing === event.id_su_kien}
-                  >
-                    {processing === event.id_su_kien ? (
-                      <>
-                        <LoadingSpinner size="small" />
-                        Đang xử lý...
-                      </>
-                    ) : (
-                      <>
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                          <path d="M6 9l2 2 4-4"/>
-                        </svg>
-                        Phê duyệt
-                      </>
-                    )}
-                  </button>
-                  <button
-                    className="btn btn-danger"
-                    onClick={() => handleReject(event.id_su_kien)}
-                    disabled={processing === event.id_su_kien}
-                  >
-                    Từ chối
-                  </button>
-                </div>
+                {event.trang_thai === 'cho_duyet' && (
+                  <div style={{ marginTop: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
+                    <button
+                      className="btn btn-success"
+                      onClick={() => handleApprove(event.id_su_kien)}
+                      disabled={processing === event.id_su_kien}
+                    >
+                      {processing === event.id_su_kien ? (
+                        <>
+                          <LoadingSpinner size="small" />
+                          Đang xử lý...
+                        </>
+                      ) : (
+                        <>
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M6 9l2 2 4-4"/>
+                          </svg>
+                          Phê duyệt
+                        </>
+                      )}
+                    </button>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => handleReject(event.id_su_kien)}
+                      disabled={processing === event.id_su_kien}
+                    >
+                      Từ chối
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </Layout>

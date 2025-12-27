@@ -369,13 +369,222 @@ export const sendEmergencyNotificationEmail = async (email, name, title, content
   }
 };
 
+// Send registration confirmation email (when donor registers for event)
+export const sendRegistrationConfirmationEmail = async (email, name, eventInfo) => {
+  const emailTransporter = createTransporter();
+  
+  const subject = 'Đăng ký hiến máu thành công - Hệ thống Hiến máu Đà Nẵng';
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #10b981;">✅ Đăng ký thành công!</h2>
+      <p>Xin chào <strong>${name}</strong>,</p>
+      <p>Cảm ơn bạn đã đăng ký tham gia sự kiện hiến máu. Đơn đăng ký của bạn đã được ghi nhận và đang chờ tổ chức xét duyệt.</p>
+      
+      <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="color: #111827; margin-top: 0;">📍 Thông tin sự kiện:</h3>
+        <p style="margin: 5px 0;"><strong>Tên sự kiện:</strong> ${eventInfo.ten_su_kien}</p>
+        <p style="margin: 5px 0;"><strong>Ngày hẹn hiến:</strong> ${new Date(eventInfo.ngay_hen_hien).toLocaleDateString('vi-VN')}</p>
+        <p style="margin: 5px 0;"><strong>Khung giờ:</strong> ${eventInfo.khung_gio}</p>
+        <p style="margin: 5px 0;"><strong>Địa điểm:</strong> ${eventInfo.ten_dia_diem}</p>
+        <p style="margin: 5px 0;"><strong>Địa chỉ:</strong> ${eventInfo.dia_chi}</p>
+      </div>
+      
+      <div style="background: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+        <p style="margin: 0; color: #1e40af;">
+          ℹ️ Đơn đăng ký của bạn đang chờ tổ chức xét duyệt. Bạn sẽ nhận được email thông báo khi đơn được duyệt.
+        </p>
+      </div>
+
+      <p><strong>💡 Lưu ý trước khi hiến máu:</strong></p>
+      <ul>
+        <li>Mang theo CMND/CCCD để xác minh danh tính</li>
+        <li>Ăn uống đầy đủ trước khi hiến máu (2-3 giờ trước)</li>
+        <li>Uống đủ nước trước và sau khi hiến máu</li>
+        <li>Nghỉ ngơi đầy đủ trước ngày hiến máu</li>
+        <li>Không sử dụng rượu bia 24h trước khi hiến máu</li>
+      </ul>
+      
+      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+      <p style="color: #6b7280; font-size: 12px;">
+        Email này được gửi tự động từ Hệ thống Hiến máu Đà Nẵng. Vui lòng không trả lời email này.
+      </p>
+    </div>
+  `;
+
+  try {
+    await emailTransporter.sendMail({
+      from: process.env.EMAIL_FROM || 'noreply@hienmau.danang.vn',
+      to: email,
+      subject,
+      html
+    });
+    console.log(`✅ Sent registration confirmation email to ${email}`);
+  } catch (error) {
+    console.error('❌ Error sending registration confirmation email:', error);
+  }
+};
+
+// Send event cancellation/update email
+export const sendEventUpdateEmail = async (email, name, eventName, updateType, reason) => {
+  const emailTransporter = createTransporter();
+  
+  const isCancellation = updateType === 'cancel';
+  const subject = isCancellation 
+    ? `🚫 Sự kiện "${eventName}" đã bị hủy`
+    : `📢 Thay đổi quan trọng: Sự kiện "${eventName}"`;
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: ${isCancellation ? '#fef2f2' : '#fef3c7'}; padding: 20px; border-radius: 8px; border-left: 4px solid ${isCancellation ? '#dc2626' : '#f59e0b'};">
+        <h2 style="color: ${isCancellation ? '#dc2626' : '#92400e'}; margin-top: 0;">
+          ${isCancellation ? '🚫 Sự kiện đã bị hủy' : '📢 Thông báo thay đổi sự kiện'}
+        </h2>
+      </div>
+      
+      <p>Xin chào <strong>${name}</strong>,</p>
+      <p>Chúng tôi xin thông báo về sự kiện <strong>"${eventName}"</strong> mà bạn đã đăng ký tham gia:</p>
+      
+      <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+        <h3 style="color: #111827; margin-top: 0;">${isCancellation ? 'Sự kiện đã bị hủy' : 'Thông tin thay đổi'}</h3>
+        <p style="color: #6b7280; margin: 0; white-space: pre-line;">${reason}</p>
+      </div>
+      
+      ${isCancellation ? `
+        <p>Chúng tôi rất tiếc về sự bất tiện này. Bạn có thể:</p>
+        <ul>
+          <li>Tìm kiếm các sự kiện hiến máu khác trong hệ thống</li>
+          <li>Liên hệ với tổ chức để biết thêm chi tiết</li>
+        </ul>
+      ` : `
+        <p>Vui lòng lưu ý thông tin mới và điều chỉnh lịch trình của bạn cho phù hợp.</p>
+      `}
+      
+      <p>Cảm ơn sự quan tâm và đồng hành của bạn!</p>
+      
+      <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+      <p style="color: #6b7280; font-size: 12px;">
+        Email này được gửi tự động từ Hệ thống Hiến máu Đà Nẵng. Vui lòng không trả lời email này.
+      </p>
+    </div>
+  `;
+
+  try {
+    await emailTransporter.sendMail({
+      from: process.env.EMAIL_FROM || 'noreply@hienmau.danang.vn',
+      to: email,
+      subject,
+      html
+    });
+    console.log(`✅ Sent event update email to ${email}`);
+  } catch (error) {
+    console.error('❌ Error sending event update email:', error);
+  }
+};
+
+// Send new event notification email to hospital
+export const sendNewEventNotificationEmail = async (email, name, eventName, organizationName, eventInfo) => {
+  const emailTransporter = createTransporter();
+  
+  const subject = '📋 Sự kiện hiến máu mới cần phê duyệt - Hệ thống Hiến máu Đà Nẵng';
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">🩸 Hiến giọt máu đào - Trao đời sự sống</h1>
+      </div>
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">
+          <h2 style="color: #1e40af; margin-top: 0;">
+            📋 Sự kiện hiến máu mới cần phê duyệt
+          </h2>
+        </div>
+
+        <p style="color: #666; font-size: 16px; line-height: 1.6;">
+          Kính chào <strong>${name}</strong>,
+        </p>
+        
+        <p style="color: #666; font-size: 16px; line-height: 1.6;">
+          Tổ chức <strong>${organizationName}</strong> đã tạo một sự kiện hiến máu mới và đang chờ bạn phê duyệt.
+        </p>
+
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;">
+          <h3 style="color: #111827; margin-top: 0; font-size: 18px;">📍 Thông tin sự kiện:</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;">Tên sự kiện:</td>
+              <td style="padding: 8px 0; font-weight: 600; color: #111827;">${eventName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;">Tổ chức:</td>
+              <td style="padding: 8px 0; font-weight: 600; color: #111827;">${organizationName}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;">Ngày bắt đầu:</td>
+              <td style="padding: 8px 0; font-weight: 600; color: #dc2626;">${new Date(eventInfo.ngay_bat_dau).toLocaleDateString('vi-VN')}</td>
+            </tr>
+            ${eventInfo.ngay_ket_thuc ? `
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;">Ngày kết thúc:</td>
+              <td style="padding: 8px 0; font-weight: 600; color: #dc2626;">${new Date(eventInfo.ngay_ket_thuc).toLocaleDateString('vi-VN')}</td>
+            </tr>
+            ` : ''}
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;">Địa điểm:</td>
+              <td style="padding: 8px 0; font-weight: 600; color: #111827;">${eventInfo.ten_dia_diem}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;">Địa chỉ:</td>
+              <td style="padding: 8px 0; color: #6b7280;">${eventInfo.dia_chi}</td>
+            </tr>
+            ${eventInfo.so_luong_du_kien ? `
+            <tr>
+              <td style="padding: 8px 0; color: #6b7280;">Số lượng dự kiến:</td>
+              <td style="padding: 8px 0; font-weight: 600; color: #111827;">${eventInfo.so_luong_du_kien} người</td>
+            </tr>
+            ` : ''}
+          </table>
+        </div>
+
+        <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+          <h3 style="color: #92400e; margin-top: 0; font-size: 16px;">💡 Hành động cần thực hiện:</h3>
+          <p style="color: #78350f; margin: 0; line-height: 1.8;">
+            Vui lòng đăng nhập vào hệ thống để xem chi tiết và phê duyệt sự kiện này. Sự kiện sẽ không được hiển thị công khai cho đến khi được bạn phê duyệt.
+          </p>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+        <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
+          © 2025 Hệ thống quản lý hiến máu tình nguyện Đà Nẵng<br>
+          Email này được gửi tự động, vui lòng không trả lời.
+        </p>
+      </div>
+    </div>
+  `;
+
+  try {
+    await emailTransporter.sendMail({
+      from: process.env.EMAIL_FROM || 'noreply@hienmau.danang.vn',
+      to: email,
+      subject,
+      html
+    });
+    console.log(`✅ Sent new event notification email to ${email}`);
+  } catch (error) {
+    console.error('❌ Error sending new event notification email:', error);
+  }
+};
+
 export default { 
   sendOTPEmail, 
   sendRegistrationApprovalEmail,
   sendBloodTypeConfirmationEmail,
   sendEventApprovalEmail,
   sendDonationResultEmail,
-  sendEmergencyNotificationEmail
+  sendEmergencyNotificationEmail,
+  sendRegistrationConfirmationEmail,
+  sendEventUpdateEmail,
+  sendNewEventNotificationEmail
 };
 
 

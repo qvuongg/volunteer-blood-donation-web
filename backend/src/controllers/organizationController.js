@@ -1,4 +1,6 @@
 import pool from '../config/database.js';
+import { createNotification } from './notificationController.js';
+import { sendEventUpdateEmail, sendNewEventNotificationEmail } from '../utils/email.js';
 
 // Get organization info for current user
 const getOrganizationId = async (userId) => {
@@ -88,7 +90,7 @@ export const createEvent = async (req, res, next) => {
       [orgId, id_benh_vien, ten_su_kien, ngay_bat_dau, ngay_ket_thuc || null, ten_dia_diem, dia_chi, so_luong_du_kien || null]
     );
 
-    // Get created event
+    // Get created event with organization info
     const [events] = await pool.execute(
       `SELECT 
         sk.id_su_kien,
@@ -98,19 +100,79 @@ export const createEvent = async (req, res, next) => {
         sk.so_luong_du_kien,
         sk.trang_thai,
         bv.ten_benh_vien,
+        bv.id_benh_vien,
+        tc.ten_don_vi,
         sk.ten_dia_diem,
         sk.dia_chi
       FROM sukien_hien_mau sk
       JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
+      JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
       WHERE sk.id_su_kien = ?`,
       [result.insertId]
     );
+
+    const event = events[0];
+
+    // Get hospital coordinator(s) to send notification and email
+    const [hospitalCoordinators] = await pool.execute(
+      `SELECT 
+        nptbv.id_nguoi_phu_trach,
+        nd.id_nguoi_dung,
+        nd.ho_ten,
+        nd.email
+      FROM nguoi_phu_trach_benh_vien nptbv
+      JOIN nguoidung nd ON nptbv.id_nguoi_phu_trach = nd.id_nguoi_dung
+      WHERE nptbv.id_benh_vien = ?`,
+      [event.id_benh_vien]
+    );
+
+    // Send notification and email to each hospital coordinator
+    if (hospitalCoordinators.length > 0) {
+      const eventInfo = {
+        ten_su_kien: event.ten_su_kien,
+        ngay_bat_dau: event.ngay_bat_dau,
+        ngay_ket_thuc: event.ngay_ket_thuc,
+        ten_dia_diem: event.ten_dia_diem,
+        dia_chi: event.dia_chi,
+        so_luong_du_kien: event.so_luong_du_kien
+      };
+
+      for (const coordinator of hospitalCoordinators) {
+        // Send in-app notification
+        await createNotification(
+          coordinator.id_nguoi_dung,
+          'su_kien_moi',
+          'Sự kiện hiến máu mới cần phê duyệt',
+          `Tổ chức "${event.ten_don_vi}" đã tạo sự kiện "${event.ten_su_kien}" và đang chờ bạn phê duyệt.`,
+          `/hospital/event-approval`
+        );
+
+        // Send email notification (async, don't wait)
+        sendNewEventNotificationEmail(
+          coordinator.email,
+          coordinator.ho_ten,
+          event.ten_su_kien,
+          event.ten_don_vi,
+          eventInfo
+        ).catch(err => console.error('Email sending failed:', err));
+      }
+    }
 
     res.status(201).json({
       success: true,
       message: 'Tạo sự kiện thành công. Đang chờ duyệt.',
       data: {
-        event: events[0]
+        event: {
+          id_su_kien: event.id_su_kien,
+          ten_su_kien: event.ten_su_kien,
+          ngay_bat_dau: event.ngay_bat_dau,
+          ngay_ket_thuc: event.ngay_ket_thuc,
+          so_luong_du_kien: event.so_luong_du_kien,
+          trang_thai: event.trang_thai,
+          ten_benh_vien: event.ten_benh_vien,
+          ten_dia_diem: event.ten_dia_diem,
+          dia_chi: event.dia_chi
+        }
       }
     });
   } catch (error) {
@@ -225,11 +287,12 @@ export const updateEvent = async (req, res, next) => {
   }
 };
 
-// Delete event
+// Delete/Cancel event
 export const deleteEvent = async (req, res, next) => {
   try {
     const userId = req.user.id_nguoi_dung;
     const { id } = req.params;
+    const { ly_do_huy } = req.body;
     const orgId = await getOrganizationId(userId);
 
     if (!orgId) {
@@ -239,24 +302,60 @@ export const deleteEvent = async (req, res, next) => {
       });
     }
 
-    // Check if event belongs to organization
-    const [events] = await pool.execute(
-      'SELECT id_su_kien FROM sukien_hien_mau WHERE id_su_kien = ? AND id_to_chuc = ?',
+    // Get event info and all approved registrations before deleting
+    const [eventInfo] = await pool.execute(
+      `SELECT ten_su_kien FROM sukien_hien_mau 
+       WHERE id_su_kien = ? AND id_to_chuc = ?`,
       [id, orgId]
     );
 
-    if (events.length === 0) {
+    if (eventInfo.length === 0) {
       return res.status(404).json({
         success: false,
         message: 'Sự kiện không tồn tại hoặc không thuộc tổ chức của bạn.'
       });
     }
 
+    const eventName = eventInfo[0].ten_su_kien;
+
+    // Get all approved registrations to notify
+    const [registrations] = await pool.execute(
+      `SELECT dk.id_nguoi_hien, nd.id_nguoi_dung, nd.ho_ten, nd.email
+       FROM dang_ky_hien_mau dk
+       JOIN nguoidung nd ON dk.id_nguoi_hien = nd.id_nguoi_dung
+       WHERE dk.id_su_kien = ? AND dk.trang_thai = 'da_duyet'`,
+      [id]
+    );
+
+    // Send notifications and emails to all registered donors
+    const reason = ly_do_huy || 'Sự kiện đã bị hủy do lý do bất khả kháng.';
+    
+    for (const reg of registrations) {
+      // Send in-app notification
+      await createNotification(
+        reg.id_nguoi_dung,
+        'su_kien_huy',
+        `Sự kiện "${eventName}" đã bị hủy`,
+        `Rất tiếc, sự kiện "${eventName}" mà bạn đã đăng ký đã bị hủy. ${reason}`,
+        '/donor/registrations'
+      );
+
+      // Send email
+      sendEventUpdateEmail(
+        reg.email,
+        reg.ho_ten,
+        eventName,
+        'cancel',
+        reason
+      ).catch(err => console.error('Email sending failed:', err));
+    }
+
+    // Delete event (cascade delete registrations via FK)
     await pool.execute('DELETE FROM sukien_hien_mau WHERE id_su_kien = ?', [id]);
 
     res.json({
       success: true,
-      message: 'Xóa sự kiện thành công.'
+      message: `Đã hủy sự kiện và thông báo cho ${registrations.length} người đã đăng ký.`
     });
   } catch (error) {
     next(error);

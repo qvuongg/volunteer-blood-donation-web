@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-import { sendRegistrationApprovalEmail } from '../utils/email.js';
+import { sendRegistrationApprovalEmail, sendRegistrationConfirmationEmail } from '../utils/email.js';
 import { createNotification } from './notificationController.js';
 
 // Register for event
@@ -81,7 +81,7 @@ export const registerForEvent = async (req, res, next) => {
       [id_su_kien, donorId, ngay_hen_hien, khung_gio, JSON.stringify(phieu_kham_sang_loc)]
     );
 
-    // Get created registration
+    // Get created registration with full event and user info
     const [registrations] = await pool.execute(
       `SELECT 
         dk.id_dang_ky,
@@ -91,12 +91,61 @@ export const registerForEvent = async (req, res, next) => {
         dk.khung_gio,
         dk.trang_thai,
         sk.ten_su_kien,
-        sk.ngay_bat_dau
+        sk.ngay_bat_dau,
+        sk.ten_dia_diem,
+        sk.dia_chi,
+        sk.id_to_chuc,
+        nd.ho_ten,
+        nd.email,
+        nptc.id_nguoi_phu_trach as id_nguoi_phu_trach_to_chuc
       FROM dang_ky_hien_mau dk
       JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
+      JOIN nguoi_hien_mau nh ON dk.id_nguoi_hien = nh.id_nguoi_hien
+      JOIN nguoidung nd ON nh.id_nguoi_hien = nd.id_nguoi_dung
+      JOIN nguoi_phu_trach_to_chuc nptc ON sk.id_to_chuc = nptc.id_to_chuc
       WHERE dk.id_dang_ky = ?`,
       [result.insertId]
     );
+
+    // Send confirmation email to donor
+    if (registrations.length > 0) {
+      const registration = registrations[0];
+      const eventInfo = {
+        ten_su_kien: registration.ten_su_kien,
+        ngay_hen_hien: registration.ngay_hen_hien,
+        khung_gio: registration.khung_gio,
+        ten_dia_diem: registration.ten_dia_diem,
+        dia_chi: registration.dia_chi
+      };
+
+      // Send confirmation email to donor
+      sendRegistrationConfirmationEmail(
+        registration.email,
+        registration.ho_ten,
+        eventInfo
+      ).catch(err => console.error('Email sending failed:', err));
+
+      // Send notification to donor (người hiến máu)
+      await createNotification(
+        userId,
+        'dang_ky_thanh_cong',
+        'Đăng ký hiến máu thành công',
+        `Bạn đã đăng ký tham gia sự kiện "${registration.ten_su_kien}" thành công. Đơn đăng ký của bạn đang chờ tổ chức xét duyệt.`,
+        `/donor/events/${registration.id_su_kien}`
+      );
+
+      // Send notification to organization coordinator
+      const notifTitle = 'Có đăng ký mới cho sự kiện';
+      const notifContent = `${registration.ho_ten} đã đăng ký tham gia sự kiện "${registration.ten_su_kien}". Vui lòng vào hệ thống để xét duyệt.`;
+
+      await createNotification(
+        registration.id_nguoi_phu_trach_to_chuc,
+        'dang_ky_moi',
+        notifTitle,
+        notifContent,
+        `/organization/events/${registration.id_su_kien}/registrations`
+      );
+    }
 
     res.status(201).json({
       success: true,
