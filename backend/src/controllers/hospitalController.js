@@ -89,6 +89,9 @@ export const getApprovedEvents = async (req, res, next) => {
 export const getAllEvents = async (req, res, next) => {
   try {
     const userId = req.user.id_nguoi_dung;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
 
     // Get hospital ID from user
     const [hospital] = await pool.execute(
@@ -105,7 +108,16 @@ export const getAllEvents = async (req, res, next) => {
 
     const hospitalId = hospital[0].id_benh_vien;
 
-    // Get all events (pending, approved, and rejected)
+    // Get total count
+    const [countResult] = await pool.execute(
+      `SELECT COUNT(*) as total 
+      FROM sukien_hien_mau sk
+      WHERE sk.id_benh_vien = ? AND sk.trang_thai IN ('cho_duyet', 'da_duyet', 'tu_choi')`,
+      [hospitalId]
+    );
+    const total = countResult[0].total;
+
+    // Get all events (pending, approved, and rejected) with pagination
     const [events] = await pool.execute(
       `SELECT sk.*, tc.ten_don_vi
       FROM sukien_hien_mau sk
@@ -117,13 +129,22 @@ export const getAllEvents = async (req, res, next) => {
           WHEN 'da_duyet' THEN 2
           WHEN 'tu_choi' THEN 3
         END,
-        sk.ngay_bat_dau DESC`,
+        sk.ngay_bat_dau DESC
+      LIMIT ${limit} OFFSET ${offset}`,
       [hospitalId]
     );
 
     res.json({
       success: true,
-      data: { events }
+      data: { 
+        events,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
+      }
     });
   } catch (error) {
     next(error);
@@ -339,8 +360,24 @@ export const confirmBloodType = async (req, res, next) => {
 export const updateEventStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { trang_thai } = req.body;
+    const { trang_thai, ly_do } = req.body;
     const userId = req.user.id_nguoi_dung;
+
+    // Validate trang_thai
+    if (!trang_thai || !['da_duyet', 'tu_choi'].includes(trang_thai)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Trạng thái không hợp lệ. Chỉ chấp nhận "da_duyet" hoặc "tu_choi".'
+      });
+    }
+
+    // Validate ly_do for rejection
+    if (trang_thai === 'tu_choi' && !ly_do) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng cung cấp lý do từ chối.'
+      });
+    }
 
     // Get coordinator ID
     const [coordinator] = await pool.execute(
@@ -371,9 +408,10 @@ export const updateEventStatus = async (req, res, next) => {
       [userId, id]
     );
 
+    // Update event status and rejection reason (if applicable)
     await pool.execute(
-      'UPDATE sukien_hien_mau SET trang_thai = ?, id_phe_duyet_boi = ? WHERE id_su_kien = ?',
-      [trang_thai, coordinatorId, id]
+      'UPDATE sukien_hien_mau SET trang_thai = ?, id_phe_duyet_boi = ?, ly_do_tu_choi = ? WHERE id_su_kien = ?',
+      [trang_thai, coordinatorId, trang_thai === 'tu_choi' ? ly_do : null, id]
     );
 
     // Send notification and email to organization coordinator
@@ -385,7 +423,7 @@ export const updateEventStatus = async (req, res, next) => {
       
       const notifContent = trang_thai === 'da_duyet'
         ? `Sự kiện hiến máu của bạn đã được bệnh viện phê duyệt. Bạn có thể bắt đầu tổ chức và quản lý đăng ký.`
-        : `Sự kiện hiến máu của bạn bị từ chối bởi bệnh viện. Vui lòng liên hệ để biết thêm chi tiết.`;
+        : `Sự kiện hiến máu của bạn bị từ chối bởi bệnh viện. ${ly_do ? `Lý do: ${ly_do}` : 'Vui lòng liên hệ để biết thêm chi tiết.'}`;
 
       // Send in-app notification
       await createNotification(
@@ -402,7 +440,8 @@ export const updateEventStatus = async (req, res, next) => {
         event.ho_ten,
         event.ten_su_kien,
         trang_thai,
-        event.ten_benh_vien
+        event.ten_benh_vien,
+        ly_do || null
       ).catch(err => console.error('Email sending failed:', err));
     }
 
@@ -925,6 +964,9 @@ export const getUnconfirmedBloodTypes = async (req, res, next) => {
 export const getAllBloodTypes = async (req, res, next) => {
   try {
     const userId = req.user.id_nguoi_dung;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
 
     // Get hospital ID
     const [hospital] = await pool.execute(
@@ -941,8 +983,21 @@ export const getAllBloodTypes = async (req, res, next) => {
 
     const hospitalId = hospital[0].id_benh_vien;
 
+    // Get total count
+    const [countResult] = await pool.execute(
+      `SELECT COUNT(DISTINCT nh.id_nguoi_hien) as total
+      FROM nguoi_hien_mau nh
+      JOIN dang_ky_hien_mau dk ON nh.id_nguoi_hien = dk.id_nguoi_hien
+      JOIN sukien_hien_mau sk ON dk.id_su_kien = sk.id_su_kien
+      WHERE nh.nhom_mau IS NOT NULL
+        AND sk.id_benh_vien = ?
+        AND dk.trang_thai = 'da_duyet'`,
+      [hospitalId]
+    );
+    const total = countResult[0].total;
+
     // Get all donors who have participated in hospital's approved events
-    // Include both confirmed and unconfirmed blood types
+    // Include both confirmed and unconfirmed blood types with pagination
     const [donors] = await pool.execute(
       `SELECT DISTINCT
         nh.id_nguoi_hien,
@@ -963,13 +1018,22 @@ export const getAllBloodTypes = async (req, res, next) => {
       GROUP BY nh.id_nguoi_hien, nh.nhom_mau, nh.nhom_mau_xac_nhan, nh.tong_so_lan_hien, nd.ho_ten, nd.email, nd.so_dien_thoai, nh.lan_hien_gan_nhat
       ORDER BY 
         CASE WHEN nh.nhom_mau_xac_nhan = FALSE THEN 1 ELSE 2 END,
-        nh.lan_hien_gan_nhat DESC`,
+        nh.lan_hien_gan_nhat DESC
+      LIMIT ${limit} OFFSET ${offset}`,
       [hospitalId]
     );
 
     res.json({
       success: true,
-      data: { donors }
+      data: { 
+        donors,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
+      }
     });
   } catch (error) {
     next(error);

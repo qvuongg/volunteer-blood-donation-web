@@ -1,11 +1,17 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ConfirmDialog from '../../components/ConfirmDialog';
+import InputDialog from '../../components/InputDialog';
 import api from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 
 const Approvals = () => {
   const [pendingRegistrations, setPendingRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [confirmApprove, setConfirmApprove] = useState({ isOpen: false, id: null });
+  const [inputReject, setInputReject] = useState({ isOpen: false, id: null });
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetchPendingRegistrations();
@@ -24,28 +30,37 @@ const Approvals = () => {
     }
   };
 
-  const handleApprove = async (id) => {
-    if (!window.confirm('Bạn có chắc muốn duyệt đăng ký này?')) return;
+  const handleApprove = (id) => {
+    setConfirmApprove({ isOpen: true, id });
+  };
+
+  const confirmApproveAction = async () => {
+    const { id } = confirmApprove;
+    setConfirmApprove({ isOpen: false, id: null });
     
     try {
       await api.put(`/approvals/registrations/${id}/approve`, {});
-      alert('Đã duyệt thành công');
+      showToast('Đã duyệt thành công', 'success');
       fetchPendingRegistrations();
     } catch (error) {
-      alert('Có lỗi xảy ra');
+      showToast('Có lỗi xảy ra: ' + (error.response?.data?.message || error.message), 'error');
     }
   };
 
-  const handleReject = async (id) => {
-    const reason = window.prompt('Lý do từ chối:');
-    if (!reason) return;
+  const handleReject = (id) => {
+    setInputReject({ isOpen: true, id });
+  };
+
+  const confirmRejectAction = async (reason) => {
+    const { id } = inputReject;
+    setInputReject({ isOpen: false, id: null });
 
     try {
       await api.put(`/approvals/registrations/${id}/reject`, { ghi_chu_duyet: reason });
-      alert('Đã từ chối');
+      showToast('Đã từ chối', 'success');
       fetchPendingRegistrations();
     } catch (error) {
-      alert('Có lỗi xảy ra');
+      showToast('Có lỗi xảy ra: ' + (error.response?.data?.message || error.message), 'error');
     }
   };
 
@@ -119,6 +134,23 @@ const Approvals = () => {
           </table>
     </div>
       )}
+
+      <ConfirmDialog
+        isOpen={confirmApprove.isOpen}
+        title="Xác nhận duyệt"
+        message="Bạn có chắc muốn duyệt đăng ký này?"
+        onConfirm={confirmApproveAction}
+        onCancel={() => setConfirmApprove({ isOpen: false, id: null })}
+      />
+
+      <InputDialog
+        isOpen={inputReject.isOpen}
+        title="Từ chối đăng ký"
+        message="Vui lòng nhập lý do từ chối:"
+        placeholder="Lý do từ chối..."
+        onConfirm={confirmRejectAction}
+        onCancel={() => setInputReject({ isOpen: false, id: null })}
+      />
     </Layout>
   );
 };

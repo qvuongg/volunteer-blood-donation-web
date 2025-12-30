@@ -16,6 +16,9 @@ export const getMyEvents = async (req, res, next) => {
   try {
     const userId = req.user.id_nguoi_dung;
     const orgId = await getOrganizationId(userId);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
 
     if (!orgId) {
       return res.status(404).json({
@@ -23,6 +26,13 @@ export const getMyEvents = async (req, res, next) => {
         message: 'Không tìm thấy thông tin tổ chức.'
       });
     }
+
+    // Get total count
+    const [countResult] = await pool.execute(
+      `SELECT COUNT(*) as total FROM sukien_hien_mau WHERE id_to_chuc = ?`,
+      [orgId]
+    );
+    const total = countResult[0].total;
 
     const [events] = await pool.execute(
       `SELECT 
@@ -32,20 +42,28 @@ export const getMyEvents = async (req, res, next) => {
         sk.ngay_ket_thuc,
         sk.so_luong_du_kien,
         sk.trang_thai,
+        sk.ly_do_tu_choi,
         bv.ten_benh_vien,
         sk.ten_dia_diem,
         sk.dia_chi
       FROM sukien_hien_mau sk
       JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
       WHERE sk.id_to_chuc = ?
-      ORDER BY sk.ngay_bat_dau DESC`,
+      ORDER BY sk.ngay_bat_dau DESC
+      LIMIT ${limit} OFFSET ${offset}`,
       [orgId]
     );
 
     res.json({
       success: true,
       data: {
-        events
+        events,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
       }
     });
   } catch (error) {
@@ -83,6 +101,32 @@ export const createEvent = async (req, res, next) => {
       });
     }
 
+    // Validate ngay_bat_dau is not in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const startDate = new Date(ngay_bat_dau);
+    startDate.setHours(0, 0, 0, 0);
+    
+    if (startDate < today) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ngày bắt đầu sự kiện không được trong quá khứ.'
+      });
+    }
+
+    // Validate ngay_ket_thuc is after ngay_bat_dau if provided
+    if (ngay_ket_thuc) {
+      const endDate = new Date(ngay_ket_thuc);
+      endDate.setHours(0, 0, 0, 0);
+      
+      if (endDate < startDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Ngày kết thúc phải sau ngày bắt đầu.'
+        });
+      }
+    }
+
     const [result] = await pool.execute(
       `INSERT INTO sukien_hien_mau 
        (id_to_chuc, id_benh_vien, ten_su_kien, ngay_bat_dau, ngay_ket_thuc, ten_dia_diem, dia_chi, so_luong_du_kien, trang_thai)
@@ -112,6 +156,15 @@ export const createEvent = async (req, res, next) => {
     );
 
     const event = events[0];
+
+    // Send notification to organization coordinator (creator)
+    await createNotification(
+      userId,
+      'su_kien_tao_thanh_cong',
+      'Sự kiện đã được tạo thành công',
+      `Sự kiện "${event.ten_su_kien}" đã được tạo thành công và đang chờ bệnh viện "${event.ten_benh_vien}" phê duyệt.`,
+      `/organization/events/${event.id_su_kien}`
+    );
 
     // Get hospital coordinator(s) to send notification and email
     const [hospitalCoordinators] = await pool.execute(
@@ -385,6 +438,7 @@ export const getEventDetail = async (req, res, next) => {
         sk.ngay_ket_thuc,
         sk.so_luong_du_kien,
         sk.trang_thai,
+        sk.ly_do_tu_choi,
         sk.ten_dia_diem,
         sk.dia_chi,
         bv.id_benh_vien,
@@ -640,24 +694,11 @@ export const updateProfile = async (req, res, next) => {
       );
     }
 
-    // Update coordinator info
-    const updateCoordinatorFields = [];
-    const updateCoordinatorValues = [];
-
-    if (chuc_vu !== undefined) {
-      updateCoordinatorFields.push('chuc_vu = ?');
-      updateCoordinatorValues.push(chuc_vu || null);
-    }
+    // Update coordinator info (only nguoi_lien_he, chuc_vu is not in this table)
     if (nguoi_lien_he !== undefined) {
-      updateCoordinatorFields.push('nguoi_lien_he = ?');
-      updateCoordinatorValues.push(nguoi_lien_he || null);
-    }
-
-    if (updateCoordinatorFields.length > 0) {
-      updateCoordinatorValues.push(userId);
       await pool.execute(
-        `UPDATE nguoi_phu_trach_to_chuc SET ${updateCoordinatorFields.join(', ')} WHERE id_nguoi_phu_trach = ?`,
-        updateCoordinatorValues
+        'UPDATE nguoi_phu_trach_to_chuc SET nguoi_lien_he = ? WHERE id_nguoi_phu_trach = ?',
+        [nguoi_lien_he || null, userId]
       );
     }
 

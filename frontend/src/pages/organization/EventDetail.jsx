@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import api from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 
 const EventDetail = () => {
   const { id } = useParams();
@@ -10,6 +12,8 @@ const EventDetail = () => {
   const [event, setEvent] = useState(null);
   const [registrations, setRegistrations] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetchEventDetail();
@@ -25,7 +29,7 @@ const EventDetail = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Lỗi khi tải thông tin sự kiện: ' + (error.response?.data?.message || error.message));
+      showToast('Lỗi khi tải thông tin sự kiện: ' + (error.response?.data?.message || error.message), 'error');
       navigate('/organization/events');
     } finally {
       setLoading(false);
@@ -71,17 +75,7 @@ const EventDetail = () => {
               </button>
               <button
                 className="btn btn-danger"
-                onClick={async () => {
-                  if (window.confirm('Bạn có chắc muốn xóa sự kiện này?')) {
-                    try {
-                      await api.delete(`/organizations/events/${id}`);
-                      alert('Xóa sự kiện thành công!');
-                      navigate('/organization/events');
-                    } catch (error) {
-                      alert('Có lỗi xảy ra: ' + (error.response?.data?.message || error.message));
-                    }
-                  }
-                }}
+                onClick={() => setShowDeleteConfirm(true)}
               >
                 Xóa
               </button>
@@ -93,39 +87,6 @@ const EventDetail = () => {
           >
             Quay lại
           </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3" style={{ gap: 'var(--spacing-lg)', marginBottom: 'var(--spacing-lg)' }}>
-        <div className="card">
-          <div className="card-body">
-            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-xs)' }}>
-              Tổng đăng ký
-            </div>
-            <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--primary-600)' }}>
-              {registrations?.total || 0}
-            </div>
-          </div>
-        </div>
-        <div className="card">
-          <div className="card-body">
-            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-xs)' }}>
-              Chờ duyệt
-            </div>
-            <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--warning-600)' }}>
-              {registrations?.pending || 0}
-            </div>
-          </div>
-        </div>
-        <div className="card">
-          <div className="card-body">
-            <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-xs)' }}>
-              Đã duyệt
-            </div>
-            <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--success-600)' }}>
-              {registrations?.approved || 0}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -235,17 +196,92 @@ const EventDetail = () => {
               Xem trên Google Maps →
             </a>
           </div>
+
+          {event.trang_thai === 'tu_choi' && event.ly_do_tu_choi && (
+            <div style={{ 
+              marginTop: 'var(--spacing-lg)',
+              padding: 'var(--spacing-md)',
+              background: '#fee2e2',
+              borderRadius: 'var(--radius-md)',
+              borderLeft: '4px solid #dc2626'
+            }}>
+              <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-semibold)', color: '#991b1b', marginBottom: 'var(--spacing-sm)' }}>
+                ❌ Lý do từ chối:
+              </div>
+              <div style={{ fontSize: 'var(--font-size-base)', color: '#7f1d1d', whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                {event.ly_do_tu_choi}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      <div style={{ marginTop: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
-        <button
-          className="btn btn-primary"
-          onClick={() => navigate(`/organization/events/${id}/registrations`)}
-        >
-          Xem danh sách đăng ký
-        </button>
-      </div>
+      {/* Thống kê đăng ký - chỉ hiển thị cho sự kiện đã duyệt */}
+      {event.trang_thai === 'da_duyet' && (
+        <div className="grid grid-cols-3" style={{ gap: 'var(--spacing-lg)', marginTop: 'var(--spacing-lg)' }}>
+          <div className="card">
+            <div className="card-body">
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-xs)' }}>
+                Tổng đăng ký
+              </div>
+              <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--primary-600)' }}>
+                {registrations?.total || 0}
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-body">
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-xs)' }}>
+                Chờ duyệt
+              </div>
+              <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--warning-600)' }}>
+                {registrations?.pending || 0}
+              </div>
+            </div>
+          </div>
+          <div className="card">
+            <div className="card-body">
+              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-xs)' }}>
+                Đã duyệt
+              </div>
+              <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--success-600)' }}>
+                {registrations?.approved || 0}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {event.trang_thai === 'da_duyet' && (
+        <div style={{ marginTop: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
+          <button
+            className="btn btn-primary"
+            onClick={() => navigate(`/organization/events/${id}/registrations`)}
+          >
+            Xem danh sách đăng ký
+          </button>
+        </div>
+      )}
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Xác nhận xóa"
+        message="Bạn có chắc muốn xóa sự kiện này?"
+        onConfirm={async () => {
+          setShowDeleteConfirm(false);
+          try {
+            await api.delete(`/organizations/events/${id}`);
+            showToast('Xóa sự kiện thành công!', 'success');
+            // Delay để toast có thời gian hiện
+            setTimeout(() => {
+              navigate('/organization/events');
+            }, 1000);
+          } catch (error) {
+            showToast('Có lỗi xảy ra: ' + (error.response?.data?.message || error.message), 'error');
+          }
+        }}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </Layout>
   );
 };

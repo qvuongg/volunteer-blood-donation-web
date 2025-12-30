@@ -116,6 +116,7 @@ CREATE TABLE sukien_hien_mau (
     so_luong_du_kien INT,
     trang_thai VARCHAR(50) DEFAULT 'cho_duyet',
     id_phe_duyet_boi INT,
+    ly_do_tu_choi TEXT NULL COMMENT 'Lý do từ chối sự kiện (nếu bị từ chối)',
     FOREIGN KEY (id_to_chuc) REFERENCES to_chuc(id_to_chuc),
     FOREIGN KEY (id_benh_vien) REFERENCES benh_vien(id_benh_vien),
     FOREIGN KEY (id_phe_duyet_boi) REFERENCES nguoi_phu_trach_benh_vien(id_nguoi_phu_trach)
@@ -190,6 +191,34 @@ CREATE TABLE otp_codes (
     INDEX idx_email (email),
     INDEX idx_expires (expires_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================
+-- INDEXES ĐỂ CẢI THIỆN PERFORMANCE
+-- ============================================
+
+-- Indexes cho bảng sukien_hien_mau
+CREATE INDEX idx_sukien_trang_thai_ngay ON sukien_hien_mau(trang_thai, ngay_bat_dau);
+CREATE INDEX idx_sukien_benh_vien_trang_thai ON sukien_hien_mau(id_benh_vien, trang_thai);
+CREATE INDEX idx_sukien_to_chuc ON sukien_hien_mau(id_to_chuc);
+
+-- Indexes cho bảng dang_ky_hien_mau
+CREATE INDEX idx_dangky_su_kien_trang_thai ON dang_ky_hien_mau(id_su_kien, trang_thai);
+CREATE INDEX idx_dangky_nguoi_hien_trang_thai ON dang_ky_hien_mau(id_nguoi_hien, trang_thai);
+CREATE INDEX idx_dangky_ngay_dang_ky ON dang_ky_hien_mau(ngay_dang_ky);
+
+-- Indexes cho bảng ket_qua_hien_mau
+CREATE INDEX idx_ketqua_nguoi_hien_ngay ON ket_qua_hien_mau(id_nguoi_hien, ngay_hien);
+CREATE INDEX idx_ketqua_su_kien ON ket_qua_hien_mau(id_su_kien);
+CREATE INDEX idx_ketqua_benh_vien ON ket_qua_hien_mau(id_benh_vien);
+
+-- Indexes cho bảng nguoi_hien_mau
+CREATE INDEX idx_nguoihien_nhom_mau_xac_nhan ON nguoi_hien_mau(nhom_mau_xac_nhan);
+CREATE INDEX idx_nguoihien_lan_hien_gan_nhat ON nguoi_hien_mau(lan_hien_gan_nhat);
+CREATE INDEX idx_nguoihien_nhom_mau ON nguoi_hien_mau(nhom_mau);
+
+-- Indexes cho bảng nguoidung
+CREATE INDEX idx_nguoidung_vai_tro ON nguoidung(id_vai_tro);
+CREATE INDEX idx_nguoidung_trang_thai ON nguoidung(trang_thai);
 
 -- ============================================
 -- INSERT DỮ LIỆU MẪU

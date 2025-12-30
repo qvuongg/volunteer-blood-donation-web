@@ -3,11 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 
 const EventForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = !!id;
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
   const [loadingHospitals, setLoadingHospitals] = useState(true);
@@ -38,7 +40,7 @@ const EventForm = () => {
       }
     } catch (error) {
       console.error('Error fetching hospitals:', error);
-      alert('Lỗi khi tải danh sách bệnh viện: ' + (error.response?.data?.message || error.message));
+      showToast('Lỗi khi tải danh sách bệnh viện: ' + (error.response?.data?.message || error.message), 'error');
     } finally {
       setLoadingHospitals(false);
     }
@@ -62,7 +64,7 @@ const EventForm = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Lỗi khi tải thông tin sự kiện: ' + (error.response?.data?.message || error.message));
+      showToast('Lỗi khi tải thông tin sự kiện: ' + (error.response?.data?.message || error.message), 'error');
       navigate('/organization/events');
     } finally {
       setLoading(false);
@@ -131,25 +133,31 @@ const EventForm = () => {
       };
 
       if (isEdit) {
-        await api.put(`/organizations/events/${id}`, payload);
-        alert('Cập nhật sự kiện thành công!');
-        // Kiểm tra xem sự kiện có phải chưa được duyệt không
-        const eventResponse = await api.get(`/organizations/events/${id}`);
-        if (eventResponse.data.success && eventResponse.data.data.event.trang_thai === 'cho_duyet') {
-          // Nếu chưa được duyệt, chuyển đến trang chi tiết
-          navigate(`/organization/events/${id}`);
-        } else {
-          // Nếu đã được duyệt hoặc bị từ chối, quay về danh sách
-          navigate('/organization/events');
-        }
+        const response = await api.put(`/organizations/events/${id}`, payload);
+        showToast('Cập nhật sự kiện thành công!', 'success');
+        // Delay để toast có thời gian hiện trước khi navigate
+        setTimeout(() => {
+          // Kiểm tra xem sự kiện có phải chưa được duyệt không
+          const event = response.data?.data?.event;
+          if (event && event.trang_thai === 'cho_duyet') {
+            // Nếu chưa được duyệt, chuyển đến trang chi tiết
+            navigate(`/organization/events/${id}`);
+          } else {
+            // Nếu đã được duyệt hoặc bị từ chối, quay về danh sách
+            navigate('/organization/events');
+          }
+        }, 1000);
       } else {
         await api.post('/organizations/events', payload);
-        alert('Tạo sự kiện thành công! Đang chờ bệnh viện duyệt.');
-        navigate('/organization/events');
+        showToast('Tạo sự kiện thành công! Đang chờ bệnh viện duyệt.', 'success');
+        // Delay để toast có thời gian hiện trước khi navigate
+        setTimeout(() => {
+          navigate('/organization/events');
+        }, 1000);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Có lỗi xảy ra: ' + (error.response?.data?.message || error.message));
+      showToast('Có lỗi xảy ra: ' + (error.response?.data?.message || error.message), 'error');
     } finally {
       setLoading(false);
     }

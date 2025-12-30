@@ -24,6 +24,7 @@ export const ToastProvider = ({ children }) => {
   };
 
   const toast = {
+    showToast, // Export showToast function
     success: (message, duration) => showToast(message, 'success', duration),
     error: (message, duration) => showToast(message, 'error', duration),
     warning: (message, duration) => showToast(message, 'warning', duration),

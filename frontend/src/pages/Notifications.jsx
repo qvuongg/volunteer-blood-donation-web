@@ -398,3 +398,4 @@ const formatTimeAgo = (dateString) => {
 };
 
 export default Notifications;
+

@@ -4,6 +4,9 @@ import pool from '../config/database.js';
 export const getEvents = async (req, res, next) => {
   try {
     const { status, search, dateFrom, dateTo } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
     
     let query = `
       SELECT 
@@ -60,18 +63,35 @@ export const getEvents = async (req, res, next) => {
       params.push(searchPattern, searchPattern, searchPattern, searchPattern, searchPattern);
     }
 
-    if (whereConditions.length > 0) {
-      query += ' WHERE ' + whereConditions.join(' AND ');
-    }
+    const whereClause = whereConditions.length > 0 ? ' WHERE ' + whereConditions.join(' AND ') : '';
 
-    query += ' ORDER BY sk.ngay_bat_dau DESC';
+    // Get total count
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM sukien_hien_mau sk
+      JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
+      JOIN benh_vien bv ON sk.id_benh_vien = bv.id_benh_vien
+      ${whereClause}
+    `;
+    const [countResult] = await pool.execute(countQuery, params);
+    const total = countResult[0].total;
+
+    // Get paginated events
+    query += whereClause;
+    query += ` ORDER BY sk.ngay_bat_dau DESC LIMIT ${limit} OFFSET ${offset}`;
 
     const [events] = await pool.execute(query, params);
 
     res.json({
       success: true,
       data: {
-        events
+        events,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit)
+        }
       }
     });
   } catch (error) {

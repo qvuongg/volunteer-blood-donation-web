@@ -2,11 +2,13 @@ import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 
 const EventApproval = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetchAllEvents();
@@ -35,11 +37,11 @@ const EventApproval = () => {
       });
 
       if (response.data.success) {
-        alert('Phê duyệt sự kiện thành công!');
+        showToast('Phê duyệt sự kiện thành công!', 'success');
         fetchAllEvents(); // Refresh to show updated status
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Có lỗi xảy ra');
+      showToast(error.response?.data?.message || 'Có lỗi xảy ra', 'error');
     } finally {
       setProcessing(null);
     }
@@ -57,11 +59,11 @@ const EventApproval = () => {
       });
 
       if (response.data.success) {
-        alert('Đã từ chối sự kiện.');
+        showToast('Đã từ chối sự kiện.', 'success');
         fetchAllEvents(); // Refresh to show updated status
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Có lỗi xảy ra');
+      showToast(error.response?.data?.message || 'Có lỗi xảy ra', 'error');
     } finally {
       setProcessing(null);
     }

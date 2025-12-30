@@ -55,7 +55,7 @@ export const registerForEvent = async (req, res, next) => {
 
     // Check if event exists and is approved
     const [events] = await pool.execute(
-      'SELECT id_su_kien, trang_thai FROM sukien_hien_mau WHERE id_su_kien = ?',
+      'SELECT id_su_kien, trang_thai, ngay_bat_dau, ngay_ket_thuc FROM sukien_hien_mau WHERE id_su_kien = ?',
       [id_su_kien]
     );
 
@@ -71,6 +71,33 @@ export const registerForEvent = async (req, res, next) => {
         success: false,
         message: 'Sự kiện chưa được duyệt.'
       });
+    }
+
+    // Validate ngay_hen_hien is within event date range
+    const event = events[0];
+    const appointmentDate = new Date(ngay_hen_hien);
+    appointmentDate.setHours(0, 0, 0, 0);
+    const eventStartDate = new Date(event.ngay_bat_dau);
+    eventStartDate.setHours(0, 0, 0, 0);
+    
+    if (appointmentDate < eventStartDate) {
+      return res.status(400).json({
+        success: false,
+        message: 'Ngày hẹn hiến phải sau hoặc bằng ngày bắt đầu sự kiện.'
+      });
+    }
+
+    // If event has end date, check appointment is before or equal to end date
+    if (event.ngay_ket_thuc) {
+      const eventEndDate = new Date(event.ngay_ket_thuc);
+      eventEndDate.setHours(0, 0, 0, 0);
+      
+      if (appointmentDate > eventEndDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Ngày hẹn hiến phải trước hoặc bằng ngày kết thúc sự kiện.'
+        });
+      }
     }
 
     // Create registration with full data

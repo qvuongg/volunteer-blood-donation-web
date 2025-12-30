@@ -219,7 +219,7 @@ export const sendBloodTypeConfirmationEmail = async (email, name, bloodType, hos
 };
 
 // Send event approval email to organization
-export const sendEventApprovalEmail = async (email, name, eventName, status, hospitalName) => {
+export const sendEventApprovalEmail = async (email, name, eventName, status, hospitalName, ly_do = null) => {
   const emailTransporter = createTransporter();
   
   const isApproved = status === 'da_duyet';
@@ -242,9 +242,15 @@ export const sendEventApprovalEmail = async (email, name, eventName, status, hos
       ` : `
         <div style="background: #fee2e2; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #dc2626;">
           <p style="margin: 0; color: #991b1b;">
-            ❌ Sự kiện bị từ chối. Vui lòng liên hệ với bệnh viện để biết thêm chi tiết.
+            ❌ Sự kiện bị từ chối. ${ly_do ? 'Vui lòng xem lý do bên dưới.' : 'Vui lòng liên hệ với bệnh viện để biết thêm chi tiết.'}
           </p>
         </div>
+        ${ly_do ? `
+        <div style="background: #fff7ed; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+          <strong style="color: #92400e;">Lý do từ chối:</strong>
+          <p style="color: #78350f; margin: 8px 0 0 0; line-height: 1.6; white-space: pre-line;">${ly_do}</p>
+        </div>
+        ` : ''}
       `}
       
       <p>Bạn có thể xem chi tiết sự kiện trong hệ thống.</p>
