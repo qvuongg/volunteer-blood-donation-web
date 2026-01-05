@@ -656,6 +656,105 @@ export const sendPendingApprovalEmail = async (email, name, roleName) => {
   }
 };
 
+// Send account approval email when admin approves account
+export const sendAccountApprovalEmail = async (email, name, roleName) => {
+  const emailTransporter = createTransporter();
+  
+  const roleNames = {
+    'to_chuc': 'Người phụ trách tổ chức',
+    'benh_vien': 'Người phụ trách bệnh viện',
+    'nhom_tinh_nguyen': 'Nhóm tình nguyện'
+  };
+  
+  const subject = '✅ Tài khoản đã được duyệt - Hệ thống Hiến máu Đà Nẵng';
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">🩸 Hiến giọt máu đào - Trao đời sự sống</h1>
+      </div>
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <div style="background: #d1fae5; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #10b981;">
+          <h2 style="color: #065f46; margin-top: 0;">
+            ✅ Tài khoản đã được duyệt thành công
+          </h2>
+        </div>
+
+        <p style="color: #666; font-size: 16px; line-height: 1.6;">
+          Kính chào <strong>${name}</strong>,
+        </p>
+        
+        <p style="color: #666; font-size: 16px; line-height: 1.6;">
+          Chúng tôi xin thông báo tài khoản của bạn với vai trò <strong>${roleNames[roleName] || roleName}</strong> đã được quản trị viên duyệt thành công.
+        </p>
+
+        <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+          <h3 style="color: #1e40af; margin-top: 0; font-size: 16px;">🎉 Bạn có thể sử dụng hệ thống ngay bây giờ!</h3>
+          <p style="color: #1e40af; margin: 0; line-height: 1.8;">
+            Tài khoản của bạn đã được kích hoạt. Bạn có thể đăng nhập và sử dụng tất cả các tính năng dành cho vai trò của mình.
+          </p>
+        </div>
+
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;">
+          <h3 style="color: #111827; margin-top: 0; font-size: 16px;">📋 Các bước tiếp theo:</h3>
+          <ol style="color: #6b7280; margin: 0; padding-left: 20px; line-height: 1.8;">
+            <li>Đăng nhập vào hệ thống bằng email và mật khẩu đã đăng ký</li>
+            <li>Hoàn thiện thông tin hồ sơ của bạn (nếu cần)</li>
+            <li>Bắt đầu sử dụng các tính năng của hệ thống</li>
+          </ol>
+        </div>
+
+        ${roleName === 'to_chuc' ? `
+          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="color: #78350f; margin: 0; line-height: 1.6;">
+              💡 <strong>Gợi ý:</strong> Bạn có thể bắt đầu tạo sự kiện hiến máu và quản lý đăng ký của người hiến máu.
+            </p>
+          </div>
+        ` : ''}
+
+        ${roleName === 'benh_vien' ? `
+          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="color: #78350f; margin: 0; line-height: 1.6;">
+              💡 <strong>Gợi ý:</strong> Bạn có thể duyệt sự kiện hiến máu, xác nhận nhóm máu và cập nhật kết quả hiến máu.
+            </p>
+          </div>
+        ` : ''}
+
+        ${roleName === 'nhom_tinh_nguyen' ? `
+          <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+            <p style="color: #78350f; margin: 0; line-height: 1.6;">
+              💡 <strong>Gợi ý:</strong> Bạn có thể xem và chia sẻ thông báo từ bệnh viện để kêu gọi hiến máu.
+            </p>
+          </div>
+        ` : ''}
+
+        <p style="color: #666; font-size: 14px; line-height: 1.6;">
+          Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với quản trị viên hệ thống.
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+        <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
+          © 2025 Hệ thống quản lý hiến máu tình nguyện Đà Nẵng<br>
+          Email này được gửi tự động, vui lòng không trả lời.
+        </p>
+      </div>
+    </div>
+  `;
+
+  try {
+    await emailTransporter.sendMail({
+      from: process.env.EMAIL_FROM || 'noreply@hienmau.danang.vn',
+      to: email,
+      subject,
+      html
+    });
+    console.log(`✅ Sent account approval email to ${email}`);
+  } catch (error) {
+    console.error('❌ Error sending account approval email:', error);
+    throw error;
+  }
+};
+
 export default { 
   sendOTPEmail, 
   sendRegistrationApprovalEmail,
@@ -666,7 +765,8 @@ export default {
   sendRegistrationConfirmationEmail,
   sendEventUpdateEmail,
   sendNewEventNotificationEmail,
-  sendPendingApprovalEmail
+  sendPendingApprovalEmail,
+  sendAccountApprovalEmail
 };
 
 

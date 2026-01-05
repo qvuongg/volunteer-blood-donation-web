@@ -17,8 +17,11 @@ const Users = () => {
     status: '',
     search: ''
   });
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
+  const [userDetail, setUserDetail] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [editMode, setEditMode] = useState(false);
   const [editForm, setEditForm] = useState({});
 
   useEffect(() => {
@@ -59,25 +62,19 @@ const Users = () => {
     fetchUsers();
   };
 
-  const handleEdit = (user) => {
-    setSelectedUser(user);
-    setEditForm({
-      ho_ten: user.ho_ten,
-      email: user.email,
-      so_dien_thoai: user.so_dien_thoai || '',
-      gioi_tinh: user.gioi_tinh,
-      ngay_sinh: user.ngay_sinh.split('T')[0]
-    });
-    setShowEditModal(true);
-  };
-
   const handleUpdateUser = async (e) => {
     e.preventDefault();
     try {
       const response = await api.put(`/admin/users/${selectedUser.id_nguoi_dung}`, editForm);
       if (response.data.success) {
         alert('Cập nhật người dùng thành công');
-        setShowEditModal(false);
+        setEditMode(false);
+        // Refresh user detail
+        const detailResponse = await api.get(`/admin/users/${selectedUser.id_nguoi_dung}`);
+        if (detailResponse.data.success) {
+          setUserDetail(detailResponse.data.data);
+          setSelectedUser(detailResponse.data.data.user);
+        }
         fetchUsers();
       }
     } catch (error) {
@@ -105,20 +102,30 @@ const Users = () => {
     }
   };
 
-  const handleDelete = async (userId) => {
-    if (!confirm('Bạn có chắc muốn xóa người dùng này? Hành động này không thể hoàn tác!')) {
-      return;
-    }
-
+  const handleViewDetail = async (userId) => {
+    setLoadingDetail(true);
+    setShowDetailModal(true);
+    setEditMode(false);
     try {
-      const response = await api.delete(`/admin/users/${userId}`);
+      const response = await api.get(`/admin/users/${userId}`);
       if (response.data.success) {
-        alert('Xóa người dùng thành công');
-        fetchUsers();
+        setUserDetail(response.data.data);
+        setSelectedUser(response.data.data.user);
+        // Initialize edit form
+        setEditForm({
+          ho_ten: response.data.data.user.ho_ten,
+          email: response.data.data.user.email,
+          so_dien_thoai: response.data.data.user.so_dien_thoai || '',
+          gioi_tinh: response.data.data.user.gioi_tinh,
+          ngay_sinh: response.data.data.user.ngay_sinh.split('T')[0]
+        });
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Lỗi khi xóa người dùng');
+      alert('Lỗi khi tải thông tin chi tiết');
+      setShowDetailModal(false);
+    } finally {
+      setLoadingDetail(false);
     }
   };
 
@@ -226,7 +233,6 @@ const Users = () => {
                   <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Số điện thoại</th>
                   <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Vai trò</th>
                   <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Trạng thái</th>
-                  <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Ngày tạo</th>
                   <th style={{ padding: 'var(--spacing-md)', textAlign: 'center', borderBottom: '1px solid var(--gray-200)' }}>Thao tác</th>
                 </tr>
               </thead>
@@ -247,17 +253,14 @@ const Users = () => {
                         {user.trang_thai ? 'Hoạt động' : 'Vô hiệu hóa'}
                       </span>
                     </td>
-                    <td style={{ padding: 'var(--spacing-md)' }}>
-                      {new Date(user.ngay_tao).toLocaleDateString('vi-VN')}
-                    </td>
                     <td style={{ padding: 'var(--spacing-md)', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', gap: 'var(--spacing-xs)', justifyContent: 'center' }}>
+                      <div style={{ display: 'flex', gap: 'var(--spacing-xs)', justifyContent: 'center', flexWrap: 'wrap' }}>
                         <button
-                          className="btn btn-sm btn-outline"
-                          onClick={() => handleEdit(user)}
-                          title="Sửa"
+                          className="btn btn-sm btn-primary"
+                          onClick={() => handleViewDetail(user.id_nguoi_dung)}
+                          title="Xem chi tiết"
                         >
-                          Sửa
+                          Chi tiết
                         </button>
                         <button
                           className={`btn btn-sm ${user.trang_thai ? 'btn-warning' : 'btn-success'}`}
@@ -265,13 +268,6 @@ const Users = () => {
                           title={user.trang_thai ? 'Vô hiệu hóa' : 'Kích hoạt'}
                         >
                           {user.trang_thai ? 'Tắt' : 'Bật'}
-                        </button>
-                        <button
-                          className="btn btn-sm btn-danger"
-                          onClick={() => handleDelete(user.id_nguoi_dung)}
-                          title="Xóa"
-                        >
-                          Xóa
                         </button>
                       </div>
                     </td>
@@ -309,8 +305,8 @@ const Users = () => {
         </div>
       </div>
 
-      {/* Edit Modal */}
-      {showEditModal && (
+      {/* Detail Modal */}
+      {showDetailModal && userDetail && (
         <div style={{
           position: 'fixed',
           top: 0,
@@ -321,85 +317,327 @@ const Users = () => {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 1000
+          zIndex: 1000,
+          padding: 'var(--spacing-lg)'
         }}>
-          <div className="card" style={{ width: '500px', maxWidth: '90%' }}>
-            <div className="card-header">
-              <h3 className="card-title">Chỉnh sửa người dùng</h3>
-            </div>
-            <form onSubmit={handleUpdateUser}>
-              <div className="card-body">
-                <div className="form-group">
-                  <label className="form-label">Họ tên *</label>
-                  <input
-                    type="text"
-                    className="form-input"
-                    value={editForm.ho_ten}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, ho_ten: e.target.value }))}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Email *</label>
-                  <input
-                    type="email"
-                    className="form-input"
-                    value={editForm.email}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Số điện thoại</label>
-                  <input
-                    type="tel"
-                    className="form-input"
-                    value={editForm.so_dien_thoai}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, so_dien_thoai: e.target.value }))}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Giới tính *</label>
-                  <select
-                    className="form-input"
-                    value={editForm.gioi_tinh}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, gioi_tinh: e.target.value }))}
-                    required
+          <div className="card" style={{ width: '700px', maxWidth: '100%', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 className="card-title">Chi tiết người dùng</h3>
+              <div style={{ display: 'flex', gap: 'var(--spacing-xs)' }}>
+                {!editMode && (
+                  <button
+                    className="btn btn-sm btn-primary"
+                    onClick={() => setEditMode(true)}
                   >
-                    <option value="Nam">Nam</option>
-                    <option value="Nu">Nữ</option>
-                    <option value="Khac">Khác</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Ngày sinh *</label>
-                  <input
-                    type="date"
-                    className="form-input"
-                    value={editForm.ngay_sinh}
-                    onChange={(e) => setEditForm(prev => ({ ...prev, ngay_sinh: e.target.value }))}
-                    required
-                  />
-                </div>
+                    Chỉnh sửa
+                  </button>
+                )}
+                <button
+                  className="btn btn-sm btn-outline"
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    setUserDetail(null);
+                    setEditMode(false);
+                  }}
+                >
+                  ✕
+                </button>
               </div>
+            </div>
+            <div className="card-body">
+              {loadingDetail ? (
+                <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)' }}>
+                  <LoadingSpinner />
+                </div>
+              ) : (
+                <>
+                  {/* User Basic Info */}
+                  {editMode ? (
+                    <form onSubmit={handleUpdateUser}>
+                      <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+                        <h4 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--text-primary)', borderBottom: '2px solid var(--primary-600)', paddingBottom: 'var(--spacing-xs)' }}>
+                          Chỉnh sửa thông tin cá nhân
+                        </h4>
+                        <div className="grid grid-cols-2" style={{ gap: 'var(--spacing-md)' }}>
+                          <div className="form-group">
+                            <label className="form-label">Họ tên *</label>
+                            <input
+                              type="text"
+                              className="form-input"
+                              value={editForm.ho_ten}
+                              onChange={(e) => setEditForm(prev => ({ ...prev, ho_ten: e.target.value }))}
+                              required
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">Email *</label>
+                            <input
+                              type="email"
+                              className="form-input"
+                              value={editForm.email}
+                              onChange={(e) => setEditForm(prev => ({ ...prev, email: e.target.value }))}
+                              required
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">Số điện thoại</label>
+                            <input
+                              type="tel"
+                              className="form-input"
+                              value={editForm.so_dien_thoai}
+                              onChange={(e) => setEditForm(prev => ({ ...prev, so_dien_thoai: e.target.value }))}
+                            />
+                          </div>
+                          <div className="form-group">
+                            <label className="form-label">Giới tính *</label>
+                            <select
+                              className="form-input"
+                              value={editForm.gioi_tinh}
+                              onChange={(e) => setEditForm(prev => ({ ...prev, gioi_tinh: e.target.value }))}
+                              required
+                            >
+                              <option value="Nam">Nam</option>
+                              <option value="Nu">Nữ</option>
+                              <option value="Khac">Khác</option>
+                            </select>
+                          </div>
+                          <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                            <label className="form-label">Ngày sinh *</label>
+                            <input
+                              type="date"
+                              className="form-input"
+                              value={editForm.ngay_sinh}
+                              onChange={(e) => setEditForm(prev => ({ ...prev, ngay_sinh: e.target.value }))}
+                              required
+                            />
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-md)' }}>
+                          <button type="submit" className="btn btn-primary">
+                            Lưu thay đổi
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-outline"
+                            onClick={() => {
+                              setEditMode(false);
+                              // Reset form
+                              setEditForm({
+                                ho_ten: userDetail.user.ho_ten,
+                                email: userDetail.user.email,
+                                so_dien_thoai: userDetail.user.so_dien_thoai || '',
+                                gioi_tinh: userDetail.user.gioi_tinh,
+                                ngay_sinh: userDetail.user.ngay_sinh.split('T')[0]
+                              });
+                            }}
+                          >
+                            Hủy
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  ) : (
+                    <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+                      <h4 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--text-primary)', borderBottom: '2px solid var(--primary-600)', paddingBottom: 'var(--spacing-xs)' }}>
+                        Thông tin cá nhân
+                      </h4>
+                      <div className="grid grid-cols-2" style={{ gap: 'var(--spacing-md)' }}>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Họ tên
+                          </label>
+                          <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)' }}>{userDetail.user.ho_ten}</p>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Email
+                          </label>
+                          <p style={{ margin: 0 }}>{userDetail.user.email}</p>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Số điện thoại
+                          </label>
+                          <p style={{ margin: 0 }}>{userDetail.user.so_dien_thoai || 'Chưa cập nhật'}</p>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Giới tính
+                          </label>
+                          <p style={{ margin: 0 }}>{userDetail.user.gioi_tinh}</p>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Ngày sinh
+                          </label>
+                          <p style={{ margin: 0 }}>{new Date(userDetail.user.ngay_sinh).toLocaleDateString('vi-VN')}</p>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Vai trò
+                          </label>
+                          <span className={`badge badge-${getRoleBadgeColor(userDetail.user.ten_vai_tro)}`}>
+                            {getRoleLabel(userDetail.user.ten_vai_tro)}
+                          </span>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Trạng thái
+                          </label>
+                          <span className={`badge badge-${userDetail.user.trang_thai ? 'success' : 'secondary'}`}>
+                            {userDetail.user.trang_thai ? 'Hoạt động' : 'Vô hiệu hóa'}
+                          </span>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Ngày tạo
+                          </label>
+                          <p style={{ margin: 0 }}>{new Date(userDetail.user.ngay_tao).toLocaleString('vi-VN')}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
+                  {/* Organization Info */}
+                  {userDetail.user.ten_vai_tro === 'to_chuc' && userDetail.organization && (
+                    <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+                      <h4 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--text-primary)', borderBottom: '2px solid var(--warning-600)', paddingBottom: 'var(--spacing-xs)' }}>
+                        Thông tin tổ chức
+                      </h4>
+                      <div className="grid grid-cols-2" style={{ gap: 'var(--spacing-md)' }}>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Tên đơn vị
+                          </label>
+                          <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)' }}>{userDetail.organization.ten_don_vi}</p>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Chức vụ
+                          </label>
+                          <p style={{ margin: 0 }}>{userDetail.coordinator?.chuc_vu || 'Chưa cập nhật'}</p>
+                        </div>
+                        <div style={{ gridColumn: 'span 2' }}>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Địa chỉ
+                          </label>
+                          <p style={{ margin: 0 }}>{userDetail.organization.dia_chi || 'Chưa cập nhật'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Hospital Info */}
+                  {userDetail.user.ten_vai_tro === 'benh_vien' && userDetail.hospital && (
+                    <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+                      <h4 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--text-primary)', borderBottom: '2px solid var(--success-600)', paddingBottom: 'var(--spacing-xs)' }}>
+                        Thông tin bệnh viện
+                      </h4>
+                      <div className="grid grid-cols-2" style={{ gap: 'var(--spacing-md)' }}>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Tên bệnh viện
+                          </label>
+                          <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)' }}>{userDetail.hospital.ten_benh_vien}</p>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Chức vụ
+                          </label>
+                          <p style={{ margin: 0 }}>{userDetail.coordinator?.chuc_vu || 'Chưa cập nhật'}</p>
+                        </div>
+                        <div style={{ gridColumn: 'span 2' }}>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Địa chỉ
+                          </label>
+                          <p style={{ margin: 0 }}>{userDetail.hospital.dia_chi || 'Chưa cập nhật'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Volunteer Group Info */}
+                  {userDetail.user.ten_vai_tro === 'nhom_tinh_nguyen' && userDetail.volunteerGroup && (
+                    <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+                      <h4 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--text-primary)', borderBottom: '2px solid var(--secondary-600)', paddingBottom: 'var(--spacing-xs)' }}>
+                        Thông tin nhóm tình nguyện
+                      </h4>
+                      <div className="grid grid-cols-2" style={{ gap: 'var(--spacing-md)' }}>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Tên nhóm
+                          </label>
+                          <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)' }}>{userDetail.volunteerGroup.ten_nhom}</p>
+                        </div>
+                        <div style={{ gridColumn: 'span 2' }}>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Địa chỉ
+                          </label>
+                          <p style={{ margin: 0 }}>{userDetail.volunteerGroup.dia_chi || 'Chưa cập nhật'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Donor Info */}
+                  {userDetail.user.ten_vai_tro === 'nguoi_hien' && userDetail.donor && (
+                    <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+                      <h4 style={{ marginBottom: 'var(--spacing-md)', color: 'var(--text-primary)', borderBottom: '2px solid var(--primary-600)', paddingBottom: 'var(--spacing-xs)' }}>
+                        Thông tin hiến máu
+                      </h4>
+                      <div className="grid grid-cols-2" style={{ gap: 'var(--spacing-md)' }}>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Nhóm máu
+                          </label>
+                          <p style={{ margin: 0, fontWeight: 'var(--font-weight-medium)' }}>
+                            {userDetail.donor.nhom_mau || 'Chưa xác định'}
+                          </p>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Nhóm máu đã xác thực
+                          </label>
+                          <span className={`badge badge-${userDetail.donor.nhom_mau_xac_nhan ? 'success' : 'secondary'}`}>
+                            {userDetail.donor.nhom_mau_xac_nhan ? 'Đã xác thực' : 'Chưa xác thực'}
+                          </span>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Tổng số lần hiến
+                          </label>
+                          <p style={{ margin: 0 }}>{userDetail.donor.tong_so_lan_hien || 0} lần</p>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                            Lần hiến gần nhất
+                          </label>
+                          <p style={{ margin: 0 }}>
+                            {userDetail.donor.lan_hien_gan_nhat 
+                              ? new Date(userDetail.donor.lan_hien_gan_nhat).toLocaleDateString('vi-VN')
+                              : 'Chưa có'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            {!editMode && (
               <div className="card-footer" style={{ display: 'flex', gap: 'var(--spacing-sm)', justifyContent: 'flex-end' }}>
                 <button
                   type="button"
                   className="btn btn-outline"
-                  onClick={() => setShowEditModal(false)}
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    setUserDetail(null);
+                  }}
                 >
-                  Hủy
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Lưu thay đổi
+                  Đóng
                 </button>
               </div>
-            </form>
+            )}
           </div>
         </div>
       )}

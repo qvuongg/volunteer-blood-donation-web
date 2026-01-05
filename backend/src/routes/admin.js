@@ -2,6 +2,7 @@ import express from 'express';
 import { authenticate, authorize } from '../middleware/auth.js';
 import {
   getUsers,
+  getUserDetail,
   updateUser,
   updateUserStatus,
   deleteUser,
@@ -27,6 +28,7 @@ router.put('/profile', updateProfile);
 
 // User management
 router.get('/users', getUsers);
+router.get('/users/:id', getUserDetail);
 router.put('/users/:id', updateUser);
 router.put('/users/:id/status', updateUserStatus);
 router.delete('/users/:id', deleteUser);

@@ -1,5 +1,6 @@
 import pool from '../config/database.js';
 import bcrypt from 'bcrypt';
+import { sendAccountApprovalEmail } from '../utils/email.js';
 
 // Get all users with pagination and filters
 export const getUsers = async (req, res, next) => {
@@ -81,6 +82,111 @@ export const getUsers = async (req, res, next) => {
   }
 };
 
+// Get user detail by ID
+export const getUserDetail = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // Get user basic info
+    const [users] = await pool.execute(
+      `SELECT nd.id_nguoi_dung, nd.ho_ten, nd.email, nd.so_dien_thoai, nd.gioi_tinh, 
+              nd.ngay_sinh, nd.id_vai_tro, nd.trang_thai, nd.ngay_tao, vt.ten_vai_tro
+       FROM nguoidung nd
+       JOIN vaitro vt ON nd.id_vai_tro = vt.id_vai_tro
+       WHERE nd.id_nguoi_dung = ?`,
+      [id]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Không tìm thấy người dùng.'
+      });
+    }
+
+    const user = users[0];
+    const roleName = user.ten_vai_tro;
+    const profile = {
+      user: {
+        id_nguoi_dung: user.id_nguoi_dung,
+        ho_ten: user.ho_ten,
+        email: user.email,
+        so_dien_thoai: user.so_dien_thoai,
+        gioi_tinh: user.gioi_tinh,
+        ngay_sinh: user.ngay_sinh,
+        id_vai_tro: user.id_vai_tro,
+        ten_vai_tro: roleName,
+        trang_thai: user.trang_thai,
+        ngay_tao: user.ngay_tao
+      }
+    };
+
+    // Get additional info based on role
+    if (roleName === 'nguoi_hien') {
+      const [donors] = await pool.execute(
+        `SELECT nh.*, bv.ten_benh_vien as ten_benh_vien_xac_nhan
+         FROM nguoi_hien_mau nh
+         LEFT JOIN benh_vien bv ON nh.id_benh_vien_xac_nhan = bv.id_benh_vien
+         WHERE nh.id_nguoi_hien = ?`,
+        [id]
+      );
+      profile.donor = donors[0] || null;
+    } else if (roleName === 'to_chuc') {
+      const [coordinators] = await pool.execute(
+        `SELECT nptc.*, tc.ten_don_vi, tc.dia_chi
+         FROM nguoi_phu_trach_to_chuc nptc
+         JOIN to_chuc tc ON nptc.id_to_chuc = tc.id_to_chuc
+         WHERE nptc.id_nguoi_phu_trach = ?`,
+        [id]
+      );
+      if (coordinators.length > 0) {
+        profile.coordinator = {
+          id_nguoi_phu_trach: coordinators[0].id_nguoi_phu_trach,
+          chuc_vu: coordinators[0].chuc_vu
+        };
+        profile.organization = {
+          id_to_chuc: coordinators[0].id_to_chuc,
+          ten_don_vi: coordinators[0].ten_don_vi,
+          dia_chi: coordinators[0].dia_chi
+        };
+      }
+    } else if (roleName === 'benh_vien') {
+      const [coordinators] = await pool.execute(
+        `SELECT nptbv.*, bv.ten_benh_vien, bv.dia_chi
+         FROM nguoi_phu_trach_benh_vien nptbv
+         JOIN benh_vien bv ON nptbv.id_benh_vien = bv.id_benh_vien
+         WHERE nptbv.id_nguoi_phu_trach = ?`,
+        [id]
+      );
+      if (coordinators.length > 0) {
+        profile.coordinator = {
+          id_nguoi_phu_trach: coordinators[0].id_nguoi_phu_trach,
+          chuc_vu: coordinators[0].chuc_vu
+        };
+        profile.hospital = {
+          id_benh_vien: coordinators[0].id_benh_vien,
+          ten_benh_vien: coordinators[0].ten_benh_vien,
+          dia_chi: coordinators[0].dia_chi
+        };
+      }
+    } else if (roleName === 'nhom_tinh_nguyen') {
+      const [groups] = await pool.execute(
+        `SELECT id_nhom, ten_nhom, dia_chi
+         FROM nhom_tinh_nguyen WHERE id_nguoi_dung = ?`,
+        [id]
+      );
+      profile.volunteerGroup = groups[0] || null;
+    }
+
+    res.json({
+      success: true,
+      data: profile
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // Update user
 export const updateUser = async (req, res, next) => {
   try {
@@ -141,9 +247,9 @@ export const updateUserStatus = async (req, res, next) => {
     // Lấy thông tin người yêu cầu (admin đang đăng nhập)
     const requesterId = req.user?.id_nguoi_dung || req.user?.id;
 
-    // Lấy thông tin người dùng mục tiêu
+    // Lấy thông tin người dùng mục tiêu (bao gồm email, ho_ten, id_vai_tro)
     const [targetRows] = await pool.execute(
-      'SELECT id_vai_tro FROM nguoidung WHERE id_nguoi_dung = ?',
+      'SELECT id_vai_tro, email, ho_ten, trang_thai FROM nguoidung WHERE id_nguoi_dung = ?',
       [id]
     );
 
@@ -154,8 +260,10 @@ export const updateUserStatus = async (req, res, next) => {
       });
     }
 
-    const targetRoleId = targetRows[0].id_vai_tro;
+    const targetUser = targetRows[0];
+    const targetRoleId = targetUser.id_vai_tro;
     const ADMIN_ROLE_ID = 5; // giả định id_vai_tro = 5 là quản trị viên
+    const oldStatus = targetUser.trang_thai;
 
     // Chặn tự vô hiệu hóa chính mình
     if (requesterId && Number(requesterId) === Number(id)) {
@@ -173,10 +281,56 @@ export const updateUserStatus = async (req, res, next) => {
       });
     }
 
+    // Update status
     await pool.execute(
       'UPDATE nguoidung SET trang_thai = ? WHERE id_nguoi_dung = ?',
       [trang_thai, id]
     );
+
+    // Send approval email if status changed from false to true for special roles
+    // MySQL returns boolean as 0/1, so we need to check both
+    const wasInactive = oldStatus === false || oldStatus === 0 || oldStatus === null;
+    const isNowActive = trang_thai === true || trang_thai === 1;
+
+    console.log('📧 Email check:', {
+      userId: id,
+      oldStatus,
+      newStatus: trang_thai,
+      wasInactive,
+      isNowActive,
+      roleId: targetRoleId
+    });
+
+    if (isNowActive && wasInactive) {
+      // Get role name
+      const [roles] = await pool.execute(
+        'SELECT ten_vai_tro FROM vaitro WHERE id_vai_tro = ?',
+        [targetRoleId]
+      );
+
+      const roleName = roles[0]?.ten_vai_tro;
+      console.log('📧 Role name:', roleName);
+
+      // Only send email for special roles that require approval
+      if (['to_chuc', 'benh_vien', 'nhom_tinh_nguyen'].includes(roleName)) {
+        console.log(`📧 Sending approval email to ${targetUser.email} for role ${roleName}`);
+        try {
+          await sendAccountApprovalEmail(
+            targetUser.email,
+            targetUser.ho_ten,
+            roleName
+          );
+          console.log(`✅ Account approval email sent to ${targetUser.email}`);
+        } catch (emailError) {
+          console.error('❌ Error sending account approval email:', emailError);
+          // Don't fail the status update if email fails
+        }
+      } else {
+        console.log(`📧 Skipping email - role ${roleName} does not require approval notification`);
+      }
+    } else {
+      console.log('📧 Skipping email - status change does not meet criteria');
+    }
 
     res.json({
       success: true,
