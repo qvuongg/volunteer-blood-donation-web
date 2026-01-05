@@ -581,6 +581,81 @@ export const sendNewEventNotificationEmail = async (email, name, eventName, orga
   }
 };
 
+// Send pending approval email for new registrations
+export const sendPendingApprovalEmail = async (email, name, roleName) => {
+  const emailTransporter = createTransporter();
+  
+  const roleNames = {
+    'to_chuc': 'Người phụ trách tổ chức',
+    'benh_vien': 'Người phụ trách bệnh viện',
+    'nhom_tinh_nguyen': 'Nhóm tình nguyện'
+  };
+  
+  const subject = 'Đăng ký tài khoản thành công - Đang chờ duyệt';
+  
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+      <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">🩸 Hiến giọt máu đào - Trao đời sự sống</h1>
+      </div>
+      <div style="background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px;">
+        <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #f59e0b;">
+          <h2 style="color: #92400e; margin-top: 0;">
+            ⏳ Tài khoản đang chờ duyệt
+          </h2>
+        </div>
+
+        <p style="color: #666; font-size: 16px; line-height: 1.6;">
+          Kính chào <strong>${name}</strong>,
+        </p>
+        
+        <p style="color: #666; font-size: 16px; line-height: 1.6;">
+          Cảm ơn bạn đã đăng ký tài khoản với vai trò <strong>${roleNames[roleName] || roleName}</strong> trong hệ thống quản lý hiến máu tình nguyện Đà Nẵng.
+        </p>
+
+        <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+          <h3 style="color: #1e40af; margin-top: 0; font-size: 16px;">ℹ️ Thông tin quan trọng:</h3>
+          <p style="color: #1e40af; margin: 0; line-height: 1.8;">
+            Tài khoản của bạn đang chờ được duyệt bởi quản trị viên. Bạn sẽ nhận được email thông báo khi tài khoản được kích hoạt và có thể sử dụng các tính năng của hệ thống.
+          </p>
+        </div>
+
+        <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e5e7eb;">
+          <h3 style="color: #111827; margin-top: 0; font-size: 16px;">📋 Các bước tiếp theo:</h3>
+          <ol style="color: #6b7280; margin: 0; padding-left: 20px; line-height: 1.8;">
+            <li>Quản trị viên sẽ xem xét thông tin đăng ký của bạn</li>
+            <li>Bạn sẽ nhận được email thông báo khi tài khoản được duyệt</li>
+            <li>Sau khi được duyệt, bạn có thể đăng nhập và sử dụng hệ thống</li>
+          </ol>
+        </div>
+
+        <p style="color: #666; font-size: 14px; line-height: 1.6;">
+          Nếu bạn có bất kỳ câu hỏi nào, vui lòng liên hệ với quản trị viên hệ thống.
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+        <p style="color: #999; font-size: 12px; text-align: center; margin: 0;">
+          © 2025 Hệ thống quản lý hiến máu tình nguyện Đà Nẵng<br>
+          Email này được gửi tự động, vui lòng không trả lời.
+        </p>
+      </div>
+    </div>
+  `;
+
+  try {
+    await emailTransporter.sendMail({
+      from: process.env.EMAIL_FROM || 'noreply@hienmau.danang.vn',
+      to: email,
+      subject,
+      html
+    });
+    console.log(`✅ Sent pending approval email to ${email}`);
+  } catch (error) {
+    console.error('❌ Error sending pending approval email:', error);
+    throw error;
+  }
+};
+
 export default { 
   sendOTPEmail, 
   sendRegistrationApprovalEmail,
@@ -590,7 +665,8 @@ export default {
   sendEmergencyNotificationEmail,
   sendRegistrationConfirmationEmail,
   sendEventUpdateEmail,
-  sendNewEventNotificationEmail
+  sendNewEventNotificationEmail,
+  sendPendingApprovalEmail
 };
 
 

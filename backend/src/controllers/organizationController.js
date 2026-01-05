@@ -656,7 +656,7 @@ export const getProfile = async (req, res, next) => {
 export const updateProfile = async (req, res, next) => {
   try {
     const userId = req.user.id_nguoi_dung;
-    const { ho_ten, so_dien_thoai, chuc_vu, nguoi_lien_he } = req.body;
+    const { ho_ten, so_dien_thoai, chuc_vu } = req.body;
 
     // Check if phone is already used by another user
     if (so_dien_thoai) {
@@ -694,11 +694,11 @@ export const updateProfile = async (req, res, next) => {
       );
     }
 
-    // Update coordinator info (only nguoi_lien_he, chuc_vu is not in this table)
-    if (nguoi_lien_he !== undefined) {
+    // Update coordinator info (chuc_vu)
+    if (chuc_vu !== undefined) {
       await pool.execute(
-        'UPDATE nguoi_phu_trach_to_chuc SET nguoi_lien_he = ? WHERE id_nguoi_phu_trach = ?',
-        [nguoi_lien_he || null, userId]
+        'UPDATE nguoi_phu_trach_to_chuc SET chuc_vu = ? WHERE id_nguoi_phu_trach = ?',
+        [chuc_vu || null, userId]
       );
     }
 

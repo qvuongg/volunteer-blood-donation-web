@@ -1113,7 +1113,7 @@ export const getStats = async (req, res, next) => {
 export const updateProfile = async (req, res, next) => {
   try {
     const userId = req.user.id_nguoi_dung;
-    const { ho_ten, so_dien_thoai, chuc_vu, nguoi_lien_he } = req.body;
+    const { ho_ten, so_dien_thoai, chuc_vu } = req.body;
 
     // Check if phone is already used by another user
     if (so_dien_thoai) {
@@ -1158,10 +1158,6 @@ export const updateProfile = async (req, res, next) => {
     if (chuc_vu !== undefined) {
       updateCoordinatorFields.push('chuc_vu = ?');
       updateCoordinatorValues.push(chuc_vu || null);
-    }
-    if (nguoi_lien_he !== undefined) {
-      updateCoordinatorFields.push('nguoi_lien_he = ?');
-      updateCoordinatorValues.push(nguoi_lien_he || null);
     }
 
     if (updateCoordinatorFields.length > 0) {

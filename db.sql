@@ -56,7 +56,7 @@ CREATE TABLE benh_vien (
 CREATE TABLE nguoi_phu_trach_to_chuc (
     id_nguoi_phu_trach INT PRIMARY KEY,
     id_to_chuc INT NOT NULL,
-    nguoi_lien_he VARCHAR(100),
+    chuc_vu VARCHAR(50),
     FOREIGN KEY (id_nguoi_phu_trach) REFERENCES nguoidung(id_nguoi_dung),
     FOREIGN KEY (id_to_chuc) REFERENCES to_chuc(id_to_chuc)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -68,7 +68,6 @@ CREATE TABLE nguoi_phu_trach_benh_vien (
     id_nguoi_phu_trach INT PRIMARY KEY,
     id_benh_vien INT NOT NULL,
     chuc_vu VARCHAR(50),
-    nguoi_lien_he VARCHAR(100),
     FOREIGN KEY (id_nguoi_phu_trach) REFERENCES nguoidung(id_nguoi_dung),
     FOREIGN KEY (id_benh_vien) REFERENCES benh_vien(id_benh_vien)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -97,7 +96,6 @@ CREATE TABLE nhom_tinh_nguyen (
     id_nguoi_dung INT NOT NULL,
     ten_nhom VARCHAR(150) NOT NULL,
     dia_chi TEXT,
-    nguoi_lien_he VARCHAR(100),
     FOREIGN KEY (id_nguoi_dung) REFERENCES nguoidung(id_nguoi_dung)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -265,15 +263,15 @@ INSERT INTO benh_vien (ten_benh_vien, dia_chi) VALUES
 
 -- Insert người phụ trách tổ chức
 -- id_nguoi_phu_trach là FK trực tiếp đến nguoidung(id_nguoi_dung)
-INSERT INTO nguoi_phu_trach_to_chuc (id_nguoi_phu_trach, id_to_chuc, nguoi_lien_he) VALUES
-(5, 1, 'Pham Thi D'),
-(6, 2, 'Hoang Van E');
+INSERT INTO nguoi_phu_trach_to_chuc (id_nguoi_phu_trach, id_to_chuc, chuc_vu) VALUES
+(5, 1, 'Truong Ban'),
+(6, 2, 'Pho Truong Ban');
 
 -- Insert người phụ trách bệnh viện (MUST be before nguoi_hien_mau due to FK)
 -- id_nguoi_phu_trach là FK trực tiếp đến nguoidung(id_nguoi_dung)
-INSERT INTO nguoi_phu_trach_benh_vien (id_nguoi_phu_trach, id_benh_vien, chuc_vu, nguoi_lien_he) VALUES
-(7, 1, 'Truong Phong Y Te', 'Nguyen Thi F'),
-(8, 2, 'Pho Giam Doc', 'Tran Van G');
+INSERT INTO nguoi_phu_trach_benh_vien (id_nguoi_phu_trach, id_benh_vien, chuc_vu) VALUES
+(7, 1, 'Truong Phong Y Te'),
+(8, 2, 'Pho Giam Doc');
 
 -- Insert người hiến máu (AFTER nguoi_phu_trach_benh_vien due to FK constraint)
 -- id_nguoi_hien là FK trực tiếp đến nguoidung(id_nguoi_dung)
@@ -287,9 +285,9 @@ INSERT INTO nguoi_hien_mau (id_nguoi_hien, nhom_mau, lan_hien_gan_nhat, tong_so_
 (4, 'B', '2023-12-10', 1, FALSE, NULL, NULL, NULL);
 
 -- Insert nhóm tình nguyện
-INSERT INTO nhom_tinh_nguyen (id_nguoi_dung, ten_nhom, dia_chi, nguoi_lien_he) VALUES
-(9, 'Nhom Tinh Nguyen Hien Mau Xanh', '123 Bach Dang, Hai Chau, Da Nang', 'Le Thi H'),
-(10, 'Nhom Tinh Nguyen Tre Da Nang', '456 Tran Phu, Hai Chau, Da Nang', 'Pham Van I');
+INSERT INTO nhom_tinh_nguyen (id_nguoi_dung, ten_nhom, dia_chi) VALUES
+(9, 'Nhom Tinh Nguyen Hien Mau Xanh', '123 Bach Dang, Hai Chau, Da Nang'),
+(10, 'Nhom Tinh Nguyen Tre Da Nang', '456 Tran Phu, Hai Chau, Da Nang');
 
 -- Insert sự kiện hiến máu
 -- id_phe_duyet_boi tham chiếu đến id_nguoi_phu_trach trong bảng nguoi_phu_trach_benh_vien

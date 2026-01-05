@@ -14,8 +14,7 @@ const HospitalProfile = () => {
   const [formData, setFormData] = useState({
     ho_ten: '',
     so_dien_thoai: '',
-    chuc_vu: '',
-    nguoi_lien_he: ''
+    chuc_vu: ''
   });
   const [saving, setSaving] = useState(false);
 
@@ -34,7 +33,6 @@ const HospitalProfile = () => {
           ho_ten: data.user?.ho_ten || '',
           so_dien_thoai: data.user?.so_dien_thoai || '',
           chuc_vu: data.coordinator?.chuc_vu || '',
-          nguoi_lien_he: data.coordinator?.nguoi_lien_he || ''
         });
       }
     } catch (error) {
@@ -80,7 +78,6 @@ const HospitalProfile = () => {
       ho_ten: profile?.user?.ho_ten || '',
       so_dien_thoai: profile?.user?.so_dien_thoai || '',
       chuc_vu: profile?.coordinator?.chuc_vu || '',
-      nguoi_lien_he: profile?.coordinator?.nguoi_lien_he || ''
     });
   };
 
@@ -203,17 +200,6 @@ const HospitalProfile = () => {
                         />
                       </div>
 
-                      <div className="form-group">
-                        <label className="form-label">Người liên hệ</label>
-                        <input
-                          type="text"
-                          name="nguoi_lien_he"
-                          className="form-input"
-                          value={formData.nguoi_lien_he}
-                          onChange={handleChange}
-                          placeholder="Tên người liên hệ"
-                        />
-                      </div>
                     </>
                   )}
                 </div>
@@ -321,14 +307,6 @@ const HospitalProfile = () => {
                       </p>
                     </div>
 
-                    <div>
-                      <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
-                        Người liên hệ
-                      </label>
-                      <p style={{ margin: 0 }}>
-                        {profile.coordinator.nguoi_lien_he || 'Chưa cập nhật'}
-                      </p>
-                    </div>
                   </>
                 )}
               </div>

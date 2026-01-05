@@ -15,8 +15,7 @@ const VolunteerProfile = () => {
     ho_ten: '',
     so_dien_thoai: '',
     ten_nhom: '',
-    dia_chi: '',
-    nguoi_lien_he: ''
+    dia_chi: ''
   });
   const [saving, setSaving] = useState(false);
 
@@ -36,7 +35,6 @@ const VolunteerProfile = () => {
           so_dien_thoai: data.user?.so_dien_thoai || '',
           ten_nhom: data.group?.ten_nhom || '',
           dia_chi: data.group?.dia_chi || '',
-          nguoi_lien_he: data.group?.nguoi_lien_he || ''
         });
       }
     } catch (error) {
@@ -82,7 +80,6 @@ const VolunteerProfile = () => {
       so_dien_thoai: profile?.user?.so_dien_thoai || '',
       ten_nhom: profile?.group?.ten_nhom || '',
       dia_chi: profile?.group?.dia_chi || '',
-      nguoi_lien_he: profile?.group?.nguoi_lien_he || ''
     });
   };
 
@@ -188,17 +185,6 @@ const VolunteerProfile = () => {
                     />
                   </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Người liên hệ</label>
-                    <input
-                      type="text"
-                      name="nguoi_lien_he"
-                      className="form-input"
-                      value={formData.nguoi_lien_he}
-                      onChange={handleChange}
-                      placeholder="Tên người liên hệ chính"
-                    />
-                  </div>
                 </div>
               </div>
             )}
@@ -293,14 +279,6 @@ const VolunteerProfile = () => {
                       </p>
                     </div>
 
-                    <div>
-                      <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
-                        Người liên hệ
-                      </label>
-                      <p style={{ margin: 0 }}>
-                        {profile.group.nguoi_lien_he || 'Chưa cập nhật'}
-                      </p>
-                    </div>
                   </div>
                 </div>
               </div>

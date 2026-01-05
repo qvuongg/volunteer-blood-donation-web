@@ -1,7 +1,7 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../config/database.js';
-import { sendOTPEmail } from '../utils/email.js';
+import { sendOTPEmail, sendPendingApprovalEmail } from '../utils/email.js';
 
 // Tạo mã OTP ngẫu nhiên 6 số
 const generateOTP = () => {
@@ -11,7 +11,13 @@ const generateOTP = () => {
 // Register new user
 export const register = async (req, res, next) => {
   try {
-    const { ho_ten, email, mat_khau, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro } = req.body;
+    const { 
+      ho_ten, email, mat_khau, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro,
+      // Additional fields for special roles
+      ten_don_vi, dia_chi_to_chuc, chuc_vu_to_chuc,
+      ten_benh_vien, dia_chi_benh_vien, chuc_vu_benh_vien,
+      ten_nhom, dia_chi_nhom
+    } = req.body;
 
     // Validate required fields
     if (!ho_ten || !email || !mat_khau || !gioi_tinh || !ngay_sinh || !id_vai_tro) {
@@ -49,29 +55,98 @@ export const register = async (req, res, next) => {
       }
     }
 
-    // Hash password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(mat_khau, saltRounds);
-
-    // Insert user
-    const [result] = await pool.execute(
-      `INSERT INTO nguoidung (ho_ten, email, mat_khau, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro) 
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [ho_ten, email, hashedPassword, so_dien_thoai || null, gioi_tinh, ngay_sinh, id_vai_tro]
-    );
-
-    const userId = result.insertId;
-
-    // If role is donor (nguoi_hien), create donor record
+    // Get role name
     const [roles] = await pool.execute(
       'SELECT ten_vai_tro FROM vaitro WHERE id_vai_tro = ?',
       [id_vai_tro]
     );
 
-    if (roles[0]?.ten_vai_tro === 'nguoi_hien') {
+    if (roles.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vai trò không hợp lệ.'
+      });
+    }
+
+    const roleName = roles[0]?.ten_vai_tro;
+
+    // Validate additional fields based on role
+    if (roleName === 'to_chuc') {
+      if (!ten_don_vi || !dia_chi_to_chuc) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng điền đầy đủ thông tin tổ chức.'
+        });
+      }
+    } else if (roleName === 'benh_vien') {
+      if (!ten_benh_vien || !dia_chi_benh_vien) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng điền đầy đủ thông tin bệnh viện.'
+        });
+      }
+    } else if (roleName === 'nhom_tinh_nguyen') {
+      if (!ten_nhom) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng điền tên nhóm tình nguyện.'
+        });
+      }
+    }
+
+    // Hash password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(mat_khau, saltRounds);
+
+    // Set trang_thai: true for nguoi_hien, false for others (need approval)
+    const trang_thai = roleName === 'nguoi_hien' ? true : false;
+
+    // Insert user
+    const [result] = await pool.execute(
+      `INSERT INTO nguoidung (ho_ten, email, mat_khau, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro, trang_thai) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ho_ten, email, hashedPassword, so_dien_thoai || null, gioi_tinh, ngay_sinh, id_vai_tro, trang_thai]
+    );
+
+    const userId = result.insertId;
+
+    // Create role-specific records
+    if (roleName === 'nguoi_hien') {
       await pool.execute(
-        'INSERT INTO nguoi_hien_mau (id_nguoi_dung) VALUES (?)',
+        'INSERT INTO nguoi_hien_mau (id_nguoi_hien) VALUES (?)',
         [userId]
+      );
+    } else if (roleName === 'to_chuc') {
+      // Create organization
+      const [orgResult] = await pool.execute(
+        'INSERT INTO to_chuc (ten_don_vi, dia_chi) VALUES (?, ?)',
+        [ten_don_vi, dia_chi_to_chuc]
+      );
+      const orgId = orgResult.insertId;
+      
+      // Create organization coordinator
+      await pool.execute(
+        'INSERT INTO nguoi_phu_trach_to_chuc (id_nguoi_phu_trach, id_to_chuc, chuc_vu) VALUES (?, ?, ?)',
+        [userId, orgId, chuc_vu_to_chuc || null]
+      );
+    } else if (roleName === 'benh_vien') {
+      // Create hospital
+      const [hospitalResult] = await pool.execute(
+        'INSERT INTO benh_vien (ten_benh_vien, dia_chi) VALUES (?, ?)',
+        [ten_benh_vien, dia_chi_benh_vien]
+      );
+      const hospitalId = hospitalResult.insertId;
+      
+      // Create hospital coordinator
+      await pool.execute(
+        'INSERT INTO nguoi_phu_trach_benh_vien (id_nguoi_phu_trach, id_benh_vien, chuc_vu) VALUES (?, ?, ?)',
+        [userId, hospitalId, chuc_vu_benh_vien || null]
+      );
+    } else if (roleName === 'nhom_tinh_nguyen') {
+      // Create volunteer group
+      await pool.execute(
+        'INSERT INTO nhom_tinh_nguyen (id_nguoi_dung, ten_nhom, dia_chi) VALUES (?, ?, ?)',
+        [userId, ten_nhom, dia_chi_nhom || null]
       );
     }
 
@@ -83,19 +158,32 @@ export const register = async (req, res, next) => {
     );
 
     const user = users[0];
-    const roleName = roles[0]?.ten_vai_tro;
+
+    // Send email notification for pending approval roles
+    if (!trang_thai) {
+      try {
+        await sendPendingApprovalEmail(email, ho_ten, roleName);
+      } catch (emailError) {
+        console.error('❌ Error sending pending approval email:', emailError);
+        // Don't fail registration if email fails
+      }
+    }
 
     res.status(201).json({
       success: true,
-      message: 'Đăng ký thành công.',
+      message: trang_thai 
+        ? 'Đăng ký thành công. Bạn có thể đăng nhập ngay.'
+        : 'Đăng ký thành công. Tài khoản của bạn đang chờ được duyệt bởi quản trị viên.',
       data: {
         user: {
           ...user,
           ten_vai_tro: roleName
-        }
+        },
+        requiresApproval: !trang_thai
       }
     });
   } catch (error) {
+    console.error('❌ Registration error:', error);
     next(error);
   }
 };
@@ -145,10 +233,42 @@ export const login = async (req, res, next) => {
 
     // Check if account is active
     if (!user.trang_thai) {
-      console.log('❌ Account disabled');
+      console.log('❌ Account not active');
+      
+      // Get role to determine if it's pending approval or deactivated
+      const [roles] = await pool.execute(
+        'SELECT ten_vai_tro FROM vaitro WHERE id_vai_tro = ?',
+        [user.id_vai_tro]
+      );
+      const roleName = roles[0]?.ten_vai_tro;
+      
+      // Check if user has associated records (means it's a new registration pending approval)
+      let isPendingApproval = false;
+      if (roleName === 'to_chuc') {
+        const [org] = await pool.execute(
+          'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_to_chuc WHERE id_nguoi_phu_trach = ?',
+          [user.id_nguoi_dung]
+        );
+        isPendingApproval = org.length > 0;
+      } else if (roleName === 'benh_vien') {
+        const [hospital] = await pool.execute(
+          'SELECT id_nguoi_phu_trach FROM nguoi_phu_trach_benh_vien WHERE id_nguoi_phu_trach = ?',
+          [user.id_nguoi_dung]
+        );
+        isPendingApproval = hospital.length > 0;
+      } else if (roleName === 'nhom_tinh_nguyen') {
+        const [group] = await pool.execute(
+          'SELECT id_nguoi_dung FROM nhom_tinh_nguyen WHERE id_nguoi_dung = ?',
+          [user.id_nguoi_dung]
+        );
+        isPendingApproval = group.length > 0;
+      }
+      
       return res.status(403).json({
         success: false,
-        message: 'Tài khoản đã bị vô hiệu hóa.'
+        message: isPendingApproval 
+          ? 'Tài khoản của bạn chưa được hoạt động. Vui lòng liên hệ quản trị viên.'
+          : 'Tài khoản đã bị vô hiệu hóa.'
       });
     }
 
@@ -320,8 +440,7 @@ export const getProfile = async (req, res, next) => {
       if (coordinator.length > 0) {
         profile.coordinator = {
           id_nguoi_phu_trach: coordinator[0].id_nguoi_phu_trach,
-          chuc_vu: coordinator[0].chuc_vu,
-          nguoi_lien_he: coordinator[0].nguoi_lien_he
+          chuc_vu: coordinator[0].chuc_vu
         };
         profile.hospital = {
           id_benh_vien: coordinator[0].id_benh_vien,
@@ -340,7 +459,7 @@ export const getProfile = async (req, res, next) => {
       if (coordinator.length > 0) {
         profile.coordinator = {
           id_nguoi_phu_trach: coordinator[0].id_nguoi_phu_trach,
-          nguoi_lien_he: coordinator[0].nguoi_lien_he
+          chuc_vu: coordinator[0].chuc_vu
         };
         profile.organization = {
           id_to_chuc: coordinator[0].id_to_chuc,

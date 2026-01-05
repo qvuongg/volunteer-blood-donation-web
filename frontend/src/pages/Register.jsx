@@ -7,7 +7,7 @@ import HomeFooter from '../components/HomeFooter';
 import { useAuth } from '../contexts/AuthContext';
 
 const Register = () => {
-  const [step, setStep] = useState(1); // 1: Form, 2: OTP, 3: Complete
+  const [step, setStep] = useState(1); // 1: Select Role, 2: Form, 3: OTP, 4: Complete
   const [formData, setFormData] = useState({
     ho_ten: '',
     email: '',
@@ -15,7 +15,16 @@ const Register = () => {
     so_dien_thoai: '',
     gioi_tinh: 'Nam',
     ngay_sinh: '',
-    id_vai_tro: 1 // Default to nguoi_hien
+    id_vai_tro: null, // Will be set in step 1
+    // Additional fields for special roles
+    ten_don_vi: '', // For to_chuc
+    dia_chi_to_chuc: '', // For to_chuc
+    chuc_vu_to_chuc: '', // For to_chuc
+    ten_benh_vien: '', // For benh_vien
+    dia_chi_benh_vien: '', // For benh_vien
+    chuc_vu_benh_vien: '', // For benh_vien
+    ten_nhom: '', // For nhom_tinh_nguyen
+    dia_chi_nhom: '' // For nhom_tinh_nguyen
   });
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
@@ -50,7 +59,17 @@ const Register = () => {
     setError('');
   };
 
-  // Step 1: Send OTP
+  // Step 1: Select role
+  const handleSelectRole = (roleId) => {
+    setFormData({
+      ...formData,
+      id_vai_tro: parseInt(roleId)
+    });
+    setStep(2);
+    setError('');
+  };
+
+  // Step 2: Send OTP
   const handleSendOTP = async (e) => {
     e.preventDefault();
     setError('');
@@ -62,7 +81,7 @@ const Register = () => {
       });
       
       if (response.data.success) {
-        setStep(2);
+        setStep(3);
         alert('Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.');
       }
     } catch (err) {
@@ -72,7 +91,7 @@ const Register = () => {
     }
   };
 
-  // Step 2: Verify OTP
+  // Step 3: Verify OTP
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
     setError('');
@@ -94,16 +113,20 @@ const Register = () => {
     }
   };
 
-  // Step 3: Create account
+  // Step 4: Create account
   const handleRegister = async () => {
     try {
       const response = await api.post('/auth/register', formData);
       
       if (response.data.success) {
-        setStep(3);
+        setStep(4);
+        const isPendingApproval = [2, 3, 4].includes(formData.id_vai_tro); // to_chuc, benh_vien, nhom_tinh_nguyen
+        const message = isPendingApproval 
+          ? 'Đăng ký thành công! Tài khoản của bạn đang chờ được duyệt. Vui lòng đăng nhập sau khi được duyệt.'
+          : 'Đăng ký thành công! Vui lòng đăng nhập.';
         setTimeout(() => {
-        navigate('/login', { state: { message: 'Đăng ký thành công! Vui lòng đăng nhập.' } });
-        }, 2000);
+          navigate('/login', { state: { message } });
+        }, 3000);
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Đã xảy ra lỗi khi tạo tài khoản.');
@@ -127,7 +150,7 @@ const Register = () => {
     }
   };
 
-  if (loading && step === 3) {
+  if (loading && step === 4) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
         <HomeHeader
@@ -180,8 +203,9 @@ const Register = () => {
           </div>
           <h1 className="auth-title">Đăng ký tài khoản</h1>
           <p className="auth-subtitle">
-            {step === 1 && 'Điền thông tin để tạo tài khoản'}
-            {step === 2 && 'Xác thực email của bạn'}
+            {step === 1 && 'Chọn vai trò của bạn'}
+            {step === 2 && 'Điền thông tin để tạo tài khoản'}
+            {step === 3 && 'Xác thực email của bạn'}
           </p>
         </div>
 
@@ -199,6 +223,12 @@ const Register = () => {
             background: step >= 2 ? 'var(--primary-600)' : 'var(--gray-300)', 
             borderRadius: 'var(--radius-full)' 
           }} />
+          <div style={{ 
+            width: '40px', 
+            height: '4px', 
+            background: step >= 3 ? 'var(--primary-600)' : 'var(--gray-300)', 
+            borderRadius: 'var(--radius-full)' 
+          }} />
         </div>
 
       {error && (
@@ -207,7 +237,166 @@ const Register = () => {
         </div>
       )}
 
+        {/* Step 1: Select Role */}
         {step === 1 && (
+          <div className="auth-form">
+            <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-xl)' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-lg)', marginBottom: 'var(--spacing-lg)' }}>
+                Bạn là:
+              </p>
+            </div>
+            
+            <div style={{ display: 'grid', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xl)' }}>
+              <button
+                type="button"
+                onClick={() => handleSelectRole(1)}
+                className="btn"
+                style={{
+                  padding: 'var(--spacing-lg)',
+                  textAlign: 'left',
+                  border: '2px solid var(--gray-300)',
+                  borderRadius: 'var(--radius-lg)',
+                  background: 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--primary-600)';
+                  e.currentTarget.style.background = 'var(--primary-50)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--gray-300)';
+                  e.currentTarget.style.background = 'white';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+                  <div style={{ fontSize: '32px' }}>🩸</div>
+                  <div>
+                    <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-lg)', color: 'var(--text-primary)' }}>
+                      Người hiến máu
+                    </div>
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Đăng ký tham gia hiến máu tình nguyện
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSelectRole(2)}
+                className="btn"
+                style={{
+                  padding: 'var(--spacing-lg)',
+                  textAlign: 'left',
+                  border: '2px solid var(--gray-300)',
+                  borderRadius: 'var(--radius-lg)',
+                  background: 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--primary-600)';
+                  e.currentTarget.style.background = 'var(--primary-50)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--gray-300)';
+                  e.currentTarget.style.background = 'white';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+                  <div style={{ fontSize: '32px' }}>🏢</div>
+                  <div>
+                    <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-lg)', color: 'var(--text-primary)' }}>
+                      Người phụ trách tổ chức
+                    </div>
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Tổ chức sự kiện hiến máu
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSelectRole(3)}
+                className="btn"
+                style={{
+                  padding: 'var(--spacing-lg)',
+                  textAlign: 'left',
+                  border: '2px solid var(--gray-300)',
+                  borderRadius: 'var(--radius-lg)',
+                  background: 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--primary-600)';
+                  e.currentTarget.style.background = 'var(--primary-50)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--gray-300)';
+                  e.currentTarget.style.background = 'white';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+                  <div style={{ fontSize: '32px' }}>🏥</div>
+                  <div>
+                    <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-lg)', color: 'var(--text-primary)' }}>
+                      Người phụ trách bệnh viện
+                    </div>
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Quản lý và duyệt sự kiện hiến máu
+                    </div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSelectRole(4)}
+                className="btn"
+                style={{
+                  padding: 'var(--spacing-lg)',
+                  textAlign: 'left',
+                  border: '2px solid var(--gray-300)',
+                  borderRadius: 'var(--radius-lg)',
+                  background: 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--primary-600)';
+                  e.currentTarget.style.background = 'var(--primary-50)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--gray-300)';
+                  e.currentTarget.style.background = 'white';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+                  <div style={{ fontSize: '32px' }}>👥</div>
+                  <div>
+                    <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-lg)', color: 'var(--text-primary)' }}>
+                      Nhóm tình nguyện
+                    </div>
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      Chia sẻ thông báo và kêu gọi hiến máu
+                    </div>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div className="auth-footer">
+              <span>Đã có tài khoản?</span>
+              <Link to="/login" className="auth-link">Đăng nhập ngay</Link>
+            </div>
+          </div>
+        )}
+
+        {/* Step 2: Fill Form */}
+        {step === 2 && (
           <form onSubmit={handleSendOTP} className="auth-form">
           <div className="grid grid-cols-2">
             <div className="form-group">
@@ -300,29 +489,139 @@ const Register = () => {
         </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="id_vai_tro" className="form-label">Vai trò *</label>
-          <select
-            id="id_vai_tro"
-            name="id_vai_tro"
-            value={formData.id_vai_tro}
-            onChange={handleChange}
-            required
-                className="form-input"
-          >
-                <option value="1">Người hiến máu</option>
-                <option value="2">Tổ chức</option>
-                <option value="3">Bệnh viện</option>
-                <option value="4">Nhóm tình nguyện</option>
-          </select>
-        </div>
+          {/* Additional fields for Tổ chức */}
+          {formData.id_vai_tro === 2 && (
+            <>
+              <div className="form-group">
+                <label htmlFor="ten_don_vi" className="form-label">Tên đơn vị *</label>
+                <input
+                  type="text"
+                  id="ten_don_vi"
+                  name="ten_don_vi"
+                  value={formData.ten_don_vi}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  placeholder="Ví dụ: Đoàn Thanh niên TP Đà Nẵng"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="dia_chi_to_chuc" className="form-label">Địa chỉ tổ chức *</label>
+                <input
+                  type="text"
+                  id="dia_chi_to_chuc"
+                  name="dia_chi_to_chuc"
+                  value={formData.dia_chi_to_chuc}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  placeholder="Ví dụ: 123 Lê Duẩn, Hải Châu, Đà Nẵng"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="chuc_vu_to_chuc" className="form-label">Chức vụ</label>
+                <input
+                  type="text"
+                  id="chuc_vu_to_chuc"
+                  name="chuc_vu_to_chuc"
+                  value={formData.chuc_vu_to_chuc}
+                  onChange={handleChange}
+                  className="form-input"
+                  placeholder="Ví dụ: Trưởng ban"
+                />
+              </div>
+            </>
+          )}
 
-        <div style={{ display: 'flex', justifyContent: 'center', margin: 'var(--spacing-lg) 0' }}>
+          {/* Additional fields for Bệnh viện */}
+          {formData.id_vai_tro === 3 && (
+            <>
+              <div className="form-group">
+                <label htmlFor="ten_benh_vien" className="form-label">Tên bệnh viện *</label>
+                <input
+                  type="text"
+                  id="ten_benh_vien"
+                  name="ten_benh_vien"
+                  value={formData.ten_benh_vien}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  placeholder="Ví dụ: Bệnh viện Đa khoa Đà Nẵng"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="dia_chi_benh_vien" className="form-label">Địa chỉ bệnh viện *</label>
+                <input
+                  type="text"
+                  id="dia_chi_benh_vien"
+                  name="dia_chi_benh_vien"
+                  value={formData.dia_chi_benh_vien}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  placeholder="Ví dụ: 124 Hải Phòng, Thanh Khê, Đà Nẵng"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="chuc_vu_benh_vien" className="form-label">Chức vụ</label>
+                <input
+                  type="text"
+                  id="chuc_vu_benh_vien"
+                  name="chuc_vu_benh_vien"
+                  value={formData.chuc_vu_benh_vien}
+                  onChange={handleChange}
+                  className="form-input"
+                  placeholder="Ví dụ: Trưởng phòng Y tế"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Additional fields for Nhóm tình nguyện */}
+          {formData.id_vai_tro === 4 && (
+            <>
+              <div className="form-group">
+                <label htmlFor="ten_nhom" className="form-label">Tên nhóm *</label>
+                <input
+                  type="text"
+                  id="ten_nhom"
+                  name="ten_nhom"
+                  value={formData.ten_nhom}
+                  onChange={handleChange}
+                  required
+                  className="form-input"
+                  placeholder="Ví dụ: Nhóm Tình nguyện Hiến máu Xanh"
+                />
+              </div>
+              <div className="form-group">
+                <label htmlFor="dia_chi_nhom" className="form-label">Địa chỉ nhóm</label>
+                <input
+                  type="text"
+                  id="dia_chi_nhom"
+                  name="dia_chi_nhom"
+                  value={formData.dia_chi_nhom}
+                  onChange={handleChange}
+                  className="form-input"
+                  placeholder="Ví dụ: 123 Bạch Đằng, Hải Châu, Đà Nẵng"
+                />
+              </div>
+            </>
+          )}
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 'var(--spacing-md)', margin: 'var(--spacing-lg) 0' }}>
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className="btn btn-secondary"
+            style={{ maxWidth: 100 }}
+          >
+            Quay lại
+          </button>
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary btn-block"
-            style={{ maxWidth: 220, width: '100%' }}
+            className="btn btn-primary"
+            style={{ maxWidth: 220, flex: 1 }}
           >
             {loading ? <LoadingSpinner size="small" /> : 'Tiếp tục'}
           </button>
@@ -335,7 +634,8 @@ const Register = () => {
           </form>
         )}
 
-        {step === 2 && (
+        {/* Step 3: Verify OTP */}
+        {step === 3 && (
           <form onSubmit={handleVerifyOTP} className="auth-form">
             <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-xl)' }}>
               <div style={{ fontSize: '48px', marginBottom: 'var(--spacing-md)' }}>📧</div>
@@ -388,7 +688,7 @@ const Register = () => {
             <div style={{ textAlign: 'center', marginTop: 'var(--spacing-md)' }}>
               <button
                 type="button"
-                onClick={() => setStep(1)}
+                onClick={() => setStep(2)}
                 className="btn btn-link"
                 style={{ fontSize: 'var(--font-size-sm)' }}
               >
@@ -396,6 +696,28 @@ const Register = () => {
               </button>
         </div>
           </form>
+        )}
+
+        {/* Step 4: Success */}
+        {step === 4 && (
+          <div className="auth-form">
+            <div style={{ textAlign: 'center', padding: 'var(--spacing-3xl)' }}>
+              <div style={{ fontSize: '64px', marginBottom: 'var(--spacing-lg)' }}>✅</div>
+              <h2 style={{ color: 'var(--success-600)', marginBottom: 'var(--spacing-md)' }}>Đăng ký thành công!</h2>
+              {[2, 3, 4].includes(formData.id_vai_tro) ? (
+                <>
+                  <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
+                    Tài khoản của bạn đang chờ được duyệt bởi quản trị viên.
+                  </p>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+                    Bạn sẽ nhận được email thông báo khi tài khoản được kích hoạt.
+                  </p>
+                </>
+              ) : (
+                <p style={{ color: 'var(--text-secondary)' }}>Đang chuyển đến trang đăng nhập...</p>
+              )}
+            </div>
+          </div>
         )}
         </div>
       </div>

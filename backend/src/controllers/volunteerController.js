@@ -79,7 +79,7 @@ export const getProfile = async (req, res, next) => {
 
     // Get volunteer group info
     const [groups] = await pool.execute(
-      `SELECT id_nhom, ten_nhom, dia_chi, nguoi_lien_he
+      `SELECT id_nhom, ten_nhom, dia_chi
        FROM nhom_tinh_nguyen WHERE id_nguoi_dung = ?`,
       [userId]
     );
@@ -100,7 +100,7 @@ export const getProfile = async (req, res, next) => {
 export const updateProfile = async (req, res, next) => {
   try {
     const userId = req.user.id_nguoi_dung;
-    const { ho_ten, so_dien_thoai, ten_nhom, dia_chi, nguoi_lien_he } = req.body;
+    const { ho_ten, so_dien_thoai, ten_nhom, dia_chi } = req.body;
 
     // Check if phone is already used by another user
     if (so_dien_thoai) {
@@ -150,10 +150,6 @@ export const updateProfile = async (req, res, next) => {
       updateGroupFields.push('dia_chi = ?');
       updateGroupValues.push(dia_chi || null);
     }
-    if (nguoi_lien_he !== undefined) {
-      updateGroupFields.push('nguoi_lien_he = ?');
-      updateGroupValues.push(nguoi_lien_he || null);
-    }
 
     if (updateGroupFields.length > 0) {
       updateGroupValues.push(userId);
@@ -171,7 +167,7 @@ export const updateProfile = async (req, res, next) => {
     );
 
     const [groups] = await pool.execute(
-      `SELECT id_nhom, ten_nhom, dia_chi, nguoi_lien_he
+      `SELECT id_nhom, ten_nhom, dia_chi
        FROM nhom_tinh_nguyen WHERE id_nguoi_dung = ?`,
       [userId]
     );
