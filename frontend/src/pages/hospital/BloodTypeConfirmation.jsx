@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
@@ -15,6 +16,7 @@ const BloodTypeConfirmation = () => {
   const [confirming, setConfirming] = useState(null);
   const [showChangeModal, setShowChangeModal] = useState(false);
   const [selectedDonor, setSelectedDonor] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, donor: null });
   const [changeFormData, setChangeFormData] = useState({
     nhom_mau: '',
     ghi_chu: ''
@@ -41,12 +43,13 @@ const BloodTypeConfirmation = () => {
     }
   };
 
-  const handleConfirm = async (donor) => {
-    const confirmed = window.confirm(
-      `Xác nhận nhóm máu ${donor.nhom_mau} cho người hiến máu ${donor.ho_ten}?`
-    );
-    
-    if (!confirmed) return;
+  const handleConfirm = (donor) => {
+    setConfirmDialog({ isOpen: true, donor });
+  };
+
+  const confirmBloodType = async () => {
+    const { donor } = confirmDialog;
+    setConfirmDialog({ isOpen: false, donor: null });
 
     setConfirming(donor.id_nguoi_hien);
 
@@ -354,6 +357,14 @@ const BloodTypeConfirmation = () => {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Xác nhận nhóm máu"
+        message={confirmDialog.donor ? `Xác nhận nhóm máu ${confirmDialog.donor.nhom_mau} cho người hiến máu ${confirmDialog.donor.ho_ten}?` : ''}
+        onConfirm={confirmBloodType}
+        onCancel={() => setConfirmDialog({ isOpen: false, donor: null })}
+      />
     </Layout>
   );
 };

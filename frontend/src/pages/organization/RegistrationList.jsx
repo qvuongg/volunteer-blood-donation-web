@@ -43,9 +43,11 @@ const OrganizationRegistrationList = () => {
         const eventsRes = await api.get('/organizations/events');
         if (eventsRes.data.success) {
           const list = eventsRes.data.data.events || [];
-          setEvents(list);
-          if (list.length > 0) {
-            const firstId = list[0].id_su_kien;
+          // Chỉ lấy những sự kiện đã được duyệt
+          const approvedEvents = list.filter(event => event.trang_thai === 'da_duyet');
+          setEvents(approvedEvents);
+          if (approvedEvents.length > 0) {
+            const firstId = approvedEvents[0].id_su_kien;
             setSelectedEventId(String(firstId));
             await fetchEventAndRegistrations(firstId);
           }
