@@ -161,17 +161,54 @@ const Events = () => {
 
   return (
     <Layout>
-      <div className="page-header">
-        <div style={{ flex: 1 }}>
-          <h1 className="page-title">Quản lý sự kiện</h1>
-          <p className="page-description">Tạo và quản lý các sự kiện hiến máu</p>
+      <div className="page-header" style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 'var(--spacing-lg)',
+        marginBottom: 'var(--spacing-lg)'
+      }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1 className="page-title" style={{
+            margin: 0,
+            fontSize: '2rem',
+            color: 'var(--primary-800)'
+          }}>Quản lý sự kiện</h1>
+          <p className="page-description" style={{
+            color: 'var(--text-secondary)',
+            fontSize: '1.05rem',
+            marginTop: 8,
+            marginBottom: 0,
+            lineHeight: 1.5,
+            maxWidth: 420
+          }}>Tạo và quản lý các sự kiện hiến máu của tổ chức bạn.</p>
         </div>
-        <button className="btn btn-primary" onClick={() => navigate('/organization/events/new')}>
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-            <path d="M10 5v10m5-5H5"/>
-          </svg>
-        Tạo sự kiện mới
-      </button>
+        <button
+          className="btn btn-primary"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+            fontWeight: 600,
+            fontSize: 16,
+            padding: '10px 20px',
+            boxShadow: '0 2px 8px rgba(220, 38, 38, 0.1)'
+          }}
+          onClick={() => navigate('/organization/events/new')}
+        >
+          <span style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="10" r="10" fill="#fff" stroke="#C81E1E" strokeWidth="1"/>
+              <path d="M10 6v8M6 10h8" stroke="#C81E1E" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          </span>
+          Tạo sự kiện mới
+        </button>
       </div>
 
       {/* Bộ lọc trạng thái */}

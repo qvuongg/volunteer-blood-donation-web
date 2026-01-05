@@ -13,6 +13,7 @@ const OrganizationRegistrationList = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [selectedRegistration, setSelectedRegistration] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
   const [showApprovalModal, setShowApprovalModal] = useState(false);
   const [approvalData, setApprovalData] = useState({
     trang_thai: '',
@@ -93,6 +94,11 @@ const OrganizationRegistrationList = () => {
     }
   };
 
+  const openDetailModal = (registration) => {
+    setSelectedRegistration(registration);
+    setShowDetailModal(true);
+  };
+
   const openApprovalModal = (registration, status) => {
     setSelectedRegistration(registration);
     setApprovalData({
@@ -121,6 +127,7 @@ const OrganizationRegistrationList = () => {
           toast.success('Đã từ chối đăng ký');
         }
         setShowApprovalModal(false);
+        setShowDetailModal(false);
         if (selectedEventId) {
           fetchEventAndRegistrations(selectedEventId);
         }
@@ -152,6 +159,91 @@ const OrganizationRegistrationList = () => {
     return <span className={`badge ${statusInfo.class}`}>{statusInfo.label}</span>;
   };
 
+  const renderPhieuKhamSangLoc = (phieu) => {
+    if (!phieu) return <span style={{ color: 'var(--text-secondary)' }}>Chưa có thông tin</span>;
+
+    return (
+      <div style={{ fontSize: 'var(--font-size-sm)', lineHeight: 1.8 }}>
+        <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
+          <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>1. Anh/chị từng hiến máu chưa?</strong>
+          <div>{phieu.q1?.hien_mau_chua === 'co' ? '✅ Có' : '❌ Chưa'}</div>
+        </div>
+        
+        <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
+          <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>2. Hiện tại, anh/chị có mắc bệnh lý nào không?</strong>
+          <div>{phieu.q2?.mac_benh === 'co' ? `⚠️ Có: ${phieu.q2?.benh_gi || ''}` : '✅ Không'}</div>
+        </div>
+        
+        <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
+          <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>3. Trước đây, anh/chị có từng mắc các bệnh nghiêm trọng?</strong>
+          <div>{phieu.q3?.benh_ly_truoc === 'co' ? '⚠️ Có' : '✅ Không'}</div>
+          {phieu.q3?.benh_khac && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-xs)' }}>({phieu.q3.benh_khac})</div>}
+        </div>
+        
+        <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
+          <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>4. Trong 12 tháng gần đây, anh/chị có:</strong>
+          {phieu.q4?.items?.includes('khong') ? (
+            <div>✅ Không</div>
+          ) : (
+            <div>
+              <div>⚠️ Có:</div>
+              <ul style={{ margin: '4px 0 0 20px', padding: 0 }}>
+                {phieu.q4?.items?.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {phieu.q4?.vacxin && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-xs)' }}>Vacxin: {phieu.q4.vacxin}</div>}
+        </div>
+        
+        <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
+          <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>5. Trong 06 tháng gần đây, anh/chị có:</strong>
+          {phieu.q5?.items?.includes('khong') ? (
+            <div>✅ Không</div>
+          ) : (
+            <div>
+              <div>⚠️ Có:</div>
+              <ul style={{ margin: '4px 0 0 20px', padding: 0 }}>
+                {phieu.q5?.items?.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+        
+        <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
+          <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>6. Trong 01 tháng gần đây, anh/chị có:</strong>
+          {phieu.q6?.items?.includes('khong') ? (
+            <div>✅ Không</div>
+          ) : (
+            <div>
+              <div>⚠️ Có:</div>
+              <ul style={{ margin: '4px 0 0 20px', padding: 0 }}>
+                {phieu.q6?.items?.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+        
+        <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
+          <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>7. Trong 14 ngày gần đây, anh/chị có mắc bệnh (cúm, cảm lạnh, sốt...)?</strong>
+          <div>{phieu.q7?.mac_benh === 'khong' ? '✅ Không' : '⚠️ Có'}</div>
+          {phieu.q7?.khac && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-xs)' }}>({phieu.q7.khac})</div>}
+        </div>
+        
+        <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
+          <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>8. Trong 7 ngày gần đây, anh/chị có sử dụng thuốc?</strong>
+          <div>{phieu.q8?.dung_thuoc === 'khong' ? '✅ Không' : '⚠️ Có'}</div>
+          {phieu.q8?.khac && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-xs)' }}>({phieu.q8.khac})</div>}
+        </div>
+      </div>
+    );
+  };
+
   if (loading && events.length === 0) {
     return (
       <Layout>
@@ -172,8 +264,8 @@ const OrganizationRegistrationList = () => {
       </div>
 
       <div className="card" style={{ marginBottom: 'var(--spacing-lg)' }}>
-        <div className="card-body" style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-md)', alignItems: 'center' }}>
-          <div style={{ minWidth: '260px' }}>
+        <div className="card-body" style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--spacing-lg)', alignItems: 'flex-start' }}>
+          <div style={{ minWidth: '260px', flex: '0 0 auto' }}>
             <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)' }}>
               Sự kiện
             </label>
@@ -192,47 +284,41 @@ const OrganizationRegistrationList = () => {
             </select>
           </div>
 
-          <div style={{ flex: 1, minWidth: '260px' }}>
-            <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)' }}>
-              Bộ lọc trạng thái
-            </label>
-            <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
-              <button
-                className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setFilter('all')}
-              >
-                Tất cả ({registrations.length})
-              </button>
-              <button
-                className={`btn ${filter === 'cho_duyet' ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setFilter('cho_duyet')}
-              >
-                Chờ duyệt ({registrations.filter(r => r.trang_thai === 'cho_duyet').length})
-              </button>
-              <button
-                className={`btn ${filter === 'da_duyet' ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setFilter('da_duyet')}
-              >
-                Đã duyệt ({registrations.filter(r => r.trang_thai === 'da_duyet').length})
-              </button>
-              <button
-                className={`btn ${filter === 'tu_choi' ? 'btn-primary' : 'btn-outline'}`}
-                onClick={() => setFilter('tu_choi')}
-              >
-                Từ chối ({registrations.filter(r => r.trang_thai === 'tu_choi').length})
-              </button>
+          {selectedEventId && (
+            <div style={{ flex: 1, minWidth: '260px' }}>
+              <label className="form-label" style={{ marginBottom: 'var(--spacing-xs)' }}>
+                Bộ lọc trạng thái
+              </label>
+              <div style={{ display: 'flex', gap: 'var(--spacing-sm)', flexWrap: 'wrap' }}>
+                <button
+                  className={`btn ${filter === 'all' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => setFilter('all')}
+                >
+                  Tất cả ({registrations.length})
+                </button>
+                <button
+                  className={`btn ${filter === 'cho_duyet' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => setFilter('cho_duyet')}
+                >
+                  Chờ duyệt ({registrations.filter(r => r.trang_thai === 'cho_duyet').length})
+                </button>
+                <button
+                  className={`btn ${filter === 'da_duyet' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => setFilter('da_duyet')}
+                >
+                  Đã duyệt ({registrations.filter(r => r.trang_thai === 'da_duyet').length})
+                </button>
+                <button
+                  className={`btn ${filter === 'tu_choi' ? 'btn-primary' : 'btn-outline'}`}
+                  onClick={() => setFilter('tu_choi')}
+                >
+                  Từ chối ({registrations.filter(r => r.trang_thai === 'tu_choi').length})
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
-
-      {event && (
-        <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-          <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)' }}>
-            Đang xem đăng ký cho sự kiện: <strong>{event.ten_su_kien}</strong>
-          </p>
-        </div>
-      )}
 
       {!selectedEventId ? (
         <div className="card">
@@ -246,126 +332,60 @@ const OrganizationRegistrationList = () => {
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: 'var(--spacing-3xl)' }}>
             <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-lg)' }}>
-              {registrations.length === 0
+              {registrations.length === 0 
                 ? 'Chưa có đăng ký nào cho sự kiện này'
                 : 'Không có đăng ký nào phù hợp với bộ lọc'}
             </p>
           </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-          {filteredRegistrations.map((reg, index) => (
-            <div key={reg.id_dang_ky} className="card">
-              <div className="card-body">
-                <div style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  marginBottom: 'var(--spacing-lg)',
-                  paddingBottom: 'var(--spacing-md)',
-                  borderBottom: '1px solid var(--gray-200)'
-                }}>
-                  <div>
-                    <h3 style={{
-                      fontSize: 'var(--font-size-xl)',
-                      fontWeight: 'var(--font-weight-bold)',
-                      marginBottom: 'var(--spacing-xs)'
-                    }}>
-                      #{index + 1} - {reg.ho_ten}
-                    </h3>
-                    <div style={{ display: 'flex', gap: 'var(--spacing-lg)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-                      <span>📧 {reg.email}</span>
-                      {reg.so_dien_thoai && <span>📞 {reg.so_dien_thoai}</span>}
-                      <span>👤 {reg.gioi_tinh}</span>
-                    </div>
-                  </div>
-                  <div style={{ textAlign: 'right' }}>
-                    {getStatusBadge(reg.trang_thai)}
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
-                      Đăng ký: {new Date(reg.ngay_dang_ky).toLocaleDateString('vi-VN')}
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-2xl)' }}>
-                  <div>
-                    <h4 style={{
-                      fontSize: 'var(--font-size-md)',
-                      fontWeight: 'var(--font-weight-semibold)',
-                      marginBottom: 'var(--spacing-md)',
-                      color: '#dc2626'
-                    }}>
-                      Thông tin cơ bản
-                    </h4>
-                    <div style={{ fontSize: 'var(--font-size-sm)', lineHeight: 2 }}>
-                      <div><strong>Ngày hẹn:</strong> {reg.ngay_hen_hien ? new Date(reg.ngay_hen_hien).toLocaleDateString('vi-VN') : 'Chưa có'}</div>
-                      <div><strong>Khung giờ:</strong> {reg.khung_gio || 'Chưa có'}</div>
-                      <div><strong>Nhóm máu:</strong> <span className="badge badge-danger" style={{ fontSize: 'var(--font-size-md)' }}>{reg.nhom_mau || '?'}</span></div>
-                      <div><strong>Đã hiến:</strong> {reg.tong_so_lan_hien || 0} lần</div>
-                      {reg.lan_hien_gan_nhat && (
-                        <div><strong>Lần gần nhất:</strong> {new Date(reg.lan_hien_gan_nhat).toLocaleDateString('vi-VN')}</div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <h4 style={{
-                      fontSize: 'var(--font-size-md)',
-                      fontWeight: 'var(--font-weight-semibold)',
-                      marginBottom: 'var(--spacing-md)',
-                      color: '#dc2626'
-                    }}>
-                      Ghi chú duyệt
-                    </h4>
-                    {reg.ghi_chu_duyet ? (
-                      <div style={{
-                        padding: 'var(--spacing-md)',
-                        background: 'var(--gray-50)',
-                        borderRadius: 'var(--radius-md)',
-                        borderLeft: '4px solid #dc2626',
-                        fontSize: 'var(--font-size-sm)'
-                      }}>
-                        {reg.ghi_chu_duyet}
-                      </div>
-                    ) : (
-                      <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)' }}>
-                        Chưa có ghi chú duyệt.
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {reg.trang_thai === 'cho_duyet' && (
-                  <div style={{
-                    display: 'flex',
-                    gap: 'var(--spacing-md)',
-                    marginTop: 'var(--spacing-lg)',
-                    paddingTop: 'var(--spacing-lg)',
-                    borderTop: '1px solid var(--gray-200)'
-                  }}>
-                    <button
-                      className="btn btn-success"
-                      onClick={() => openApprovalModal(reg, 'da_duyet')}
-                    >
-                      ✅ Duyệt đăng ký
-                    </button>
-                    <button
-                      className="btn btn-danger"
-                      onClick={() => openApprovalModal(reg, 'tu_choi')}
-                    >
-                      ❌ Từ chối
-                    </button>
-                  </div>
-                )}
-              </div>
+        <div className="card">
+          <div className="card-body" style={{ padding: 0 }}>
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: 'var(--gray-50)', borderBottom: '2px solid var(--gray-200)' }}>
+                    <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>STT</th>
+                    <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Tên</th>
+                    <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Email</th>
+                    <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>SĐT</th>
+                    <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Giới tính</th>
+                    <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Ngày đăng ký</th>
+                    <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Trạng thái</th>
+                    <th style={{ padding: 'var(--spacing-md)', textAlign: 'center', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRegistrations.map((reg, index) => (
+                    <tr key={reg.id_dang_ky} style={{ borderBottom: '1px solid var(--gray-200)' }}>
+                      <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{index + 1}</td>
+                      <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)' }}>{reg.ho_ten}</td>
+                      <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.email}</td>
+                      <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.so_dien_thoai || '-'}</td>
+                      <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.gioi_tinh}</td>
+                      <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{new Date(reg.ngay_dang_ky).toLocaleDateString('vi-VN')}</td>
+                      <td style={{ padding: 'var(--spacing-md)' }}>{getStatusBadge(reg.trang_thai)}</td>
+                      <td style={{ padding: 'var(--spacing-md)', textAlign: 'center' }}>
+                        <button
+                          className="btn btn-outline btn-sm"
+                          onClick={() => openDetailModal(reg)}
+                        >
+                          Xem chi tiết
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          ))}
+          </div>
         </div>
       )}
 
-      {showApprovalModal && selectedRegistration && (
+      {/* Detail Modal */}
+      {showDetailModal && selectedRegistration && (
         <div 
-          onClick={() => setShowApprovalModal(false)}
+          onClick={() => setShowDetailModal(false)}
           style={{
             position: 'fixed',
             top: 0,
@@ -376,7 +396,144 @@ const OrganizationRegistrationList = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000
+            zIndex: 1000,
+            padding: 'var(--spacing-lg)'
+          }}
+        >
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'white',
+              borderRadius: 'var(--radius-lg)',
+              padding: 'var(--spacing-2xl)',
+              maxWidth: '1000px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-xl)' }}>
+              <h2 style={{
+                fontSize: 'var(--font-size-2xl)',
+                fontWeight: 'var(--font-weight-bold)',
+                margin: 0
+              }}>
+                Chi tiết đăng ký - {selectedRegistration.ho_ten}
+              </h2>
+              <button
+                onClick={() => setShowDetailModal(false)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: 'var(--text-secondary)',
+                  padding: 'var(--spacing-xs)',
+                  lineHeight: 1
+                }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Thông tin cơ bản */}
+            <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+              <h3 style={{
+                fontSize: 'var(--font-size-lg)',
+                fontWeight: 'var(--font-weight-semibold)',
+                marginBottom: 'var(--spacing-md)',
+                color: '#dc2626'
+              }}>
+                Thông tin cơ bản
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>
+                <div><strong>Họ tên:</strong> {selectedRegistration.ho_ten}</div>
+                <div><strong>Email:</strong> {selectedRegistration.email}</div>
+                <div><strong>Số điện thoại:</strong> {selectedRegistration.so_dien_thoai || '-'}</div>
+                <div><strong>Giới tính:</strong> {selectedRegistration.gioi_tinh}</div>
+                <div><strong>Ngày đăng ký:</strong> {new Date(selectedRegistration.ngay_dang_ky).toLocaleDateString('vi-VN')}</div>
+                <div><strong>Trạng thái:</strong> {getStatusBadge(selectedRegistration.trang_thai)}</div>
+                <div><strong>Ngày hẹn:</strong> {selectedRegistration.ngay_hen_hien ? new Date(selectedRegistration.ngay_hen_hien).toLocaleDateString('vi-VN') : 'Chưa có'}</div>
+                <div><strong>Khung giờ:</strong> {selectedRegistration.khung_gio || 'Chưa có'}</div>
+                <div><strong>Nhóm máu:</strong> <span className="badge badge-danger">{selectedRegistration.nhom_mau || '?'}</span></div>
+                <div><strong>Đã hiến:</strong> {selectedRegistration.tong_so_lan_hien || 0} lần</div>
+                {selectedRegistration.lan_hien_gan_nhat && (
+                  <div><strong>Lần gần nhất:</strong> {new Date(selectedRegistration.lan_hien_gan_nhat).toLocaleDateString('vi-VN')}</div>
+                )}
+              </div>
+            </div>
+
+            {/* Phiếu khám sàng lọc */}
+            {selectedRegistration.phieu_kham_sang_loc && (
+              <div style={{ marginBottom: 'var(--spacing-xl)' }}>
+                <h3 style={{
+                  fontSize: 'var(--font-size-lg)',
+                  fontWeight: 'var(--font-weight-semibold)',
+                  marginBottom: 'var(--spacing-md)',
+                  color: '#dc2626'
+                }}>
+                  Phiếu khám sàng lọc
+                </h3>
+                {renderPhieuKhamSangLoc(selectedRegistration.phieu_kham_sang_loc)}
+              </div>
+            )}
+
+            {/* Ghi chú duyệt */}
+            {selectedRegistration.ghi_chu_duyet && (
+              <div style={{
+                marginBottom: 'var(--spacing-xl)',
+                padding: 'var(--spacing-md)',
+                background: 'var(--gray-50)',
+                borderRadius: 'var(--radius-md)',
+                borderLeft: '4px solid #dc2626'
+              }}>
+                <strong>Ghi chú duyệt:</strong> {selectedRegistration.ghi_chu_duyet}
+              </div>
+            )}
+
+            {/* Actions */}
+            {selectedRegistration.trang_thai === 'cho_duyet' && (
+              <div style={{
+                display: 'flex',
+                gap: 'var(--spacing-md)',
+                paddingTop: 'var(--spacing-lg)',
+                borderTop: '1px solid var(--gray-200)',
+                justifyContent: 'flex-end'
+              }}>
+                <button
+                  className="btn btn-success"
+                  onClick={() => openApprovalModal(selectedRegistration, 'da_duyet')}
+                >
+                  ✅ Duyệt đăng ký
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => openApprovalModal(selectedRegistration, 'tu_choi')}
+                >
+                  ❌ Từ chối
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Approval Modal - Đè lên Detail Modal */}
+      {showApprovalModal && selectedRegistration && (
+        <div 
+          onClick={() => setShowApprovalModal(false)}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0,0,0,0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2000,
+            padding: 'var(--spacing-lg)'
           }}
         >
           <div 
