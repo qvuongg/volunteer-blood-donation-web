@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import HomeHeader from '../components/HomeHeader';
 import HomeFooter from '../components/HomeFooter';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 
 const Register = () => {
   const [step, setStep] = useState(1); // 1: Select Role, 2: Form, 3: OTP, 4: Complete
@@ -26,13 +27,25 @@ const Register = () => {
     ten_nhom: '', // For nhom_tinh_nguyen
     dia_chi_nhom: '' // For nhom_tinh_nguyen
   });
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [language, setLanguage] = useState('vi');
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const toast = useToast();
+
+  // Auto focus first OTP input when step 3 is active
+  useEffect(() => {
+    if (step === 3) {
+      const timer = setTimeout(() => {
+        const firstInput = document.getElementById('otp-0');
+        if (firstInput) firstInput.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [step]);
 
   const handleFindDrive = () => {
     const q = searchQuery.trim();
@@ -82,7 +95,13 @@ const Register = () => {
       
       if (response.data.success) {
         setStep(3);
-        alert('Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.');
+        setOtp(['', '', '', '', '', '']);
+        // Focus first input after a short delay
+        setTimeout(() => {
+          const firstInput = document.getElementById('otp-0');
+          if (firstInput) firstInput.focus();
+        }, 100);
+        toast.success('Mã OTP đã được gửi đến email của bạn. Vui lòng kiểm tra hộp thư.');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Đã xảy ra lỗi khi gửi OTP.');
@@ -91,16 +110,69 @@ const Register = () => {
     }
   };
 
+  // Step 3: Handle OTP input
+  const handleOtpChange = (index, value) => {
+    // Only allow numbers
+    if (value && !/^\d$/.test(value)) return;
+    
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    setError('');
+
+    // Auto focus next input
+    if (value && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    // Handle backspace
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+    // Handle arrow keys
+    if (e.key === 'ArrowLeft' && index > 0) {
+      const prevInput = document.getElementById(`otp-${index - 1}`);
+      if (prevInput) prevInput.focus();
+    }
+    if (e.key === 'ArrowRight' && index < 5) {
+      const nextInput = document.getElementById(`otp-${index + 1}`);
+      if (nextInput) nextInput.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').trim();
+    if (/^\d{6}$/.test(pastedData)) {
+      const newOtp = pastedData.split('').slice(0, 6);
+      setOtp([...newOtp, ...Array(6 - newOtp.length).fill('')].slice(0, 6));
+      setError('');
+      // Focus last input
+      const lastInput = document.getElementById(`otp-${Math.min(newOtp.length - 1, 5)}`);
+      if (lastInput) lastInput.focus();
+    }
+  };
+
   // Step 3: Verify OTP
   const handleVerifyOTP = async (e) => {
     e.preventDefault();
+    const otpString = otp.join('');
+    if (otpString.length !== 6) {
+      setError('Vui lòng nhập đủ 6 số OTP');
+      return;
+    }
+
     setError('');
     setLoading(true);
 
     try {
       const response = await api.post('/auth/verify-registration-otp', {
         email: formData.email,
-        otp
+        otp: otpString
       });
       
       if (response.data.success) {
@@ -142,7 +214,13 @@ const Register = () => {
       await api.post('/auth/send-registration-otp', {
         email: formData.email
       });
-      alert('Mã OTP mới đã được gửi đến email của bạn.');
+      setOtp(['', '', '', '', '', '']);
+      // Focus first input
+      setTimeout(() => {
+        const firstInput = document.getElementById('otp-0');
+        if (firstInput) firstInput.focus();
+      }, 100);
+      toast.success('Mã OTP mới đã được gửi đến email của bạn.');
     } catch (err) {
       setError(err.response?.data?.message || 'Đã xảy ra lỗi khi gửi lại OTP.');
     } finally {
@@ -197,7 +275,7 @@ const Register = () => {
         <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="currentColor">
+            <svg width="32" height="32" viewBox="0 0 32 16" fill="currentColor">
               <path d="M16 2C16 2 8 10 8 16C8 20.4183 11.5817 24 16 24C20.4183 24 24 20.4183 24 16C24 10 16 2 16 2Z" />
             </svg>
           </div>
@@ -240,22 +318,22 @@ const Register = () => {
         {/* Step 1: Select Role */}
         {step === 1 && (
           <div className="auth-form">
-            <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-xl)' }}>
-              <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-lg)', marginBottom: 'var(--spacing-lg)' }}>
+            <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-md)' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-md)', marginBottom: 'var(--spacing-xs)' }}>
                 Bạn là:
               </p>
             </div>
             
-            <div style={{ display: 'grid', gap: 'var(--spacing-md)', marginBottom: 'var(--spacing-xl)' }}>
+            <div style={{ display: 'grid', gap: 'var(--spacing-xs)', marginBottom: 'var(--spacing-md)' }}>
               <button
                 type="button"
                 onClick={() => handleSelectRole(1)}
                 className="btn"
                 style={{
-                  padding: 'var(--spacing-lg)',
+                  padding: 'var(--spacing-md)',
                   textAlign: 'left',
                   border: '2px solid var(--gray-300)',
-                  borderRadius: 'var(--radius-lg)',
+                  borderRadius: 'var(--radius-md)',
                   background: 'white',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
@@ -269,13 +347,13 @@ const Register = () => {
                   e.currentTarget.style.background = 'white';
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-                  <div style={{ fontSize: '32px' }}>🩸</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                  <div style={{ fontSize: '28px' }}>🩸</div>
                   <div>
-                    <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-lg)', color: 'var(--text-primary)' }}>
+                    <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-md)', color: 'var(--text-primary)' }}>
                       Người hiến máu
                     </div>
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)', marginTop: '2px' }}>
                       Đăng ký tham gia hiến máu tình nguyện
                     </div>
                   </div>
@@ -287,10 +365,10 @@ const Register = () => {
                 onClick={() => handleSelectRole(2)}
                 className="btn"
                 style={{
-                  padding: 'var(--spacing-lg)',
+                  padding: 'var(--spacing-md)',
                   textAlign: 'left',
                   border: '2px solid var(--gray-300)',
-                  borderRadius: 'var(--radius-lg)',
+                  borderRadius: 'var(--radius-md)',
                   background: 'white',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
@@ -304,13 +382,13 @@ const Register = () => {
                   e.currentTarget.style.background = 'white';
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-                  <div style={{ fontSize: '32px' }}>🏢</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                  <div style={{ fontSize: '28px' }}>🏢</div>
                   <div>
-                    <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-lg)', color: 'var(--text-primary)' }}>
+                    <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-md)', color: 'var(--text-primary)' }}>
                       Người phụ trách tổ chức
                     </div>
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)', marginTop: '2px' }}>
                       Tổ chức sự kiện hiến máu
                     </div>
                   </div>
@@ -322,10 +400,10 @@ const Register = () => {
                 onClick={() => handleSelectRole(3)}
                 className="btn"
                 style={{
-                  padding: 'var(--spacing-lg)',
+                  padding: 'var(--spacing-md)',
                   textAlign: 'left',
                   border: '2px solid var(--gray-300)',
-                  borderRadius: 'var(--radius-lg)',
+                  borderRadius: 'var(--radius-md)',
                   background: 'white',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
@@ -339,13 +417,13 @@ const Register = () => {
                   e.currentTarget.style.background = 'white';
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-                  <div style={{ fontSize: '32px' }}>🏥</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                  <div style={{ fontSize: '28px' }}>🏥</div>
                   <div>
-                    <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-lg)', color: 'var(--text-primary)' }}>
+                    <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-md)', color: 'var(--text-primary)' }}>
                       Người phụ trách bệnh viện
                     </div>
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)', marginTop: '2px' }}>
                       Quản lý và duyệt sự kiện hiến máu
                     </div>
                   </div>
@@ -357,10 +435,10 @@ const Register = () => {
                 onClick={() => handleSelectRole(4)}
                 className="btn"
                 style={{
-                  padding: 'var(--spacing-lg)',
+                  padding: 'var(--spacing-md)',
                   textAlign: 'left',
                   border: '2px solid var(--gray-300)',
-                  borderRadius: 'var(--radius-lg)',
+                  borderRadius: 'var(--radius-md)',
                   background: 'white',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
@@ -374,13 +452,13 @@ const Register = () => {
                   e.currentTarget.style.background = 'white';
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-                  <div style={{ fontSize: '32px' }}>👥</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-xs)' }}>
+                  <div style={{ fontSize: '28px' }}>👥</div>
                   <div>
-                    <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-lg)', color: 'var(--text-primary)' }}>
+                    <div style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-md)', color: 'var(--text-primary)' }}>
                       Nhóm tình nguyện
                     </div>
-                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                    <div style={{ fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)', marginTop: '2px' }}>
                       Chia sẻ thông báo và kêu gọi hiến máu
                     </div>
                   </div>
@@ -388,7 +466,7 @@ const Register = () => {
               </button>
             </div>
 
-            <div className="auth-footer">
+            <div className="auth-footer" style={{ marginTop: 'var(--spacing-md)' }}>
               <span>Đã có tài khoản?</span>
               <Link to="/login" className="auth-link">Đăng nhập ngay</Link>
             </div>
@@ -638,63 +716,154 @@ const Register = () => {
         {step === 3 && (
           <form onSubmit={handleVerifyOTP} className="auth-form">
             <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-xl)' }}>
-              <div style={{ fontSize: '48px', marginBottom: 'var(--spacing-md)' }}>📧</div>
-              <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-sm)' }}>
+              <div style={{ 
+                fontSize: '64px', 
+                padding: 'var(--spacing-lg)',
+                background: 'var(--primary-50)',
+                borderRadius: '50%',
+                width: '120px',
+                height: '120px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto var(--spacing-md)'
+              }}>
+                📧
+              </div>
+              <h3 style={{ 
+                color: 'var(--text-primary)', 
+                marginBottom: 'var(--spacing-sm)',
+                fontSize: 'var(--font-size-lg)',
+                fontWeight: 'var(--font-weight-bold)'
+              }}>
+                Xác thực email
+              </h3>
+              <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-xs)' }}>
                 Chúng tôi đã gửi mã xác thực đến
               </p>
-              <p style={{ fontWeight: 'var(--font-weight-bold)', color: 'var(--primary-600)' }}>
+              <p style={{ 
+                fontWeight: 'var(--font-weight-bold)', 
+                color: 'var(--primary-600)',
+                fontSize: 'var(--font-size-md)',
+                wordBreak: 'break-word'
+              }}>
                 {formData.email}
               </p>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="otp" className="form-label">Mã OTP *</label>
-              <input
-                type="text"
-                id="otp"
-                value={otp}
-                onChange={(e) => {
-                  setOtp(e.target.value);
-                  setError('');
-                }}
-                required
-                maxLength="6"
-                className="form-input"
-                placeholder="Nhập mã 6 số"
-                style={{ textAlign: 'center', fontSize: '24px', letterSpacing: '8px' }}
-              />
+            <div className="form-group" style={{ marginBottom: 'var(--spacing-lg)' }}>
+              <label className="form-label" style={{ textAlign: 'center', display: 'block', marginBottom: 'var(--spacing-md)' }}>
+                Nhập mã OTP (6 số)
+              </label>
+              <div style={{ 
+                display: 'flex', 
+                gap: 'var(--spacing-sm)', 
+                justifyContent: 'center',
+                marginBottom: 'var(--spacing-md)',
+                flexWrap: 'wrap'
+              }}>
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    id={`otp-${index}`}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength="1"
+                    value={digit}
+                    onChange={(e) => handleOtpChange(index, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                    onPaste={handleOtpPaste}
+                    className="form-input"
+                    style={{
+                      width: '56px',
+                      height: '64px',
+                      textAlign: 'center',
+                      fontSize: '28px',
+                      fontWeight: 'var(--font-weight-bold)',
+                      padding: 0,
+                      border: `2px solid ${digit ? 'var(--primary-600)' : 'var(--gray-300)'}`,
+                      borderRadius: 'var(--radius-md)',
+                      background: digit ? 'var(--primary-50)' : 'white',
+                      transition: 'all 0.2s ease',
+                      outline: 'none',
+                      color: 'var(--text-primary)',
+                      cursor: 'text'
+                    }}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = 'var(--primary-600)';
+                      e.target.style.boxShadow = '0 0 0 3px var(--primary-100)';
+                      e.target.style.transform = 'scale(1.05)';
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.boxShadow = 'none';
+                      e.target.style.transform = 'scale(1)';
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!e.target.value) {
+                        e.target.style.borderColor = 'var(--primary-400)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!e.target.value && document.activeElement !== e.target) {
+                        e.target.style.borderColor = 'var(--gray-300)';
+                      }
+                    }}
+                  />
+                ))}
+              </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading || otp.length !== 6}
-              className="btn btn-primary btn-block"
-            >
-              {loading ? <LoadingSpinner size="small" /> : 'Xác nhận'}
-            </button>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 'var(--spacing-md)' }}>
+              <button
+                type="submit"
+                disabled={loading || otp.join('').length !== 6}
+                className="btn btn-primary"
+                style={{
+                  padding: 'var(--spacing-md)',
+                  fontSize: 'var(--font-size-md)',
+                  fontWeight: 'var(--font-weight-medium)',
+                  minWidth: '200px'
+                }}
+              >
+                {loading ? <LoadingSpinner size="small" /> : 'Xác nhận'}
+              </button>
+            </div>
 
-            <div style={{ textAlign: 'center', marginTop: 'var(--spacing-md)' }}>
+            <div style={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 'var(--spacing-sm)',
+              marginTop: 'var(--spacing-lg)'
+            }}>
               <button
                 type="button"
                 onClick={handleResendOTP}
                 disabled={loading}
                 className="btn btn-link"
-                style={{ fontSize: 'var(--font-size-sm)' }}
+                style={{ 
+                  fontSize: 'var(--font-size-sm)',
+                  color: 'var(--primary-600)',
+                  textDecoration: 'none'
+                }}
               >
                 Gửi lại mã OTP
               </button>
-            </div>
-
-            <div style={{ textAlign: 'center', marginTop: 'var(--spacing-md)' }}>
               <button
                 type="button"
-                onClick={() => setStep(2)}
+                onClick={() => {
+                  setStep(2);
+                  setOtp(['', '', '', '', '', '']);
+                }}
                 className="btn btn-link"
-                style={{ fontSize: 'var(--font-size-sm)' }}
+                style={{ 
+                  fontSize: 'var(--font-size-sm)',
+                  color: 'var(--text-secondary)'
+                }}
               >
                 ← Quay lại
               </button>
-        </div>
+            </div>
           </form>
         )}
 

@@ -447,11 +447,7 @@ const SearchEvents = () => {
                   <div
                     key={event.id_su_kien}
                     onClick={() => {
-                      if (user && user.ten_vai_tro === 'nguoi_hien') {
-                        navigate(`/donor/events/${event.id_su_kien}`);
-                      } else {
-                        navigate(`/login?returnUrl=/donor/events/${event.id_su_kien}`);
-                      }
+                      navigate(`/events/${event.id_su_kien}`);
                     }}
                     style={{
                       background: 'white',

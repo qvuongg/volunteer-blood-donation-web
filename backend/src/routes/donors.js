@@ -3,6 +3,7 @@ import { authenticate, authorize } from '../middleware/auth.js';
 import {
   getProfile,
   updateProfile,
+  changePassword,
   getBloodInfo,
   updateBloodInfo,
   getHistory
@@ -16,6 +17,7 @@ router.use(authenticate);
 // Profile routes
 router.get('/profile', authorize('nguoi_hien'), getProfile);
 router.put('/profile', authorize('nguoi_hien'), updateProfile);
+router.post('/change-password', authorize('nguoi_hien'), changePassword);
 
 // Blood info routes
 router.get('/blood-info', authorize('nguoi_hien'), getBloodInfo);

@@ -219,7 +219,7 @@ const AdminProfile = () => {
                 className="btn btn-primary"
                 onClick={() => setEditing(true)}
               >
-                Chỉnh sửa
+                Cập nhật
               </button>
             </div>
           </div>
@@ -230,6 +230,7 @@ const AdminProfile = () => {
 };
 
 export default AdminProfile;
+
 
 
 

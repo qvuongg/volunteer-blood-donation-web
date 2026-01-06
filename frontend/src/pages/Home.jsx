@@ -596,7 +596,7 @@ const Home = () => {
                         transition: 'all 0.3s ease',
                         boxShadow: '0 4px 16px rgba(0,0,0,0.08)'
                       }}
-                      onClick={() => navigate(`/donor/events/${event.id_su_kien}`)}
+                      onClick={() => navigate(`/events/${event.id_su_kien}`)}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.borderColor = '#dc2626';
                         e.currentTarget.style.transform = 'translateY(-4px)';

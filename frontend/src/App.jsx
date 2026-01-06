@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import PublicEvents from './pages/PublicEvents';
+import PublicEventDetail from './pages/PublicEventDetail';
 import SearchEvents from './pages/SearchEvents';
 import ProtectedRoute from './components/ProtectedRoute';
 import DonorDashboard from './pages/donor/Dashboard';
@@ -57,6 +58,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/events" element={<PublicEvents />} />
+          <Route path="/events/:id" element={<PublicEventDetail />} />
           <Route path="/search" element={<SearchEvents />} />
           
           {/* Notifications route - accessible by all logged-in users */}

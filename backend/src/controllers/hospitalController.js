@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import bcrypt from 'bcrypt';
 import { createNotification } from './notificationController.js';
 import { 
   sendBloodTypeConfirmationEmail, 
@@ -1195,6 +1196,66 @@ export const updateProfile = async (req, res, next) => {
           dia_chi: coordinator[0].dia_chi
         } : null
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Change password
+export const changePassword = async (req, res, next) => {
+  try {
+    const userId = req.user.id_nguoi_dung;
+    const { mat_khau_cu, mat_khau_moi } = req.body;
+
+    if (!mat_khau_cu || !mat_khau_moi) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng nhập đầy đủ thông tin.'
+      });
+    }
+
+    if (mat_khau_moi.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Mật khẩu mới phải có ít nhất 6 ký tự.'
+      });
+    }
+
+    // Get current password
+    const [users] = await pool.execute(
+      'SELECT mat_khau FROM nguoidung WHERE id_nguoi_dung = ?',
+      [userId]
+    );
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Người dùng không tồn tại.'
+      });
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(mat_khau_cu, users[0].mat_khau);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Mật khẩu hiện tại không đúng.'
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(mat_khau_moi, 10);
+
+    // Update password
+    await pool.execute(
+      'UPDATE nguoidung SET mat_khau = ? WHERE id_nguoi_dung = ?',
+      [hashedPassword, userId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Đổi mật khẩu thành công.'
     });
   } catch (error) {
     next(error);

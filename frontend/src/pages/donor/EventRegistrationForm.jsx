@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
 
 const EventRegistrationForm = () => {
@@ -10,6 +11,50 @@ const EventRegistrationForm = () => {
   const { user } = useAuth();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
+  const [loadingEvent, setLoadingEvent] = useState(true);
+  const [event, setEvent] = useState(null);
+  const [validationError, setValidationError] = useState('');
+  
+  // Refs for scrolling to questions
+  const questionRefs = {
+    q1: useRef(null),
+    q2: useRef(null),
+    q3: useRef(null),
+    q4: useRef(null),
+    q5: useRef(null),
+    q6: useRef(null),
+    q7: useRef(null),
+    q8: useRef(null),
+    basicInfo: useRef(null)
+  };
+
+  useEffect(() => {
+    fetchEvent();
+  }, [eventId]);
+
+  const fetchEvent = async () => {
+    try {
+      const response = await api.get(`/events/${eventId}`);
+      if (response.data.success) {
+        setEvent(response.data.data.event);
+      }
+    } catch (error) {
+      console.error('Error fetching event:', error);
+      toast?.error('Không thể tải thông tin sự kiện');
+    } finally {
+      setLoadingEvent(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
 
   const [formData, setFormData] = useState({
     // Thông tin cơ bản
@@ -55,6 +100,11 @@ const EventRegistrationForm = () => {
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     
+    // Clear validation error when user starts typing/selecting
+    if (validationError) {
+      setValidationError('');
+    }
+    
     if (type === 'checkbox') {
       const currentArray = formData[name] || [];
       if (checked) {
@@ -67,12 +117,90 @@ const EventRegistrationForm = () => {
     }
   };
 
+  const validateForm = () => {
+    setValidationError('');
+    
+    // Validate basic info
+    if (!formData.ngay_hien || !formData.khung_gio) {
+      setValidationError('Không được điền thiếu dữ liệu');
+      questionRefs.basicInfo.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    
+    // Validate Q1
+    if (!formData.q1_hien_mau_chua) {
+      setValidationError('Không được điền thiếu dữ liệu');
+      questionRefs.q1.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    
+    // Validate Q2
+    if (!formData.q2_mac_benh) {
+      setValidationError('Không được điền thiếu dữ liệu');
+      questionRefs.q2.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    if (formData.q2_mac_benh === 'co' && !formData.q2_benh_gi?.trim()) {
+      setValidationError('Không được điền thiếu dữ liệu');
+      questionRefs.q2.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    
+    // Validate Q3
+    if (!formData.q3_benh_ly_truoc) {
+      setValidationError('Không được điền thiếu dữ liệu');
+      questionRefs.q3.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    
+    // Validate Q4 - must have at least one checkbox selected
+    if (!formData.q4_12_thang || formData.q4_12_thang.length === 0) {
+      setValidationError('Không được điền thiếu dữ liệu');
+      questionRefs.q4.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    if (formData.q4_12_thang.includes('Tiêm Vacxin?') && !formData.q4_vacxin?.trim()) {
+      setValidationError('Không được điền thiếu dữ liệu');
+      questionRefs.q4.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    
+    // Validate Q5 - must have at least one checkbox selected
+    if (!formData.q5_6_thang || formData.q5_6_thang.length === 0) {
+      setValidationError('Không được điền thiếu dữ liệu');
+      questionRefs.q5.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    
+    // Validate Q6 - must have at least one checkbox selected
+    if (!formData.q6_1_thang || formData.q6_1_thang.length === 0) {
+      setValidationError('Không được điền thiếu dữ liệu');
+      questionRefs.q6.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    
+    // Validate Q7
+    if (!formData.q7_14_ngay) {
+      setValidationError('Không được điền thiếu dữ liệu');
+      questionRefs.q7.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    
+    // Validate Q8
+    if (!formData.q8_7_ngay) {
+      setValidationError('Không được điền thiếu dữ liệu');
+      questionRefs.q8.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validation
-    if (!formData.ngay_hien || !formData.khung_gio) {
-      toast.error('Vui lòng chọn ngày và khung giờ hiến máu');
+    // Validate all fields
+    if (!validateForm()) {
       return;
     }
 
@@ -130,35 +258,221 @@ const EventRegistrationForm = () => {
     }
   };
 
+  if (loadingEvent) {
+    return (
+      <div style={{ padding: 'var(--spacing-3xl)', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
   return (
-    <div style={{ padding: 'var(--spacing-3xl)', maxWidth: '900px', margin: '0 auto' }}>
-      <div style={{ 
-        background: 'white', 
-        borderRadius: 'var(--radius-lg)', 
-        padding: 'var(--spacing-3xl)',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.08)'
-      }}>
+    <div style={{ padding: 'var(--spacing-2xl)', maxWidth: '1400px', margin: '0 auto' }}>
+      {/* Header with back button */}
+      <div style={{ marginBottom: 'var(--spacing-xl)', display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 'var(--spacing-xs)',
+            padding: 'var(--spacing-sm) var(--spacing-md)',
+            background: 'white',
+            border: '1px solid var(--gray-300)',
+            borderRadius: 'var(--radius-md)',
+            cursor: 'pointer',
+            fontSize: 'var(--font-size-base)',
+            color: 'var(--text-primary)',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'var(--gray-50)';
+            e.currentTarget.style.borderColor = 'var(--gray-400)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'white';
+            e.currentTarget.style.borderColor = 'var(--gray-300)';
+          }}
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 15l-5-5 5-5"/>
+          </svg>
+          Quay lại
+        </button>
         <h1 style={{ 
-          fontSize: 'var(--font-size-3xl)', 
+          fontSize: 'var(--font-size-2xl)', 
           fontWeight: 'var(--font-weight-bold)', 
           color: '#dc2626',
-          marginBottom: 'var(--spacing-md)',
-          textAlign: 'center'
+          margin: 0
         }}>
           Đăng Ký Hiến Máu
         </h1>
-        <p style={{ textAlign: 'center', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-3xl)' }}>
-          Vui lòng điền đầy đủ thông tin để đăng ký tham gia hiến máu
-        </p>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '400px 1fr', gap: 'var(--spacing-2xl)' }}>
+        {/* Left Sidebar - Event Information */}
+        <div style={{ 
+          position: 'sticky',
+          top: 'var(--spacing-xl)',
+          height: 'fit-content',
+          background: 'white',
+          borderRadius: 'var(--radius-lg)',
+          padding: 'var(--spacing-2xl)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+          border: '1px solid var(--gray-200)'
+        }}>
+          {event ? (
+            <>
+              <div style={{
+                background: 'linear-gradient(135deg, #FEE2E2 0%, #FCA5A5 100%)',
+                borderRadius: 'var(--radius-md)',
+                padding: 'var(--spacing-lg)',
+                marginBottom: 'var(--spacing-xl)',
+                textAlign: 'center'
+              }}>
+                <h2 style={{ 
+                  fontSize: 'var(--font-size-xl)', 
+                  fontWeight: 'var(--font-weight-bold)',
+                  color: '#111827',
+                  margin: '0 0 var(--spacing-sm) 0'
+                }}>
+                  {event.ten_su_kien}
+                </h2>
+                <div style={{ 
+                  fontSize: 'var(--font-size-sm)', 
+                  color: '#6B7280',
+                  marginTop: 'var(--spacing-xs)'
+                }}>
+                  Sự kiện hiến máu
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+                <div>
+                  <label style={{ 
+                    fontSize: 'var(--font-size-sm)', 
+                    color: 'var(--text-secondary)', 
+                    display: 'block', 
+                    marginBottom: 'var(--spacing-xs)',
+                    fontWeight: 'var(--font-weight-medium)'
+                  }}>
+                    Tổ chức
+                  </label>
+                  <p style={{ margin: 0, fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-base)' }}>
+                    {event.ten_don_vi}
+                  </p>
+                </div>
+
+                <div>
+                  <label style={{ 
+                    fontSize: 'var(--font-size-sm)', 
+                    color: 'var(--text-secondary)', 
+                    display: 'block', 
+                    marginBottom: 'var(--spacing-xs)',
+                    fontWeight: 'var(--font-weight-medium)'
+                  }}>
+                    Bệnh viện
+                  </label>
+                  <p style={{ margin: 0, fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-base)' }}>
+                    {event.ten_benh_vien}
+                  </p>
+                </div>
+
+                <div>
+                  <label style={{ 
+                    fontSize: 'var(--font-size-sm)', 
+                    color: 'var(--text-secondary)', 
+                    display: 'block', 
+                    marginBottom: 'var(--spacing-xs)',
+                    fontWeight: 'var(--font-weight-medium)'
+                  }}>
+                    Thời gian
+                  </label>
+                  <p style={{ margin: 0, fontSize: 'var(--font-size-sm)' }}>
+                    <strong>Bắt đầu:</strong> {formatDate(event.ngay_bat_dau)}
+                  </p>
+                  <p style={{ margin: 'var(--spacing-xs) 0 0', fontSize: 'var(--font-size-sm)' }}>
+                    <strong>Kết thúc:</strong> {formatDate(event.ngay_ket_thuc)}
+                  </p>
+                </div>
+
+                <div>
+                  <label style={{ 
+                    fontSize: 'var(--font-size-sm)', 
+                    color: 'var(--text-secondary)', 
+                    display: 'block', 
+                    marginBottom: 'var(--spacing-xs)',
+                    fontWeight: 'var(--font-weight-medium)'
+                  }}>
+                    Địa điểm
+                  </label>
+                  <p style={{ margin: 0, fontSize: 'var(--font-size-sm)' }}>
+                    {event.ten_dia_diem || 'Chưa cập nhật'}
+                  </p>
+                  {event.dia_chi && (
+                    <p style={{ margin: 'var(--spacing-xs) 0 0', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                      {event.dia_chi}
+                    </p>
+                  )}
+                </div>
+
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: 'var(--spacing-md)',
+                  background: 'var(--gray-50)',
+                  borderRadius: 'var(--radius-md)',
+                  marginTop: 'var(--spacing-sm)'
+                }}>
+                  <div>
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                      Số lượng dự kiến
+                    </div>
+                    <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: '#dc2626' }}>
+                      {event.so_luong_du_kien || 0} người
+                    </div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                      Đã đăng ký
+                    </div>
+                    <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: '#059669' }}>
+                      {event.so_luong_dang_ky || 0} người
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: 'var(--text-secondary)' }}>
+              Không thể tải thông tin sự kiện
+            </div>
+          )}
+        </div>
+
+        {/* Right Side - Registration Form */}
+        <div style={{ 
+          background: 'white', 
+          borderRadius: 'var(--radius-lg)', 
+          padding: 'var(--spacing-3xl)',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+          border: '1px solid var(--gray-200)'
+        }}>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-2xl)', fontSize: 'var(--font-size-base)' }}>
+            Vui lòng điền đầy đủ thông tin để đăng ký tham gia hiến máu
+          </p>
 
         <form onSubmit={handleSubmit}>
           {/* Thông tin cơ bản */}
-          <div style={{ 
-            background: 'var(--gray-50)', 
-            padding: 'var(--spacing-2xl)', 
-            borderRadius: 'var(--radius-md)',
-            marginBottom: 'var(--spacing-3xl)'
-          }}>
+          <div 
+            ref={questionRefs.basicInfo}
+            style={{ 
+              background: 'var(--gray-50)', 
+              padding: 'var(--spacing-2xl)', 
+              borderRadius: 'var(--radius-md)',
+              marginBottom: 'var(--spacing-3xl)'
+            }}
+          >
             <h3 style={{ 
               fontSize: 'var(--font-size-xl)', 
               fontWeight: 'var(--font-weight-bold)',
@@ -221,7 +535,7 @@ const EventRegistrationForm = () => {
             </h2>
 
             {/* Câu hỏi 1 */}
-            <div className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
+            <div ref={questionRefs.q1} className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
               <label style={{ 
                 display: 'block', 
                 fontWeight: 'var(--font-weight-semibold)', 
@@ -257,7 +571,7 @@ const EventRegistrationForm = () => {
             </div>
 
             {/* Câu hỏi 2 */}
-            <div className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
+            <div ref={questionRefs.q2} className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
               <label style={{ 
                 display: 'block', 
                 fontWeight: 'var(--font-weight-semibold)', 
@@ -304,7 +618,7 @@ const EventRegistrationForm = () => {
             </div>
 
             {/* Câu hỏi 3 */}
-            <div className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
+            <div ref={questionRefs.q3} className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
               <label style={{ 
                 display: 'block', 
                 fontWeight: 'var(--font-weight-semibold)', 
@@ -353,7 +667,7 @@ const EventRegistrationForm = () => {
             </div>
 
             {/* Câu hỏi 4 */}
-            <div className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
+            <div ref={questionRefs.q4} className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
               <label style={{ 
                 display: 'block', 
                 fontWeight: 'var(--font-weight-semibold)', 
@@ -405,7 +719,7 @@ const EventRegistrationForm = () => {
             </div>
 
             {/* Câu hỏi 5 */}
-            <div className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
+            <div ref={questionRefs.q5} className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
               <label style={{ 
                 display: 'block', 
                 fontWeight: 'var(--font-weight-semibold)', 
@@ -453,7 +767,7 @@ const EventRegistrationForm = () => {
             </div>
 
             {/* Câu hỏi 6 */}
-            <div className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
+            <div ref={questionRefs.q6} className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
               <label style={{ 
                 display: 'block', 
                 fontWeight: 'var(--font-weight-semibold)', 
@@ -493,7 +807,7 @@ const EventRegistrationForm = () => {
             </div>
 
             {/* Câu hỏi 7 */}
-            <div className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
+            <div ref={questionRefs.q7} className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
               <label style={{ 
                 display: 'block', 
                 fontWeight: 'var(--font-weight-semibold)', 
@@ -543,7 +857,7 @@ const EventRegistrationForm = () => {
             </div>
 
             {/* Câu hỏi 8 */}
-            <div className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
+            <div ref={questionRefs.q8} className="form-group" style={{ marginBottom: 'var(--spacing-2xl)' }}>
               <label style={{ 
                 display: 'block', 
                 fontWeight: 'var(--font-weight-semibold)', 
@@ -593,11 +907,32 @@ const EventRegistrationForm = () => {
             </div>
           </div>
 
+          {/* Validation Error Message */}
+          {validationError && (
+            <div style={{
+              background: '#FEE2E2',
+              border: '1px solid #FCA5A5',
+              borderRadius: 'var(--radius-md)',
+              padding: 'var(--spacing-md)',
+              marginTop: 'var(--spacing-xl)',
+              textAlign: 'center'
+            }}>
+              <p style={{ 
+                margin: 0, 
+                color: '#DC2626', 
+                fontWeight: 'var(--font-weight-semibold)',
+                fontSize: 'var(--font-size-base)'
+              }}>
+                {validationError}
+              </p>
+            </div>
+          )}
+
           {/* Buttons */}
           <div style={{ 
             display: 'flex', 
             gap: 'var(--spacing-md)', 
-            justifyContent: 'center',
+            justifyContent: 'flex-end',
             marginTop: 'var(--spacing-3xl)',
             paddingTop: 'var(--spacing-2xl)',
             borderTop: '1px solid var(--gray-200)'
@@ -605,7 +940,7 @@ const EventRegistrationForm = () => {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="btn btn-ghost"
+              className="btn btn-outline"
               style={{ minWidth: '150px' }}
             >
               Hủy bỏ
@@ -616,10 +951,18 @@ const EventRegistrationForm = () => {
               className="btn btn-primary"
               style={{ minWidth: '150px' }}
             >
-              {loading ? 'Đang xử lý...' : 'Đăng ký hiến máu'}
+              {loading ? (
+                <>
+                  <LoadingSpinner size="small" />
+                  Đang xử lý...
+                </>
+              ) : (
+                'Đăng ký hiến máu'
+              )}
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   );

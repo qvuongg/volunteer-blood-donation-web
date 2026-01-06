@@ -9,7 +9,8 @@ import {
   getEventRegistrations,
   getStats,
   getProfile,
-  updateProfile
+  updateProfile,
+  changePassword
 } from '../controllers/organizationController.js';
 import pool from '../config/database.js';
 
@@ -23,6 +24,7 @@ router.use(authorize('to_chuc'));
 router.get('/stats', getStats);
 router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
+router.post('/change-password', changePassword);
 
 // Get hospitals list for event creation
 router.get('/hospitals', async (req, res, next) => {

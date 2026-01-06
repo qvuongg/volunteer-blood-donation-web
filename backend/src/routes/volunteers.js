@@ -4,7 +4,8 @@ import {
   getNotifications, 
   markAsRead, 
   getProfile, 
-  updateProfile 
+  updateProfile,
+  changePassword
 } from '../controllers/volunteerController.js';
 
 const router = express.Router();
@@ -16,6 +17,7 @@ router.get('/notifications', getNotifications);
 router.put('/notifications/:id/read', markAsRead);
 router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
+router.post('/change-password', changePassword);
 
 export default router;
 

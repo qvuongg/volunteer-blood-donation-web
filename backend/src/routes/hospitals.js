@@ -13,7 +13,8 @@ import {
   getAllBloodTypes,
   confirmBloodType,
   getStats,
-  updateProfile
+  updateProfile,
+  changePassword
 } from '../controllers/hospitalController.js';
 
 const router = express.Router();
@@ -40,6 +41,7 @@ router.post('/blood-types/confirm', confirmBloodType);
 
 // Profile routes
 router.put('/profile', updateProfile);
+router.post('/change-password', changePassword);
 
 export default router;
 
