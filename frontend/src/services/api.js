@@ -29,11 +29,21 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    const status = error.response?.status;
+    const requestUrl = error.config?.url || '';
+
+    if (status === 401) {
+      const isLoginRequest = requestUrl.includes('/auth/login');
+      const isOnLoginPage = window.location.pathname === '/login';
+
+      // Với lỗi đăng nhập sai mật khẩu (401 từ /auth/login),
+      // không redirect, để form tự hiển thị lỗi và giữ dữ liệu.
+      if (!isLoginRequest && !isOnLoginPage) {
+        // Token hết hạn / không hợp lệ
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }

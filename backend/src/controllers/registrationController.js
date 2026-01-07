@@ -394,6 +394,8 @@ export const updateRegistrationStatus = async (req, res, next) => {
     // Get donor and event info before updating (for email and notification)
     const [donorInfo] = await pool.execute(
       `SELECT 
+        dk.id_dang_ky,
+        nhm.id_nguoi_hien,
         nd.id_nguoi_dung,
         nd.ho_ten,
         nd.email,
@@ -433,12 +435,21 @@ export const updateRegistrationStatus = async (req, res, next) => {
       };
       
       // Send email asynchronously (don't wait for it)
+      const qrData = trang_thai === 'da_duyet' ? {
+        id_dang_ky: donor.id_dang_ky,
+        id_nguoi_hien: donor.id_nguoi_hien,
+        id_su_kien: donor.id_su_kien,
+        ho_ten: donor.ho_ten,
+        type: 'CHECKIN'
+      } : null;
+      
       sendRegistrationApprovalEmail(
         donor.email,
         donor.ho_ten,
         eventInfo,
         trang_thai,
-        ghi_chu_duyet || ''
+        ghi_chu_duyet || '',
+        qrData
       ).catch(err => console.error('Email sending failed:', err));
 
       // Create in-app notification

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { QRCodeSVG } from 'qrcode.react';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useToast } from '../../contexts/ToastContext';
@@ -139,9 +140,14 @@ const RegistrationDetail = () => {
                 </p>
               )}
               {registration.trang_thai === 'da_duyet' && (
-                <p style={{ color: '#16a34a', marginTop: 'var(--spacing-sm)', fontWeight: 'var(--font-weight-medium)' }}>
-                  🎉 Chúc mừng! Đơn của bạn đã được duyệt. Vui lòng đến đúng giờ hẹn.
-                </p>
+                <>
+                  <p style={{ color: '#16a34a', marginTop: 'var(--spacing-sm)', fontWeight: 'var(--font-weight-medium)' }}>
+                    🎉 Chúc mừng! Đơn của bạn đã được duyệt. Vui lòng đến đúng giờ hẹn.
+                  </p>
+                  <p style={{ color: '#1e40af', marginTop: 'var(--spacing-xs)', fontSize: 'var(--font-size-sm)' }}>
+                    📱 Sử dụng mã QR bên phải để checkin tại sự kiện
+                  </p>
+                </>
               )}
               {registration.trang_thai === 'tu_choi' && registration.ghi_chu_duyet && (
                 <div style={{ marginTop: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: '#fee2e2', borderRadius: 'var(--radius-md)', borderLeft: '4px solid #dc2626' }}>
@@ -150,14 +156,45 @@ const RegistrationDetail = () => {
                 </div>
               )}
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-                Đăng ký lúc
+            {registration.trang_thai === 'da_duyet' ? (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ marginBottom: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', fontWeight: 'var(--font-weight-semibold)' }}>
+                  📱 MÃ QR CHECKIN
+                </div>
+                <div style={{ 
+                  padding: 'var(--spacing-md)', 
+                  background: 'white', 
+                  borderRadius: 'var(--radius-lg)', 
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  border: '3px solid #16a34a'
+                }}>
+                  <QRCodeSVG
+                    value={JSON.stringify({
+                      id_dang_ky: registration.id_dang_ky,
+                      id_nguoi_hien: registration.id_nguoi_hien,
+                      id_su_kien: registration.id_su_kien,
+                      ho_ten: registration.ho_ten_nguoi_hien,
+                      type: 'CHECKIN'
+                    })}
+                    size={180}
+                    level="H"
+                    includeMargin={true}
+                  />
+                </div>
+                <div style={{ marginTop: 'var(--spacing-sm)', fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)' }}>
+                  Đăng ký: {new Date(registration.ngay_dang_ky).toLocaleDateString('vi-VN')}
+                </div>
               </div>
-              <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)' }}>
-                {new Date(registration.ngay_dang_ky).toLocaleString('vi-VN')}
+            ) : (
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                  Đăng ký lúc
+                </div>
+                <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)' }}>
+                  {new Date(registration.ngay_dang_ky).toLocaleString('vi-VN')}
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

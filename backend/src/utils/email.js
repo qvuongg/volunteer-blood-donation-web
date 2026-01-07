@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import QRCode from 'qrcode';
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -57,11 +58,44 @@ export const sendOTPEmail = async (email, otp, purpose = 'xác thực') => {
   }
 };
 
-export const sendRegistrationApprovalEmail = async (email, donorName, eventInfo, approvalStatus, note = '') => {
+export const sendRegistrationApprovalEmail = async (email, donorName, eventInfo, approvalStatus, note = '', qrData = null) => {
   const isApproved = approvalStatus === 'da_duyet';
   const statusText = isApproved ? 'được duyệt' : 'bị từ chối';
   const statusColor = isApproved ? '#16a34a' : '#dc2626';
   const statusIcon = isApproved ? '✅' : '❌';
+
+  // Generate QR code as buffer if data is provided and approved
+  let qrCodeBuffer = null;
+  if (isApproved && qrData) {
+    try {
+      console.log('🔄 Generating QR code with data:', qrData);
+      qrCodeBuffer = await QRCode.toBuffer(JSON.stringify(qrData), {
+        errorCorrectionLevel: 'H',
+        type: 'png',
+        width: 300,
+        margin: 2
+      });
+      console.log('✅ QR code generated successfully, buffer size:', qrCodeBuffer.length);
+    } catch (error) {
+      console.error('❌ Error generating QR code:', error);
+    }
+  } else {
+    console.log('⚠️ QR code not generated. isApproved:', isApproved, 'qrData:', qrData ? 'provided' : 'null');
+  }
+
+  // Build QR section using CID (Content-ID) for email attachment
+  const qrSection = qrCodeBuffer ? `
+    <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 3px solid #16a34a; text-align: center;">
+      <h3 style="color: #16a34a; margin-top: 0; font-size: 18px;">📱 MÃ QR CHECKIN</h3>
+      <p style="color: #666; font-size: 14px; margin: 10px 0;">Sử dụng mã QR này để checkin tại sự kiện</p>
+      <img src="cid:qrcode" alt="QR Code Checkin" style="display: block; max-width: 300px; width: 300px; height: auto; margin: 15px auto; border: 2px solid #16a34a; border-radius: 8px; padding: 10px; background: white;"/>
+      <p style="color: #666; font-size: 12px; margin: 10px 0 0 0;">Vui lòng chuẩn bị sẵn mã này hoặc xem trong app khi đến sự kiện</p>
+    </div>
+  ` : '';
+
+  if (qrSection) {
+    console.log('📧 QR section added to email with CID attachment');
+  }
 
   const mailOptions = {
     from: process.env.EMAIL_FROM || 'Hệ thống hiến máu Đà Nẵng',
@@ -133,6 +167,7 @@ export const sendRegistrationApprovalEmail = async (email, donorName, eventInfo,
           ` : ''}
 
           ${isApproved ? `
+            ${qrSection}
             <div style="background: #eff6ff; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #3b82f6;">
               <h3 style="color: #1e40af; margin-top: 0; font-size: 16px;">💡 Lưu ý quan trọng:</h3>
               <ul style="color: #1e40af; margin: 0; padding-left: 20px; line-height: 1.8;">
@@ -155,6 +190,18 @@ export const sendRegistrationApprovalEmail = async (email, donorName, eventInfo,
       </div>
     `
   };
+
+  // Add QR code as attachment if available
+  if (qrCodeBuffer) {
+    mailOptions.attachments = [
+      {
+        filename: 'qrcode-checkin.png',
+        content: qrCodeBuffer,
+        cid: 'qrcode' // Same CID used in img src
+      }
+    ];
+    console.log('📎 QR code attachment added to email');
+  }
 
   try {
     await transporter.sendMail(mailOptions);

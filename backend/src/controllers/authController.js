@@ -511,6 +511,7 @@ export const forgotPassword = async (req, res, next) => {
 
     // Tạo OTP
     const otp = generateOTP();
+    console.log(`🔐 Forgot password OTP for ${email}: ${otp}`);
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 phút
 
     // Đánh dấu các OTP cũ của email này là đã dùng (bảo mật)

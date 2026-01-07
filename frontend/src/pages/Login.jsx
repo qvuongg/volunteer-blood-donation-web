@@ -135,7 +135,7 @@ const Login = () => {
               <Link to="/forgot-password" style={{ fontSize: 'var(--font-size-sm)', color: 'var(--primary-600)' }}>
                 Quên mật khẩu?
               </Link>
-            </div>
+          </div>
           <input
             type="password"
             id="mat_khau"
@@ -146,6 +146,11 @@ const Login = () => {
               className="form-input"
               placeholder="••••••••"
           />
+          {error && (
+            <p style={{ marginTop: '8px', fontSize: 'var(--font-size-xs)', color: 'var(--danger-600)' }}>
+              {error}
+            </p>
+          )}
              {/* Ghi nhớ đăng nhập */}
           <div className="form-group" style={{ marginTop: '12px', marginBottom: '-4px' }}>
             <label style={{ display: 'flex', alignItems: 'center', fontSize: 'var(--font-size-xs)', fontWeight: 400, color: 'var(--text-secondary)', gap: '8px', userSelect: 'none', cursor: 'pointer' }}>

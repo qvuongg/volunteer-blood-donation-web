@@ -90,14 +90,18 @@ const HomeHeader = ({
 
           {/* Logo center */}
           <button
-            onClick={() => navigate('/')}
+            onClick={() => {
+              if (!user || user.ten_vai_tro === 'nguoi_hien') {
+                navigate('/');
+              }
+            }}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '10px',
               background: 'transparent',
               border: 'none',
-              cursor: 'pointer'
+              cursor: user && user.ten_vai_tro !== 'nguoi_hien' ? 'default' : 'pointer'
             }}
             aria-label="Trang chủ"
           >
@@ -381,12 +385,12 @@ const HomeHeader = ({
           marginTop: '6px'
         }}>
           {[
-            { label: 'Hiến Máu', onClick: handlePrimaryCta, id: 'hero' },
+            { label: 'Hiến Máu'},
             { label: 'Vì Sao Hiến Máu', onClick: () => {
               const el = document.getElementById('why-donate');
               if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, id: 'why-donate' },
-            { label: 'Tham Gia', onClick: () => navigate('/register') },
+            { label: 'Tham Gia'},
             { label: 'Tác Động', onClick: () => {
               const el = document.getElementById('statistics');
               if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });

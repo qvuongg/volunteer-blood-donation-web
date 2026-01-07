@@ -126,6 +126,17 @@ const ResultUpdate = () => {
       return;
     }
 
+    // Check if any selected donor has not confirmed blood type
+    const unconfirmedDonors = registrations.filter(reg => 
+      selectedDonors.includes(reg.id_nguoi_hien) && !reg.nhom_mau_xac_nhan
+    );
+
+    if (unconfirmedDonors.length > 0) {
+      const names = unconfirmedDonors.map(d => d.ho_ten).join(', ');
+      toast.error(`Có ${unconfirmedDonors.length} người hiến máu chưa được xác thực nhóm máu (${names}). Vui lòng xác thực nhóm máu trước khi cập nhật kết quả.`);
+      return;
+    }
+
     setShowConfirmModal(true);
   };
 
@@ -271,11 +282,7 @@ const ResultUpdate = () => {
                             </td>
                             <td style={{ fontWeight: 'var(--font-weight-medium)' }}>
                               {reg.ho_ten}
-                              {reg.da_co_ket_qua && (
-                                <span style={{ marginLeft: 'var(--spacing-xs)', fontSize: 'var(--font-size-xs)', color: 'var(--text-secondary)' }}>
-                                  (Đã có kết quả)
-                                </span>
-                              )}
+                              
                             </td>
                             <td style={{ fontSize: 'var(--font-size-sm)' }}>{reg.email}</td>
                             <td style={{ fontSize: 'var(--font-size-sm)' }}>{reg.so_dien_thoai || '-'}</td>
@@ -297,7 +304,7 @@ const ResultUpdate = () => {
                               {reg.da_co_ket_qua ? (
                                 <span className="badge badge-info">Đã cập nhật kết quả</span>
                               ) : (
-                                <span className="badge badge-success">Đã duyệt</span>
+                                <span className="badge badge-warning">Chưa có kết quả</span>
                               )}
                             </td>
                           </tr>
