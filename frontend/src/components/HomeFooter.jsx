@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../contexts/ToastContext';
 
 const HomeFooter = ({ searchQuery, setSearchQuery, handleFindDrive }) => {
   const navigate = useNavigate();
+  const { info } = useToast();
 
   return (
     <div style={{
@@ -20,16 +22,20 @@ const HomeFooter = ({ searchQuery, setSearchQuery, handleFindDrive }) => {
           flexWrap: 'wrap'
         }}>
           {[
-            { icon: '📍', label: 'Tìm Sự Kiện', onClick: () => {
-              const el = document.getElementById('home-find-drive');
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }},
+            {
+              icon: '📍', label: 'Tìm Sự Kiện', onClick: () => {
+                const el = document.getElementById('home-find-drive');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            },
             { icon: '🏥', label: 'Địa Điểm', onClick: () => navigate('/register') },
             { icon: '💼', label: 'Tuyển Dụng', onClick: () => window.open('https://careers.example.com', '_blank') },
-            { icon: '📞', label: 'Liên Hệ', onClick: () => {
-              const el = document.getElementById('footer-contact');
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }}
+            {
+              icon: '📞', label: 'Liên Hệ', onClick: () => {
+                const el = document.getElementById('footer-contact');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }
           ].map((item, idx) => (
             <button
               key={idx}
@@ -349,7 +355,7 @@ const HomeFooter = ({ searchQuery, setSearchQuery, handleFindDrive }) => {
       <button
         onClick={() => {
           // Handle live chat
-          alert('Tính năng Live Chat đang được phát triển');
+          info('Tính năng Live Chat đang được phát triển');
         }}
         style={{
           position: 'fixed',

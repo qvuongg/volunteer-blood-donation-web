@@ -388,3 +388,4 @@ const PublicEventDetail = () => {
 export default PublicEventDetail;
 
 
+

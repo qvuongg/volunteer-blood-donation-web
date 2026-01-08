@@ -5,6 +5,7 @@ import { useToast } from '../contexts/ToastContext';
 import Layout from '../components/Layout';
 import LoadingSpinner from '../components/LoadingSpinner';
 import api from '../services/api';
+import ConfirmationModal from '../components/ConfirmationModal';
 
 const Notifications = () => {
   const navigate = useNavigate();
@@ -13,6 +14,13 @@ const Notifications = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // 'all', 'unread', 'read'
+  const [confirmation, setConfirmation] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    confirmButtonColor: 'primary'
+  });
 
   useEffect(() => {
     fetchNotifications();
@@ -51,7 +59,7 @@ const Notifications = () => {
   const handleMarkAsRead = async (id) => {
     try {
       await api.put(`/notifications/${id}/read`);
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n.id_thong_bao === id ? { ...n, da_doc: true } : n)
       );
     } catch (error) {
@@ -70,8 +78,18 @@ const Notifications = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Bạn có chắc muốn xóa thông báo này?')) return;
+  const handleDelete = (id) => {
+    setConfirmation({
+      isOpen: true,
+      title: 'Xóa thông báo',
+      message: 'Bạn có chắc muốn xóa thông báo này?',
+      confirmButtonColor: 'danger',
+      onConfirm: () => processDelete(id)
+    });
+  };
+
+  const processDelete = async (id) => {
+    setConfirmation(prev => ({ ...prev, isOpen: false }));
 
     try {
       await api.delete(`/notifications/${id}`);
@@ -87,7 +105,7 @@ const Notifications = () => {
     if (!notification.da_doc) {
       await handleMarkAsRead(notification.id_thong_bao);
     }
-    
+
     if (notification.link_lien_ket) {
       navigate(notification.link_lien_ket);
     }
@@ -159,9 +177,9 @@ const Notifications = () => {
       <div className="card">
         <div className="card-body">
           {/* Filter tabs */}
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'space-between', 
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
             alignItems: 'center',
             marginBottom: 'var(--spacing-lg)',
             borderBottom: '1px solid var(--gray-200)',
@@ -229,9 +247,9 @@ const Notifications = () => {
           {filteredNotifications.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 'var(--spacing-3xl)', color: 'var(--text-secondary)' }}>
               <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="currentColor" style={{ margin: '0 auto var(--spacing-lg)' }}>
-                <path d="M48 21.3333C48 16.9797 46.2095 12.8049 43.0339 9.6293C39.8583 6.45371 35.6835 4.66333 31.3299 4.66333H28.6701C24.3165 4.66333 20.1417 6.45371 16.9661 9.6293C13.7905 12.8049 12 16.9797 12 21.3333C12 42 8 46 8 46H56C56 46 52 42 52 21.3333Z" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M36.44 56C36.08 56.96 35.4951 57.7897 34.7451 58.4091C33.9951 59.0284 33.1098 59.4167 32.18 59.4167C31.2502 59.4167 30.3649 59.0284 29.6149 58.4091C28.8649 57.7897 28.28 56.96 27.92 56" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
-                <line x1="12" y1="12" x2="52" y2="52" strokeWidth="3" strokeLinecap="round"/>
+                <path d="M48 21.3333C48 16.9797 46.2095 12.8049 43.0339 9.6293C39.8583 6.45371 35.6835 4.66333 31.3299 4.66333H28.6701C24.3165 4.66333 20.1417 6.45371 16.9661 9.6293C13.7905 12.8049 12 16.9797 12 21.3333C12 42 8 46 8 46H56C56 46 52 42 52 21.3333Z" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M36.44 56C36.08 56.96 35.4951 57.7897 34.7451 58.4091C33.9951 59.0284 33.1098 59.4167 32.18 59.4167C31.2502 59.4167 30.3649 59.0284 29.6149 58.4091C28.8649 57.7897 28.28 56.96 27.92 56" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                <line x1="12" y1="12" x2="52" y2="52" strokeWidth="3" strokeLinecap="round" />
               </svg>
               <p>
                 {filter === 'all' && 'Chưa có thông báo nào'}
@@ -303,7 +321,7 @@ const Notifications = () => {
                           {formatTimeAgo(notif.ngay_tao)}
                         </span>
                       </div>
-                      
+
                       <p style={{
                         margin: 0,
                         fontSize: 'var(--font-size-sm)',
@@ -378,7 +396,16 @@ const Notifications = () => {
           )}
         </div>
       </div>
-    </Layout>
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        title={confirmation.title}
+        message={confirmation.message}
+        onConfirm={confirmation.onConfirm}
+        onCancel={() => setConfirmation(prev => ({ ...prev, isOpen: false }))}
+        confirmButtonColor={confirmation.confirmButtonColor}
+      />
+    </Layout >
   );
 };
 
@@ -398,6 +425,7 @@ const formatTimeAgo = (dateString) => {
 };
 
 export default Notifications;
+
 
 
 

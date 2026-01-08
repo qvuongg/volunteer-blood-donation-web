@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import Layout from '../../components/Layout';
+import { useToast } from '../../contexts/ToastContext';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 const Settings = () => {
+  const { info } = useToast();
   const [emailSettings, setEmailSettings] = useState({
     host: 'smtp.gmail.com',
     port: '587',
@@ -12,6 +15,13 @@ const Settings = () => {
     expiryMinutes: '10'
   });
   const [saved, setSaved] = useState(false);
+  const [confirmation, setConfirmation] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    confirmButtonColor: 'primary'
+  });
 
   const handleEmailChange = (key, value) => {
     setEmailSettings(prev => ({ ...prev, [key]: value }));
@@ -24,7 +34,7 @@ const Settings = () => {
   const handleSave = async (e) => {
     e.preventDefault();
     // TODO: Implement API call to save settings
-    alert('Tính năng đang phát triển. Cấu hình email và OTP hiện được quản lý qua file .env');
+    info('Tính năng đang phát triển. Cấu hình email và OTP hiện được quản lý qua file .env');
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -184,14 +194,14 @@ const Settings = () => {
               <button
                 type="button"
                 className="btn btn-outline"
-                onClick={() => alert('Tính năng đang phát triển')}
+                onClick={() => info('Tính năng đang phát triển')}
               >
                 Sao lưu Database
               </button>
               <button
                 type="button"
                 className="btn btn-outline"
-                onClick={() => alert('Tính năng đang phát triển')}
+                onClick={() => info('Tính năng đang phát triển')}
               >
                 Khôi phục Database
               </button>
@@ -199,9 +209,16 @@ const Settings = () => {
                 type="button"
                 className="btn btn-danger"
                 onClick={() => {
-                  if (confirm('Bạn có chắc muốn xóa tất cả dữ liệu? Hành động này KHÔNG THỂ hoàn tác!')) {
-                    alert('Tính năng đang phát triển');
-                  }
+                  setConfirmation({
+                    isOpen: true,
+                    title: 'Xóa dữ liệu hệ thống',
+                    message: 'Bạn có chắc muốn xóa tất cả dữ liệu? Hành động này KHÔNG THỂ hoàn tác!',
+                    confirmButtonColor: 'danger',
+                    onConfirm: () => {
+                      info('Tính năng đang phát triển');
+                      setConfirmation(prev => ({ ...prev, isOpen: false }));
+                    }
+                  });
                 }}
               >
                 Xóa tất cả dữ liệu
@@ -225,6 +242,15 @@ const Settings = () => {
           Cài đặt đã được lưu!
         </div>
       )}
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        title={confirmation.title}
+        message={confirmation.message}
+        onConfirm={confirmation.onConfirm}
+        onCancel={() => setConfirmation(prev => ({ ...prev, isOpen: false }))}
+        confirmButtonColor={confirmation.confirmButtonColor}
+      />
     </Layout>
   );
 };

@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 
 const Reports = () => {
+  const { error: toastError } = useToast();
   const [loading, setLoading] = useState(true);
   const [overview, setOverview] = useState({ donationsByMonth: [], eventsByMonth: [] });
   const [bloodTypes, setBloodTypes] = useState([]);
@@ -46,7 +48,7 @@ const Reports = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Lỗi khi tải báo cáo');
+      toastError('Lỗi khi tải báo cáo');
     } finally {
       setLoading(false);
     }

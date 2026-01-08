@@ -5,6 +5,7 @@ import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useToast } from '../../contexts/ToastContext';
 import api from '../../services/api';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 const RegistrationDetail = () => {
   const { id } = useParams();
@@ -13,6 +14,13 @@ const RegistrationDetail = () => {
   const [registration, setRegistration] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [confirmation, setConfirmation] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    confirmButtonColor: 'primary'
+  });
 
   useEffect(() => {
     fetchRegistrationDetail();
@@ -43,10 +51,18 @@ const RegistrationDetail = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa đơn đăng ký này? Hành động này không thể hoàn tác.')) {
-      return;
-    }
+  const handleDelete = () => {
+    setConfirmation({
+      isOpen: true,
+      title: 'Xóa đơn đăng ký',
+      message: 'Bạn có chắc chắn muốn xóa đơn đăng ký này? Hành động này không thể hoàn tác.',
+      confirmButtonColor: 'danger',
+      onConfirm: () => processDelete()
+    });
+  };
+
+  const processDelete = async () => {
+    setConfirmation(prev => ({ ...prev, isOpen: false }));
 
     setDeleting(true);
     try {
@@ -115,8 +131,8 @@ const RegistrationDetail = () => {
             Quay lại
           </button>
           {registration.trang_thai === 'cho_duyet' && (
-            <button 
-              className="btn btn-danger" 
+            <button
+              className="btn btn-danger"
               onClick={handleDelete}
               disabled={deleting}
             >
@@ -161,10 +177,10 @@ const RegistrationDetail = () => {
                 <div style={{ marginBottom: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', fontWeight: 'var(--font-weight-semibold)' }}>
                   📱 MÃ QR CHECKIN
                 </div>
-                <div style={{ 
-                  padding: 'var(--spacing-md)', 
-                  background: 'white', 
-                  borderRadius: 'var(--radius-lg)', 
+                <div style={{
+                  padding: 'var(--spacing-md)',
+                  background: 'white',
+                  borderRadius: 'var(--radius-lg)',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   border: '3px solid #16a34a'
                 }}>
@@ -262,8 +278,8 @@ const RegistrationDetail = () => {
                   2. Hiện tại, anh/chị có mắc bệnh lý nào không?
                 </div>
                 <div style={{ fontSize: 'var(--font-size-lg)' }}>
-                  {phieu.q2?.mac_benh === 'co' 
-                    ? `⚠️ Có: ${phieu.q2?.benh_gi || ''}` 
+                  {phieu.q2?.mac_benh === 'co'
+                    ? `⚠️ Có: ${phieu.q2?.benh_gi || ''}`
                     : '✅ Không'}
                 </div>
               </div>
@@ -333,9 +349,9 @@ const RegistrationDetail = () => {
       )}
 
       {/* Note */}
-      <div style={{ 
-        marginTop: 'var(--spacing-lg)', 
-        padding: 'var(--spacing-md)', 
+      <div style={{
+        marginTop: 'var(--spacing-lg)',
+        padding: 'var(--spacing-md)',
         background: '#eff6ff',
         borderRadius: 'var(--radius-md)',
         borderLeft: '4px solid #3b82f6'
@@ -348,7 +364,16 @@ const RegistrationDetail = () => {
           <li>Liên hệ tổ chức nếu cần thay đổi lịch hẹn</li>
         </ul>
       </div>
-    </Layout>
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        title={confirmation.title}
+        message={confirmation.message}
+        onConfirm={confirmation.onConfirm}
+        onCancel={() => setConfirmation(prev => ({ ...prev, isOpen: false }))}
+        confirmButtonColor={confirmation.confirmButtonColor}
+      />
+    </Layout >
   );
 };
 

@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 
 const NotificationCreate = () => {
   const navigate = useNavigate();
+  const { error: toastError, success, warning } = useToast();
   const [volunteerGroups, setVolunteerGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -101,7 +103,7 @@ const NotificationCreate = () => {
     e.preventDefault();
 
     if (!formData.tieu_de || !formData.noi_dung || formData.selectedGroupIds.length === 0) {
-      alert('Vui lòng chọn ít nhất một nhóm và điền đầy đủ thông tin');
+      warning('Vui lòng chọn ít nhất một nhóm và điền đầy đủ thông tin');
       return;
     }
 
@@ -118,11 +120,11 @@ const NotificationCreate = () => {
       const response = await api.post('/hospitals/notifications', payload);
 
       if (response.data.success) {
-        alert('Gửi thông báo thành công!');
+        success('Gửi thông báo thành công!');
         navigate('/hospital/dashboard');
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Có lỗi xảy ra');
+      toastError(error.response?.data?.message || 'Có lỗi xảy ra');
     } finally {
       setSaving(false);
     }
@@ -257,7 +259,7 @@ const NotificationCreate = () => {
                   ) : (
                     <>
                       <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M2 2l12 6-12 6V8l8-2-8-2V2z"/>
+                        <path d="M2 2l12 6-12 6V8l8-2-8-2V2z" />
                       </svg>
                       Gửi thông báo
                     </>

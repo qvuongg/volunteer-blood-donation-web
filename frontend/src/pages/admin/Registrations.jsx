@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
 
 const Registrations = () => {
+  const { error: toastError } = useToast();
   const [registrations, setRegistrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -40,7 +42,7 @@ const Registrations = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Lỗi khi tải danh sách đăng ký');
+      toastError('Lỗi khi tải danh sách đăng ký');
     } finally {
       setLoading(false);
     }

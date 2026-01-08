@@ -126,7 +126,8 @@ export const getUserDetail = async (req, res, next) => {
       const [donors] = await pool.execute(
         `SELECT nh.*, bv.ten_benh_vien as ten_benh_vien_xac_nhan
          FROM nguoi_hien_mau nh
-         LEFT JOIN benh_vien bv ON nh.id_benh_vien_xac_nhan = bv.id_benh_vien
+         LEFT JOIN nguoi_phu_trach_benh_vien npt ON nh.id_nguoi_phu_trach_benh_vien = npt.id_nguoi_phu_trach
+         LEFT JOIN benh_vien bv ON npt.id_benh_vien = bv.id_benh_vien
          WHERE nh.id_nguoi_hien = ?`,
         [id]
       );
@@ -533,10 +534,10 @@ export const getRegistrations = async (req, res, next) => {
 export const getReportsOverview = async (req, res, next) => {
   try {
     const { startDate, endDate } = req.query;
-    
+
     let dateCondition = '';
     let queryParams = [];
-    
+
     if (startDate && endDate) {
       dateCondition = 'WHERE kq.ngay_hien BETWEEN ? AND ?';
       queryParams = [startDate, endDate];

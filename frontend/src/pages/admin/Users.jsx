@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import api from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
+import ConfirmationModal from '../../components/ConfirmationModal';
 
 const Users = () => {
+  const { success, error: toastError } = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
@@ -23,6 +26,13 @@ const Users = () => {
   const [userDetail, setUserDetail] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [editForm, setEditForm] = useState({});
+  const [confirmation, setConfirmation] = useState({
+    isOpen: false,
+    title: '',
+    message: '',
+    onConfirm: null,
+    confirmButtonColor: 'primary'
+  });
 
   useEffect(() => {
     fetchUsers();
@@ -46,7 +56,7 @@ const Users = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Lỗi khi tải danh sách người dùng');
+      toastError('Lỗi khi tải danh sách người dùng');
     } finally {
       setLoading(false);
     }
@@ -79,49 +89,68 @@ const Users = () => {
     try {
       const response = await api.put(`/admin/users/${selectedUser.id_nguoi_dung}`, editForm);
       if (response.data.success) {
-        alert('Cập nhật người dùng thành công');
+        success('Cập nhật người dùng thành công');
         setShowEditModal(false);
         fetchUsers();
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Lỗi khi cập nhật người dùng');
+      console.error('Error:', error);
+      toastError('Lỗi khi cập nhật người dùng');
     }
   };
 
-  const handleToggleStatus = async (userId, currentStatus) => {
-    if (!confirm(`Bạn có chắc muốn ${currentStatus ? 'vô hiệu hóa' : 'kích hoạt'} người dùng này?`)) {
-      return;
-    }
+  const handleToggleStatus = (userId, currentStatus) => {
+    setConfirmation({
+      isOpen: true,
+      title: currentStatus ? 'Vô hiệu hóa người dùng' : 'Kích hoạt người dùng',
+      message: `Bạn có chắc muốn ${currentStatus ? 'vô hiệu hóa' : 'kích hoạt'} người dùng này?`,
+      confirmButtonColor: currentStatus ? 'warning' : 'success',
+      onConfirm: () => processToggleStatus(userId, currentStatus)
+    });
+  };
+
+  const processToggleStatus = async (userId, currentStatus) => {
+    setConfirmation(prev => ({ ...prev, isOpen: false }));
 
     try {
       const response = await api.put(`/admin/users/${userId}/status`, {
         trang_thai: !currentStatus
       });
       if (response.data.success) {
-        alert('Cập nhật trạng thái thành công');
+        success('Cập nhật trạng thái thành công');
         fetchUsers();
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Lỗi khi cập nhật trạng thái');
+      console.error('Error:', error);
+      toastError('Lỗi khi cập nhật trạng thái');
     }
   };
 
-  const handleDelete = async (userId) => {
-    if (!confirm('Bạn có chắc muốn xóa người dùng này? Hành động này không thể hoàn tác!')) {
-      return;
-    }
+  const handleDelete = (userId) => {
+    setConfirmation({
+      isOpen: true,
+      title: 'Xóa người dùng',
+      message: 'Bạn có chắc muốn xóa người dùng này? Hành động này không thể hoàn tác!',
+      confirmButtonColor: 'danger',
+      onConfirm: () => processDelete(userId)
+    });
+  };
+
+  const processDelete = async (userId) => {
+    setConfirmation(prev => ({ ...prev, isOpen: false }));
 
     try {
       const response = await api.delete(`/admin/users/${userId}`);
       if (response.data.success) {
-        alert('Xóa người dùng thành công');
+        success('Xóa người dùng thành công');
         fetchUsers();
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Lỗi khi xóa người dùng');
+      console.error('Error:', error);
+      toastError('Lỗi khi xóa người dùng');
     }
   };
 
@@ -136,7 +165,8 @@ const Users = () => {
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Lỗi khi tải thông tin chi tiết');
+      console.error('Error:', error);
+      toastError('Lỗi khi tải thông tin chi tiết');
       setShowDetailModal(false);
     } finally {
       setLoadingDetail(false);
@@ -643,7 +673,7 @@ const Users = () => {
                             Lần hiến gần nhất
                           </label>
                           <p style={{ margin: 0 }}>
-                            {userDetail.donor.lan_hien_gan_nhat 
+                            {userDetail.donor.lan_hien_gan_nhat
                               ? new Date(userDetail.donor.lan_hien_gan_nhat).toLocaleDateString('vi-VN')
                               : 'Chưa có'}
                           </p>
@@ -669,6 +699,15 @@ const Users = () => {
           </div>
         </div>
       )}
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmation.isOpen}
+        title={confirmation.title}
+        message={confirmation.message}
+        onConfirm={confirmation.onConfirm}
+        onCancel={() => setConfirmation(prev => ({ ...prev, isOpen: false }))}
+        confirmButtonColor={confirmation.confirmButtonColor}
+      />
     </Layout>
   );
 };
