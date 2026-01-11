@@ -107,21 +107,21 @@ const Events = () => {
       };
       const priorityA = statusPriority[a.trang_thai] || 99;
       const priorityB = statusPriority[b.trang_thai] || 99;
-      
+
       if (priorityA !== priorityB) {
         return priorityA - priorityB;
       }
-      
+
       // Trong phần "Đã duyệt", sắp xếp theo trạng thái thời gian
       if (a.trang_thai === 'da_duyet' && b.trang_thai === 'da_duyet') {
         const timeStatusA = getEventTimeStatus(a);
         const timeStatusB = getEventTimeStatus(b);
-        
+
         if (timeStatusA !== timeStatusB) {
           return timeStatusA - timeStatusB; // Sắp diễn ra (1) > Đang diễn ra (2) > Đã kết thúc (3)
         }
       }
-      
+
       // Trong cùng nhóm, sắp xếp theo ngày bắt đầu (sắp diễn ra trước)
       const dateA = new Date(a.ngay_bat_dau);
       const dateB = new Date(b.ngay_bat_dau);
@@ -135,7 +135,7 @@ const Events = () => {
   const confirmDelete = async () => {
     const { id } = confirmDialog;
     setConfirmDialog({ isOpen: false, id: null, name: '' });
-    
+
     try {
       await api.delete(`/organizations/events/${id}`);
       // Xóa ngay trong state để UI update ngay lập tức
@@ -203,8 +203,8 @@ const Events = () => {
             justifyContent: 'center'
           }}>
             <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
-              <circle cx="10" cy="10" r="10" fill="#fff" stroke="#C81E1E" strokeWidth="1"/>
-              <path d="M10 6v8M6 10h8" stroke="#C81E1E" strokeWidth="1.5" strokeLinecap="round"/>
+              <circle cx="10" cy="10" r="10" fill="#fff" stroke="#C81E1E" strokeWidth="1" />
+              <path d="M10 6v8M6 10h8" stroke="#C81E1E" strokeWidth="1.5" strokeLinecap="round" />
             </svg>
           </span>
           Tạo sự kiện mới
@@ -268,11 +268,11 @@ const Events = () => {
         <div className="grid grid-cols-2">
           {sortedAndFilteredEvents.map(event => (
             <div key={event.id_su_kien} className="card">
-              <div className="card-body">
+              <div className="card-body" style={{ marginBottom: 0 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 'var(--spacing-md)' }}>
                   <h3 style={{ margin: 0, fontSize: 'var(--font-size-lg)' }}>{event.ten_su_kien}</h3>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', alignItems: 'flex-end' }}>
-                  {getStatusBadge(event.trang_thai)}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', alignItems: 'flex-end', minHeight: '54px' }}>
+                    {getStatusBadge(event.trang_thai)}
                     {getEventStatusBadge(event)}
                   </div>
                 </div>
@@ -293,7 +293,7 @@ const Events = () => {
                     </div>
                   )}
                   {event.trang_thai === 'tu_choi' && event.ly_do_tu_choi && (
-                    <div style={{ 
+                    <div style={{
                       marginTop: 'var(--spacing-sm)',
                       padding: 'var(--spacing-sm)',
                       background: '#fee2e2',
@@ -309,7 +309,7 @@ const Events = () => {
                     </div>
                   )}
                 </div>
-                <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
+                <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginTop: 'auto' }}>
                   <button
                     className="btn btn-outline btn-sm"
                     style={{ flex: 1 }}
@@ -317,25 +317,25 @@ const Events = () => {
                   >
                     Chi tiết
                   </button>
+                  {event.trang_thai === 'cho_duyet' && (
+                    <>
+                      <button
+                        className="btn btn-sm btn-primary"
+                        style={{ flex: 1 }}
+                        onClick={() => navigate(`/organization/events/${event.id_su_kien}/edit`)}
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        style={{ flex: 1 }}
+                        onClick={() => handleDelete(event.id_su_kien, event.ten_su_kien)}
+                      >
+                        Xóa
+                      </button>
+                    </>
+                  )}
                 </div>
-                {event.trang_thai === 'cho_duyet' && (
-                  <div style={{ display: 'flex', gap: 'var(--spacing-sm)', marginTop: 'var(--spacing-sm)' }}>
-                    <button
-                      className="btn btn-sm btn-primary"
-                      style={{ flex: 1 }}
-                      onClick={() => navigate(`/organization/events/${event.id_su_kien}/edit`)}
-                    >
-                      Sửa
-                    </button>
-                    <button
-                      className="btn btn-sm btn-danger"
-                      style={{ flex: 1 }}
-                      onClick={() => handleDelete(event.id_su_kien, event.ten_su_kien)}
-                    >
-                      Xóa
-                    </button>
-                  </div>
-                )}
               </div>
             </div>
           ))}

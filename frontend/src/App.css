@@ -1024,20 +1024,39 @@
   gap: var(--spacing-lg);
 }
 
-.grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
-.grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-cols-1 {
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.grid-cols-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
 
 @media (max-width: 1024px) {
-  .grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .grid-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grid-cols-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 768px) {
+
   .grid-cols-4,
   .grid-cols-3,
-  .grid-cols-2 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+  .grid-cols-2 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
 }
 
 /* ============================================
@@ -1208,9 +1227,17 @@
   animation-fill-mode: backwards;
 }
 
-.role-cards .card:nth-child(1) { animation-delay: 0.1s; }
-.role-cards .card:nth-child(2) { animation-delay: 0.2s; }
-.role-cards .card:nth-child(3) { animation-delay: 0.3s; }
+.role-cards .card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.role-cards .card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.role-cards .card:nth-child(3) {
+  animation-delay: 0.3s;
+}
 
 .role-cards .card h3 {
   margin: 0 0 var(--spacing-sm);
@@ -1285,4 +1312,219 @@
   .role-cards {
     text-align: left;
   }
+}
+
+/* ============================================
+   DASHBOARD GRID & WIDGETS
+   ============================================ */
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 450px;
+  gap: 40px;
+  align-items: start;
+}
+
+@media (max-width: 1024px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dashboard-col-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-col-right {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Quick Actions */
+.quick-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--spacing-md);
+}
+
+.quick-action-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border-radius: var(--radius-lg);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-align: left;
+  color: white;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.quick-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-primary-gradient {
+  background: linear-gradient(135deg, var(--primary-600), var(--primary-800));
+}
+
+.btn-warning-gradient {
+  background: linear-gradient(135deg, var(--warning-500), #f59e0b);
+}
+
+.action-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.action-info {
+  flex: 1;
+}
+
+.action-title {
+  display: block;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: 4px;
+}
+
+.action-desc {
+  display: block;
+  font-size: var(--font-size-xs);
+  opacity: 0.9;
+}
+
+/* Calendar Customization */
+.custom-calendar {
+  width: 100% !important;
+  border: none !important;
+  font-family: inherit !important;
+  background: transparent !important;
+}
+
+.react-calendar__navigation {
+  margin-bottom: var(--spacing-md) !important;
+}
+
+.react-calendar__navigation button {
+  min-width: 32px !important;
+  background: none;
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-lg) !important;
+}
+
+.react-calendar__navigation button:enabled:hover,
+.react-calendar__navigation button:enabled:focus {
+  background-color: var(--gray-100) !important;
+}
+
+.react-calendar__month-view__weekdays {
+  text-transform: uppercase;
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xs);
+  color: var(--text-tertiary);
+  text-decoration: none !important;
+}
+
+.react-calendar__month-view__weekdays__weekday abbr {
+  text-decoration: none !important;
+}
+
+.react-calendar__tile {
+  padding: 10px 0 !important;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  position: relative;
+  overflow: visible !important;
+}
+
+.react-calendar__tile:enabled:hover,
+.react-calendar__tile:enabled:focus {
+  background-color: var(--gray-50) !important;
+  color: var(--primary-600);
+}
+
+.react-calendar__tile--now {
+  background: var(--primary-50) !important;
+  color: var(--primary-600) !important;
+  font-weight: var(--font-weight-bold) !important;
+}
+
+.react-calendar__tile--active {
+  background: var(--primary-600) !important;
+  color: white !important;
+}
+
+.react-calendar__tile--active:enabled:hover,
+.react-calendar__tile--active:enabled:focus {
+  background: var(--primary-700) !important;
+}
+
+/* Dashboard Event List */
+.dashboard-event-item {
+  margin-bottom: 20px;
+  transition: all 0.2s ease;
+  border: 1px solid var(--gray-300);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  background: white;
+}
+
+.dashboard-event-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: var(--primary-200) !important;
+  background-color: white;
+}
+
+/* Event Highlight in Calendar */
+.highlight-event-tile {
+  background: var(--danger-500) !important;
+  color: white !important;
+  font-weight: bold;
+}
+
+.highlight-event-tile:hover {
+  background: var(--danger-600) !important;
+}
+
+/* Status Badges */
+.status-badge {
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-weight-bold);
+  display: inline-block;
+}
+
+.status-badge.status-cho_duyet {
+  background: var(--warning-50);
+  color: var(--warning-700);
+}
+
+.status-badge.status-da_duyet,
+.status-badge.status-duoc_duyet,
+.status-badge.status-sap_dien_ra,
+.status-badge.status-dang_dien_ra {
+  background: var(--success-50);
+  color: var(--success-700);
+}
+
+.status-badge.status-da_ket_thuc,
+.status-badge.status-da_huy {
+  background: var(--gray-100);
+  color: var(--gray-600);
 }
