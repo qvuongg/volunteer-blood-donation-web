@@ -46,7 +46,7 @@ const Layout = ({ children, showSidebar = true }) => {
   return (
     <div className="app-layout">
       <Navbar onMenuClick={handleMenuToggle} />
-      
+
       <div className="layout-container">
         {shouldShowSidebar && (
           <Sidebar
@@ -57,11 +57,10 @@ const Layout = ({ children, showSidebar = true }) => {
             onToggleCollapse={() => setIsSidebarCollapsed((prev) => !prev)}
           />
         )}
-        
+
         <main
-          className={`main-content ${reserveSidebarSpace ? 'with-sidebar' : ''} ${
-            reserveSidebarSpace && isSidebarCollapsed ? 'collapsed' : ''
-          }`}
+          className={`main-content ${reserveSidebarSpace ? 'with-sidebar' : ''} ${reserveSidebarSpace && isSidebarCollapsed ? 'collapsed' : ''
+            }`}
         >
           <div className="content-wrapper">
             {children}

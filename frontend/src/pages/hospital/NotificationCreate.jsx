@@ -11,6 +11,7 @@ const NotificationCreate = () => {
   const [volunteerGroups, setVolunteerGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [formData, setFormData] = useState({
     selectedGroupIds: [],
@@ -21,23 +22,33 @@ const NotificationCreate = () => {
   const bloodTypeTemplates = {
     urgent_O: {
       tieu_de: 'Khẩn cấp: Cần nhóm máu O',
-      noi_dung: 'Bệnh viện đang cần gấp máu nhóm O để cấp cứu bệnh nhân. Kính mong quý nhóm tình nguyện kêu gọi và hỗ trợ liên hệ với chúng tôi ngay.'
+      noi_dung: 'Bệnh viện đang cần gấp máu nhóm O để cấp cứu bệnh nhân. Kính mong quý nhóm tình nguyện kêu gọi và hỗ trợ liên hệ với chúng tôi ngay.',
+      style: { background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca' },
+      label: 'Khẩn cấp - Nhóm O'
     },
     urgent_A: {
       tieu_de: 'Khẩn cấp: Cần nhóm máu A',
-      noi_dung: 'Bệnh viện đang cần gấp máu nhóm A để cấp cứu bệnh nhân. Kính mong quý nhóm tình nguyện kêu gọi và hỗ trợ liên hệ với chúng tôi ngay.'
+      noi_dung: 'Bệnh viện đang cần gấp máu nhóm A để cấp cứu bệnh nhân. Kính mong quý nhóm tình nguyện kêu gọi và hỗ trợ liên hệ với chúng tôi ngay.',
+      style: { background: '#fff7ed', color: '#ea580c', borderColor: '#fed7aa' },
+      label: 'Khẩn cấp - Nhóm A'
     },
     urgent_B: {
       tieu_de: 'Khẩn cấp: Cần nhóm máu B',
-      noi_dung: 'Bệnh viện đang cần gấp máu nhóm B để cấp cứu bệnh nhân. Kính mong quý nhóm tình nguyện kêu gọi và hỗ trợ liên hệ với chúng tôi ngay.'
+      noi_dung: 'Bệnh viện đang cần gấp máu nhóm B để cấp cứu bệnh nhân. Kính mong quý nhóm tình nguyện kêu gọi và hỗ trợ liên hệ với chúng tôi ngay.',
+      style: { background: '#eff6ff', color: '#2563eb', borderColor: '#bfdbfe' },
+      label: 'Khẩn cấp - Nhóm B'
     },
     urgent_AB: {
       tieu_de: 'Khẩn cấp: Cần nhóm máu AB',
-      noi_dung: 'Bệnh viện đang cần gấp máu nhóm AB để cấp cứu bệnh nhân. Kính mong quý nhóm tình nguyện kêu gọi và hỗ trợ liên hệ với chúng tôi ngay.'
+      noi_dung: 'Bệnh viện đang cần gấp máu nhóm AB để cấp cứu bệnh nhân. Kính mong quý nhóm tình nguyện kêu gọi và hỗ trợ liên hệ với chúng tôi ngay.',
+      style: { background: '#faf5ff', color: '#9333ea', borderColor: '#e9d5ff' },
+      label: 'Khẩn cấp - Nhóm AB'
     },
     stock_low: {
       tieu_de: 'Thông báo: Kho máu dự trữ đang thấp',
-      noi_dung: 'Kho máu dự trữ của bệnh viện đang ở mức thấp. Chúng tôi kêu gọi các mạnh thường quân đến hiến máu tình nguyện. Xin cảm ơn!'
+      noi_dung: 'Kho máu dự trữ của bệnh viện đang ở mức thấp. Chúng tôi kêu gọi các mạnh thường quân đến hiến máu tình nguyện. Xin cảm ơn!',
+      style: { background: '#fffbeb', color: '#d97706', borderColor: '#fde68a' },
+      label: 'Kho máu dự trữ thấp'
     }
   };
 
@@ -130,6 +141,10 @@ const NotificationCreate = () => {
     }
   };
 
+  const filteredGroups = volunteerGroups.filter(g =>
+    g.ten_nhom.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
     return (
       <Layout>
@@ -147,83 +162,119 @@ const NotificationCreate = () => {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.4fr) minmax(0, 1fr)', gap: 'var(--spacing-lg)', alignItems: 'flex-start' }}>
+      <div className="grid" style={{ gridTemplateColumns: 'minmax(0, 1fr) 350px', gap: 'var(--spacing-lg)', alignItems: 'start' }}>
+        {/* Left Column: Form */}
         <div className="card">
           <div className="card-body">
             <form onSubmit={handleSubmit}>
+
+              {/* Group Selection */}
               <div className="form-group">
-                <label className="form-label">Nhóm tình nguyện nhận thông báo *</label>
-                <div
-                  style={{
-                    border: '1px solid var(--gray-200)',
-                    borderRadius: 'var(--radius-lg)',
-                    padding: 'var(--spacing-md)',
-                    maxHeight: 260,
-                    overflow: 'auto',
-                    background: 'var(--gray-50)'
-                  }}
-                >
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      marginBottom: 'var(--spacing-sm)'
-                    }}
-                  >
-                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-                      Đã chọn {formData.selectedGroupIds.length}/{volunteerGroups.length} nhóm
-                    </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-sm)' }}>
+                  <label className="form-label mb-0">Nhóm tình nguyện <span style={{ color: 'var(--danger-500)' }}>*</span></label>
+                  <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
+                    Đã chọn: <b>{formData.selectedGroupIds.length}</b>
+                  </span>
+                </div>
+
+                <div style={{
+                  border: '1px solid var(--gray-200)',
+                  borderRadius: 'var(--radius-lg)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column'
+                }}>
+                  <div style={{
+                    padding: 'var(--spacing-sm) var(--spacing-md)',
+                    background: 'var(--gray-50)',
+                    borderBottom: '1px solid var(--gray-200)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 'var(--spacing-md)'
+                  }}>
+                    <div style={{ position: 'relative', flex: 1 }}>
+                      <svg
+                        width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                        style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--gray-400)' }}
+                      >
+                        <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+                      </svg>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Tìm kiếm nhóm..."
+                        style={{ paddingLeft: '34px', height: '36px' }}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
                     <button
                       type="button"
-                      className="btn btn-xs btn-outline"
+                      className="btn btn-ghost btn-sm"
                       onClick={handleToggleAllGroups}
+                      style={{ color: 'var(--primary-600)' }}
                     >
                       {formData.selectedGroupIds.length === volunteerGroups.length ? 'Bỏ chọn tất cả' : 'Chọn tất cả'}
                     </button>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    {volunteerGroups.map(group => {
-                      const checked = formData.selectedGroupIds.includes(group.id_nhom);
-                      return (
-                        <label
-                          key={group.id_nhom}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            padding: '6px 8px',
-                            borderRadius: 'var(--radius-md)',
-                            background: checked ? 'white' : 'transparent',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => handleToggleGroup(group.id_nhom)}
-                          />
-                          <span style={{ fontSize: 'var(--font-size-sm)' }}>
-                            {group.ten_nhom}
-                          </span>
-                        </label>
-                      );
-                    })}
-                    {volunteerGroups.length === 0 && (
-                      <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', margin: 0 }}>
-                        Chưa có nhóm tình nguyện nào.
-                      </p>
+
+                  <div style={{ maxHeight: '300px', overflowY: 'auto', padding: 'var(--spacing-sm)' }}>
+                    {filteredGroups.length > 0 ? (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '8px' }}>
+                        {filteredGroups.map(group => {
+                          const isSelected = formData.selectedGroupIds.includes(group.id_nhom);
+                          return (
+                            <label
+                              key={group.id_nhom}
+                              onClick={() => handleToggleGroup(group.id_nhom)}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                padding: '8px 12px',
+                                borderRadius: 'var(--radius-md)',
+                                border: `1px solid ${isSelected ? 'var(--primary-200)' : 'var(--gray-200)'}`,
+                                background: isSelected ? 'var(--primary-50)' : 'white',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s ease'
+                              }}
+                            >
+                              <div style={{
+                                width: '20px', height: '20px', borderRadius: '4px',
+                                border: `1px solid ${isSelected ? 'var(--primary-600)' : 'var(--gray-300)'}`,
+                                background: isSelected ? 'var(--primary-600)' : 'white',
+                                marginRight: '12px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                flexShrink: 0
+                              }}>
+                                {isSelected && (
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                )}
+                              </div>
+                              <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: isSelected ? '600' : '400', color: isSelected ? 'var(--primary-900)' : 'var(--text-primary)' }}>
+                                {group.ten_nhom}
+                              </div>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>
+                        <p style={{ fontSize: 'var(--font-size-sm)' }}>Không tìm thấy nhóm phù hợp</p>
+                      </div>
                     )}
                   </div>
                 </div>
               </div>
 
+              {/* Title & Content */}
               <div className="form-group">
-                <label className="form-label">Tiêu đề *</label>
+                <label className="form-label">Tiêu đề thông báo <span style={{ color: 'var(--danger-500)' }}>*</span></label>
                 <input
                   type="text"
                   name="tieu_de"
-                  className="form-control"
+                  className="form-input"
+                  style={{ fontWeight: 'bold' }}
                   value={formData.tieu_de}
                   onChange={handleChange}
                   placeholder="Ví dụ: Khẩn cấp: Cần nhóm máu O"
@@ -232,34 +283,35 @@ const NotificationCreate = () => {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Nội dung *</label>
+                <label className="form-label">Nội dung chi tiết <span style={{ color: 'var(--danger-500)' }}>*</span></label>
                 <textarea
                   name="noi_dung"
-                  className="form-control"
+                  rows="6"
+                  className="form-textarea"
                   value={formData.noi_dung}
                   onChange={handleChange}
-                  rows="8"
                   placeholder="Nhập nội dung thông báo..."
                   required
-                  style={{ resize: 'vertical' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: 'var(--spacing-md)' }}>
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: 'var(--spacing-md)', paddingTop: 'var(--spacing-lg)', borderTop: '1px solid var(--gray-200)' }}>
                 <button
                   type="submit"
                   className="btn btn-primary"
                   disabled={saving}
+                  style={{ minWidth: '140px' }}
                 >
                   {saving ? (
                     <>
                       <LoadingSpinner size="small" />
-                      Đang gửi...
+                      Loading...
                     </>
                   ) : (
                     <>
-                      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                        <path d="M2 2l12 6-12 6V8l8-2-8-2V2z" />
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '8px' }}>
+                        <path d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                       </svg>
                       Gửi thông báo
                     </>
@@ -277,73 +329,62 @@ const NotificationCreate = () => {
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-          <div className="card">
-            <div className="card-header">
-              <h3 className="card-title">Mẫu thông báo</h3>
+        {/* Right Column: Templates & Info */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
+
+          {/* Quick Templates */}
+          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="card-header" style={{ background: 'var(--gray-50)', padding: 'var(--spacing-md) var(--spacing-lg)', marginBottom: 0, borderBottom: '1px solid var(--gray-100)' }}>
+              <h3 className="card-title" style={{ fontSize: 'var(--font-size-base)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-500)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                Mẫu thông báo
+              </h3>
             </div>
-            <div className="card-body">
+            <div className="card-body" style={{ padding: 'var(--spacing-md)' }}>
               <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
-                Chọn mẫu để tự động điền nội dung:
+                Chọn mẫu để điền nhanh nội dung:
               </p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-sm)' }}>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline"
-                  onClick={() => applyTemplate('urgent_O')}
-                  style={{ justifyContent: 'flex-start' }}
-                >
-                  🆘 Khẩn cấp - Nhóm O
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline"
-                  onClick={() => applyTemplate('urgent_A')}
-                  style={{ justifyContent: 'flex-start' }}
-                >
-                  🆘 Khẩn cấp - Nhóm A
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline"
-                  onClick={() => applyTemplate('urgent_B')}
-                  style={{ justifyContent: 'flex-start' }}
-                >
-                  🆘 Khẩn cấp - Nhóm B
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline"
-                  onClick={() => applyTemplate('urgent_AB')}
-                  style={{ justifyContent: 'flex-start' }}
-                >
-                  🆘 Khẩn cấp - Nhóm AB
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-outline"
-                  onClick={() => applyTemplate('stock_low')}
-                  style={{ justifyContent: 'flex-start' }}
-                >
-                  ⚠️ Kho máu dự trữ thấp
-                </button>
+                {Object.entries(bloodTypeTemplates).map(([key, template]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => applyTemplate(key)}
+                    className="btn"
+                    style={{
+                      justifyContent: 'flex-start',
+                      textAlign: 'left',
+                      width: '100%',
+                      background: template.style.background,
+                      color: template.style.color,
+                      border: `1px solid ${template.style.borderColor}`,
+                      padding: '12px 16px',
+                      fontWeight: 'var(--font-weight-medium)'
+                    }}
+                  >
+                    <span style={{ flex: 1 }}>{template.label}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6" /></svg>
+                  </button>
+                ))}
               </div>
             </div>
           </div>
 
-          <div className="card">
-            <div className="card-body">
-              <h4 style={{ marginTop: 0, fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-semibold)' }}>
-                💡 Lưu ý
+          {/* Guide */}
+          <div className="card" style={{ background: '#eff6ff', border: '1px solid #bfdbfe' }}>
+            <div className="card-body" style={{ marginBottom: 0 }}>
+              <h4 style={{ fontSize: 'var(--font-size-base)', fontWeight: 'bold', color: '#1e40af', marginBottom: 'var(--spacing-sm)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                Lưu ý
               </h4>
-              <ul style={{ margin: 0, paddingLeft: 'var(--spacing-lg)', fontSize: 'var(--font-size-sm)', lineHeight: 'var(--line-height-relaxed)' }}>
-                <li>Thông báo sẽ được gửi đến nhóm tình nguyện được chọn</li>
-                <li>Nội dung nên ngắn gọn, rõ ràng</li>
-                <li>Ghi rõ nhóm máu cần thiết nếu có</li>
-                <li>Có thể chỉnh sửa mẫu theo nhu cầu</li>
+              <ul style={{ margin: 0, paddingLeft: '20px', fontSize: 'var(--font-size-sm)', color: '#1e3a8a', lineHeight: '1.6' }}>
+                <li>Thông báo sẽ được gửi qua Email/SMS đến trưởng nhóm.</li>
+                <li>Nội dung cần ngắn gọn, rõ ràng.</li>
+                <li>Vui lòng kiểm tra kỹ trước khi gửi.</li>
               </ul>
             </div>
           </div>
+
         </div>
       </div>
     </Layout>
@@ -351,4 +392,3 @@ const NotificationCreate = () => {
 };
 
 export default NotificationCreate;
-

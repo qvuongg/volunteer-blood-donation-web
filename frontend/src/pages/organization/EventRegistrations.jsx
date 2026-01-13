@@ -136,18 +136,18 @@ const EventRegistrations = () => {
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>1. Anh/chị từng hiến máu chưa?</strong>
           <div>{phieu.q1?.hien_mau_chua === 'co' ? '✅ Có' : '❌ Chưa'}</div>
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>2. Hiện tại, anh/chị có mắc bệnh lý nào không?</strong>
           <div>{phieu.q2?.mac_benh === 'co' ? `⚠️ Có: ${phieu.q2?.benh_gi || ''}` : '✅ Không'}</div>
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>3. Trước đây, anh/chị có từng mắc các bệnh nghiêm trọng?</strong>
           <div>{phieu.q3?.benh_ly_truoc === 'co' ? '⚠️ Có' : '✅ Không'}</div>
           {phieu.q3?.benh_khac && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-xs)' }}>({phieu.q3.benh_khac})</div>}
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>4. Trong 12 tháng gần đây, anh/chị có:</strong>
           {phieu.q4?.items?.includes('khong') ? (
@@ -164,7 +164,7 @@ const EventRegistrations = () => {
           )}
           {phieu.q4?.vacxin && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-xs)' }}>Vacxin: {phieu.q4.vacxin}</div>}
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>5. Trong 06 tháng gần đây, anh/chị có:</strong>
           {phieu.q5?.items?.includes('khong') ? (
@@ -180,7 +180,7 @@ const EventRegistrations = () => {
             </div>
           )}
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>6. Trong 01 tháng gần đây, anh/chị có:</strong>
           {phieu.q6?.items?.includes('khong') ? (
@@ -196,13 +196,13 @@ const EventRegistrations = () => {
             </div>
           )}
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>7. Trong 14 ngày gần đây, anh/chị có mắc bệnh (cúm, cảm lạnh, sốt...)?</strong>
           <div>{phieu.q7?.mac_benh === 'khong' ? '✅ Không' : '⚠️ Có'}</div>
           {phieu.q7?.khac && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-xs)' }}>({phieu.q7.khac})</div>}
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>8. Trong 7 ngày gần đây, anh/chị có sử dụng thuốc?</strong>
           <div>{phieu.q8?.dung_thuoc === 'khong' ? '✅ Không' : '⚠️ Có'}</div>
@@ -273,7 +273,7 @@ const EventRegistrations = () => {
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: 'var(--spacing-3xl)' }}>
             <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-lg)' }}>
-              {registrations.length === 0 
+              {registrations.length === 0
                 ? 'Chưa có đăng ký nào cho sự kiện này'
                 : 'Không có đăng ký nào phù hợp với bộ lọc'}
             </p>
@@ -288,6 +288,7 @@ const EventRegistrations = () => {
                   <tr style={{ background: 'var(--gray-50)', borderBottom: '2px solid var(--gray-200)' }}>
                     <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>STT</th>
                     <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Tên</th>
+                    <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>CCCD</th>
                     <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Email</th>
                     <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>SĐT</th>
                     <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Giới tính</th>
@@ -301,6 +302,7 @@ const EventRegistrations = () => {
                     <tr key={reg.id_dang_ky} style={{ borderBottom: '1px solid var(--gray-200)' }}>
                       <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{index + 1}</td>
                       <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)' }}>{reg.ho_ten}</td>
+                      <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.cccd || '-'}</td>
                       <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.email}</td>
                       <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.so_dien_thoai || '-'}</td>
                       <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.gioi_tinh}</td>
@@ -325,7 +327,7 @@ const EventRegistrations = () => {
 
       {/* Detail Modal */}
       {showDetailModal && selectedRegistration && (
-        <div 
+        <div
           onClick={() => setShowDetailModal(false)}
           style={{
             position: 'fixed',
@@ -341,7 +343,7 @@ const EventRegistrations = () => {
             padding: 'var(--spacing-lg)'
           }}
         >
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
             style={{
               background: 'white',
@@ -389,6 +391,7 @@ const EventRegistrations = () => {
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>
                 <div><strong>Họ tên:</strong> {selectedRegistration.ho_ten}</div>
+                <div><strong>Số CCCD/CMND:</strong> {selectedRegistration.cccd || 'Chưa cập nhật'}</div>
                 <div><strong>Email:</strong> {selectedRegistration.email}</div>
                 <div><strong>Số điện thoại:</strong> {selectedRegistration.so_dien_thoai || '-'}</div>
                 <div><strong>Giới tính:</strong> {selectedRegistration.gioi_tinh}</div>
@@ -461,7 +464,7 @@ const EventRegistrations = () => {
 
       {/* Approval Modal - Đè lên Detail Modal */}
       {showApprovalModal && selectedRegistration && (
-        <div 
+        <div
           onClick={() => setShowApprovalModal(false)}
           style={{
             position: 'fixed',
@@ -477,7 +480,7 @@ const EventRegistrations = () => {
             padding: 'var(--spacing-lg)'
           }}
         >
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
             style={{
               background: 'white',
@@ -489,8 +492,8 @@ const EventRegistrations = () => {
               overflowY: 'auto'
             }}
           >
-            <h2 style={{ 
-              fontSize: 'var(--font-size-2xl)', 
+            <h2 style={{
+              fontSize: 'var(--font-size-2xl)',
               fontWeight: 'var(--font-weight-bold)',
               marginBottom: 'var(--spacing-lg)',
               color: approvalData.trang_thai === 'da_duyet' ? '#16a34a' : '#dc2626'
@@ -504,17 +507,17 @@ const EventRegistrations = () => {
 
             {/* Lý do mẫu */}
             <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <label style={{ 
-                display: 'block', 
+              <label style={{
+                display: 'block',
                 fontWeight: 'var(--font-weight-semibold)',
                 marginBottom: 'var(--spacing-sm)'
               }}>
                 {approvalData.trang_thai === 'da_duyet' ? 'Lý do duyệt (chọn nhiều):' : 'Lý do từ chối (chọn nhiều):'}
               </label>
               {(approvalData.trang_thai === 'da_duyet' ? lyDoMau : lyDoTuChoi).map((lyDo, idx) => (
-                <label key={idx} style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+                <label key={idx} style={{
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: '8px',
                   padding: 'var(--spacing-sm)',
                   cursor: 'pointer',
@@ -533,8 +536,8 @@ const EventRegistrations = () => {
 
             {/* Ghi chú tự do */}
             <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-              <label style={{ 
-                display: 'block', 
+              <label style={{
+                display: 'block',
                 fontWeight: 'var(--font-weight-semibold)',
                 marginBottom: 'var(--spacing-sm)'
               }}>

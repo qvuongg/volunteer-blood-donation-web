@@ -232,7 +232,7 @@ INSERT INTO vaitro (ten_vai_tro) VALUES
 
 -- Insert người dùng (mật khẩu: 123456 đã được hash bcrypt cho Node.js)
 -- Hash được tạo bằng bcrypt với saltRounds = 10
-INSERT INTO nguoidung (ho_ten, email, mat_khau, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro) VALUES
+INSERT INTO nguoidung (ho_ten, email, cccd, mat_khau, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro) VALUES
 -- Admin
 ('Quan Tri Vien', 'locb00302@gmail.com', '$2b$10$wrP.9VlkgrUNPGf2xt15v.gIBmaapz2vLuUtiKOOpmM0qxZGGkz2u', '0900000001', 'Nam', '1990-01-01', 5),
 -- Người hiến máu

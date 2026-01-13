@@ -1,9 +1,9 @@
 import pool from '../config/database.js';
 import bcrypt from 'bcrypt';
 import { createNotification } from './notificationController.js';
-import { 
-  sendBloodTypeConfirmationEmail, 
-  sendEventApprovalEmail, 
+import {
+  sendBloodTypeConfirmationEmail,
+  sendEventApprovalEmail,
   sendDonationResultEmail,
   sendEmergencyNotificationEmail
 } from '../utils/email.js';
@@ -137,7 +137,7 @@ export const getAllEvents = async (req, res, next) => {
 
     res.json({
       success: true,
-      data: { 
+      data: {
         events,
         pagination: {
           page,
@@ -218,6 +218,7 @@ export const getEventParticipants = async (req, res, next) => {
         nd.ho_ten,
         nd.email,
         nd.so_dien_thoai,
+        nd.cccd,
         nh.id_nguoi_hien,
         nh.nhom_mau,
         nh.nhom_mau_xac_nhan,
@@ -320,7 +321,7 @@ export const confirmBloodType = async (req, res, next) => {
     if (donor.length > 0) {
       const donorData = donor[0];
       const hospitalName = donorData.ten_benh_vien || 'bệnh viện';
-      
+
       // Send in-app notification
       await createNotification(
         donorData.id_nguoi_dung,
@@ -421,7 +422,7 @@ export const updateEventStatus = async (req, res, next) => {
       const notifTitle = trang_thai === 'da_duyet'
         ? `Sự kiện "${event.ten_su_kien}" đã được phê duyệt`
         : `Sự kiện "${event.ten_su_kien}" bị từ chối`;
-      
+
       const notifContent = trang_thai === 'da_duyet'
         ? `Sự kiện hiến máu của bạn đã được bệnh viện phê duyệt. Bạn có thể bắt đầu tổ chức và quản lý đăng ký.`
         : `Sự kiện hiến máu của bạn bị từ chối bởi bệnh viện. ${ly_do ? `Lý do: ${ly_do}` : 'Vui lòng liên hệ để biết thêm chi tiết.'}`;
@@ -485,6 +486,7 @@ export const getApprovedRegistrations = async (req, res, next) => {
         nd.ho_ten,
         nd.email,
         nd.so_dien_thoai,
+        nd.cccd,
         nh.nhom_mau,
         nh.nhom_mau_xac_nhan,
         CASE 
@@ -564,7 +566,7 @@ export const createResult = async (req, res, next) => {
     // Validate donation date is not before event start date
     const eventStart = new Date(event[0].ngay_bat_dau);
     const donationDate = new Date(ngay_hien);
-    
+
     if (donationDate < eventStart) {
       return res.status(400).json({
         success: false,
@@ -667,7 +669,7 @@ export const createBulkResults = async (req, res, next) => {
     // Validate donation date
     const eventStart = new Date(event[0].ngay_bat_dau);
     const donationDate = new Date(ngay_hien);
-    
+
     if (donationDate < eventStart) {
       return res.status(400).json({
         success: false,
@@ -739,13 +741,13 @@ export const createBulkResults = async (req, res, next) => {
           'SELECT nd.id_nguoi_dung, nd.ho_ten, nd.email FROM nguoidung nd WHERE nd.id_nguoi_dung = ?',
           [id_nguoi_hien]
         );
-        
+
         if (donorUser.length > 0) {
           const donor = donorUser[0];
           const notifTitle = ket_qua === 'Dat'
             ? 'Kết quả hiến máu của bạn đã được cập nhật'
             : 'Thông báo kết quả hiến máu';
-          
+
           const notifContent = ket_qua === 'Dat'
             ? `Chúc mừng! Bạn đã hiến thành công ${luong_ml}ml máu tại ${eventName}. Cảm ơn bạn đã đóng góp vào cộng đồng!`
             : `Kết quả hiến máu của bạn tại ${eventName}: ${ket_qua}. Vui lòng liên hệ bệnh viện để biết thêm chi tiết.`;
@@ -935,6 +937,7 @@ export const getUnconfirmedBloodTypes = async (req, res, next) => {
         nd.ho_ten,
         nd.email,
         nd.so_dien_thoai,
+        nd.cccd,
         nh.lan_hien_gan_nhat as ngay_hien_gan_nhat
       FROM nguoi_hien_mau nh
       JOIN nguoidung nd ON nh.id_nguoi_hien = nd.id_nguoi_dung
@@ -944,7 +947,7 @@ export const getUnconfirmedBloodTypes = async (req, res, next) => {
         AND nh.nhom_mau IS NOT NULL
         AND sk.id_benh_vien = ?
         AND dk.trang_thai = 'da_duyet'
-      GROUP BY nh.id_nguoi_hien, nh.nhom_mau, nh.tong_so_lan_hien, nd.ho_ten, nd.email, nd.so_dien_thoai, nh.lan_hien_gan_nhat
+      GROUP BY nh.id_nguoi_hien, nh.nhom_mau, nh.tong_so_lan_hien, nd.ho_ten, nd.email, nd.so_dien_thoai, nd.cccd, nh.lan_hien_gan_nhat
       ORDER BY nh.lan_hien_gan_nhat DESC`,
       [hospitalId]
     );
@@ -1008,6 +1011,7 @@ export const getAllBloodTypes = async (req, res, next) => {
         nd.ho_ten,
         nd.email,
         nd.so_dien_thoai,
+        nd.cccd,
         nh.lan_hien_gan_nhat as ngay_hien_gan_nhat
       FROM nguoi_hien_mau nh
       JOIN nguoidung nd ON nh.id_nguoi_hien = nd.id_nguoi_dung
@@ -1016,7 +1020,7 @@ export const getAllBloodTypes = async (req, res, next) => {
       WHERE nh.nhom_mau IS NOT NULL
         AND sk.id_benh_vien = ?
         AND dk.trang_thai = 'da_duyet'
-      GROUP BY nh.id_nguoi_hien, nh.nhom_mau, nh.nhom_mau_xac_nhan, nh.tong_so_lan_hien, nd.ho_ten, nd.email, nd.so_dien_thoai, nh.lan_hien_gan_nhat
+      GROUP BY nh.id_nguoi_hien, nh.nhom_mau, nh.nhom_mau_xac_nhan, nh.tong_so_lan_hien, nd.ho_ten, nd.email, nd.so_dien_thoai, nd.cccd, nh.lan_hien_gan_nhat
       ORDER BY 
         CASE WHEN nh.nhom_mau_xac_nhan = FALSE THEN 1 ELSE 2 END,
         nh.lan_hien_gan_nhat DESC
@@ -1026,7 +1030,7 @@ export const getAllBloodTypes = async (req, res, next) => {
 
     res.json({
       success: true,
-      data: { 
+      data: {
         donors,
         pagination: {
           page,

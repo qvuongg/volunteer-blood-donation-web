@@ -224,6 +224,12 @@ const RegistrationDetail = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-lg)' }}>
             <div>
               <div style={{ marginBottom: 'var(--spacing-md)' }}>
+                <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>Số thứ tự</div>
+                <div style={{ fontSize: 'var(--font-size-2xl)', fontWeight: 'var(--font-weight-bold)', color: 'var(--primary-600)' }}>
+                  #{registration.so_thu_tu ? String(registration.so_thu_tu).padStart(3, '0') : '---'}
+                </div>
+              </div>
+              <div style={{ marginBottom: 'var(--spacing-md)' }}>
                 <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>Tên sự kiện</div>
                 <div style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-semibold)' }}>
                   {registration.ten_su_kien}

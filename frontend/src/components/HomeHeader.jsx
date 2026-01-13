@@ -2,15 +2,15 @@ import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import NotificationBell from './NotificationBell';
 
-const HomeHeader = ({ 
-  user, 
-  logout, 
-  searchQuery, 
-  setSearchQuery, 
-  language, 
-  setLanguage, 
-  handleFindDrive, 
-  handlePrimaryCta 
+const HomeHeader = ({
+  user,
+  logout,
+  searchQuery,
+  setSearchQuery,
+  language,
+  setLanguage,
+  handleFindDrive,
+  handlePrimaryCta
 }) => {
   const navigate = useNavigate();
   const [showUserDropdown, setShowUserDropdown] = useState(false);
@@ -125,22 +125,22 @@ const HomeHeader = ({
                 {/* Notification Bell */}
                 <NotificationBell />
                 <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              style={{
-                padding: '8px 10px',
-                borderRadius: '999px',
-                border: '1px solid rgba(17, 24, 39, 0.14)',
-                background: 'white',
-                cursor: 'pointer',
-                fontSize: 'var(--font-size-sm)',
-                fontWeight: 'var(--font-weight-semibold)'
-              }}
-              aria-label="Chọn ngôn ngữ"
-            >
-              <option value="vi">VN</option>
-              <option value="en">EN</option>
-            </select>
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: '999px',
+                    border: '1px solid rgba(17, 24, 39, 0.14)',
+                    background: 'white',
+                    cursor: 'pointer',
+                    fontSize: 'var(--font-size-sm)',
+                    fontWeight: 'var(--font-weight-semibold)'
+                  }}
+                  aria-label="Chọn ngôn ngữ"
+                >
+                  <option value="vi">VN</option>
+                  <option value="en">EN</option>
+                </select>
 
                 {/* User Dropdown */}
                 <div style={{ position: 'relative' }}>
@@ -173,13 +173,13 @@ const HomeHeader = ({
                     </span>
                     <span>{user.ho_ten || 'Tài khoản'}</span>
                     <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                      <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
                     </svg>
                   </button>
 
                   {showUserDropdown && (
                     <>
-                      <div 
+                      <div
                         onClick={() => setShowUserDropdown(false)}
                         style={{
                           position: 'fixed',
@@ -222,11 +222,11 @@ const HomeHeader = ({
                           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                         >
                           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M3 3h10v10H3z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                            <path d="M3 3h10v10H3z" stroke="currentColor" strokeWidth="1.5" fill="none" />
                           </svg>
                           Dashboard
                         </button>
-                        
+
                         <button
                           onClick={() => {
                             setShowUserDropdown(false);
@@ -248,8 +248,8 @@ const HomeHeader = ({
                           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                         >
                           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor">
-                            <path d="M12 5.33333C12 4.27247 11.5786 3.25505 10.8284 2.50491C10.0783 1.75476 9.06087 1.33333 8 1.33333C6.93913 1.33333 5.92172 1.75476 5.17157 2.50491C4.42143 3.25505 4 4.27247 4 5.33333C4 10 2 11.3333 2 11.3333H14C14 11.3333 12 10 12 5.33333Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M9.15335 14C9.03614 14.2021 8.86791 14.3698 8.66552 14.4864C8.46313 14.603 8.23344 14.6643 8 14.6643C7.76656 14.6643 7.53687 14.603 7.33448 14.4864C7.13209 14.3698 6.96386 14.2021 6.84665 14" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            <path d="M12 5.33333C12 4.27247 11.5786 3.25505 10.8284 2.50491C10.0783 1.75476 9.06087 1.33333 8 1.33333C6.93913 1.33333 5.92172 1.75476 5.17157 2.50491C4.42143 3.25505 4 4.27247 4 5.33333C4 10 2 11.3333 2 11.3333H14C14 11.3333 12 10 12 5.33333Z" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                            <path d="M9.15335 14C9.03614 14.2021 8.86791 14.3698 8.66552 14.4864C8.46313 14.603 8.23344 14.6643 8 14.6643C7.76656 14.6643 7.53687 14.603 7.33448 14.4864C7.13209 14.3698 6.96386 14.2021 6.84665 14" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
                           Thông báo
                         </button>
@@ -276,8 +276,8 @@ const HomeHeader = ({
                             onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                           >
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                              <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                              <path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+                              <circle cx="8" cy="5" r="3" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                              <path d="M2 14c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" strokeWidth="1.5" fill="none" />
                             </svg>
                             Hồ sơ
                           </button>
@@ -308,7 +308,7 @@ const HomeHeader = ({
                           onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                         >
                           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                            <path d="M6 14H3V2h3M10 11l3-3-3-3M13 8H6" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                            <path d="M6 14H3V2h3M10 11l3-3-3-3M13 8H6" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
                           </svg>
                           Đăng xuất
                         </button>
@@ -353,26 +353,26 @@ const HomeHeader = ({
                   Tuyển dụng
                 </button>
                 <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              style={{
-                padding: '8px 10px',
-                borderRadius: '999px',
-                border: '1px solid rgba(17, 24, 39, 0.14)',
-                background: 'white',
-                cursor: 'pointer',
-                fontSize: 'var(--font-size-sm)',
-                fontWeight: 'var(--font-weight-semibold)'
-              }}
-              aria-label="Chọn ngôn ngữ"
-            >
-              <option value="vi">VN</option>
-              <option value="en">EN</option>
-            </select>
+                  value={language}
+                  onChange={(e) => setLanguage(e.target.value)}
+                  style={{
+                    padding: '8px 10px',
+                    borderRadius: '999px',
+                    border: '1px solid rgba(17, 24, 39, 0.14)',
+                    background: 'white',
+                    cursor: 'pointer',
+                    fontSize: 'var(--font-size-sm)',
+                    fontWeight: 'var(--font-weight-semibold)'
+                  }}
+                  aria-label="Chọn ngôn ngữ"
+                >
+                  <option value="vi">VN</option>
+                  <option value="en">EN</option>
+                </select>
               </>
             )}
 
-            
+
           </div>
         </div>
 
@@ -385,20 +385,26 @@ const HomeHeader = ({
           marginTop: '6px'
         }}>
           {[
-            { label: 'Hiến Máu'},
-            { label: 'Vì Sao Hiến Máu', onClick: () => {
-              const el = document.getElementById('why-donate');
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, id: 'why-donate' },
-            { label: 'Tham Gia'},
-            { label: 'Tác Động', onClick: () => {
-              const el = document.getElementById('statistics');
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, id: 'statistics' },
-            { label: 'Đối Tượng', onClick: () => {
-              const el = document.getElementById('roles');
-              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, id: 'roles' }
+            { label: 'Hiến Máu' },
+            {
+              label: 'Vì Sao Hiến Máu', onClick: () => {
+                const el = document.getElementById('why-donate');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, id: 'why-donate'
+            },
+            { label: 'Tham Gia' },
+            {
+              label: 'Tác Động', onClick: () => {
+                const el = document.getElementById('statistics');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, id: 'statistics'
+            },
+            {
+              label: 'Đối Tượng', onClick: () => {
+                const el = document.getElementById('roles');
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }, id: 'roles'
+            }
           ].map((item) => (
             <button
               key={item.label}

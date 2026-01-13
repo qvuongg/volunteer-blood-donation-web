@@ -1,16 +1,15 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { useToast } from '../../contexts/ToastContext';
 import api from '../../services/api';
 
 const BloodInfo = () => {
-  const [bloodInfo, setBloodInfo] = useState(null);
-  const [nhom_mau, setNhom_mau] = useState('');
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState('');
-  const navigate = useNavigate();
+  const [donorData, setDonorData] = useState(null);
+  const [updating, setUpdating] = useState(false);
+  const [selectedBloodType, setSelectedBloodType] = useState('');
+  const toast = useToast();
 
   useEffect(() => {
     fetchBloodInfo();
@@ -18,45 +17,35 @@ const BloodInfo = () => {
 
   const fetchBloodInfo = async () => {
     try {
-      const response = await api.get('/donors/blood-info');
+      const response = await api.get('/donors/profile');
       if (response.data.success && response.data.data.donor) {
-        const donor = response.data.data.donor;
-        setBloodInfo(donor);
-        setNhom_mau(donor.nhom_mau || '');
+        setDonorData(response.data.data.donor);
+        setSelectedBloodType(response.data.data.donor.nhom_mau || '');
       }
     } catch (error) {
       console.error('Error fetching blood info:', error);
+      toast.error('Không thể tải thông tin nhóm máu');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setMessage('');
+  const handleUpdateBloodType = async () => {
+    if (!selectedBloodType) return;
 
+    setUpdating(true);
     try {
-      const response = await api.put('/donors/blood-info', { nhom_mau });
+      const response = await api.put('/donors/blood-info', { nhom_mau: selectedBloodType });
       if (response.data.success) {
-        setMessage('success');
-        setTimeout(() => {
-          navigate('/donor/dashboard');
-        }, 1500);
+        toast.success('Cập nhật nhóm máu thành công');
+        setDonorData(response.data.data.donor);
       }
     } catch (error) {
-      setMessage('error');
+      toast.error(error.response?.data?.message || 'Có lỗi xảy ra');
     } finally {
-      setSaving(false);
+      setUpdating(false);
     }
   };
-
-  const bloodTypes = [
-    { value: 'A', label: 'A', color: '#ef4444' },
-    { value: 'B', label: 'B', color: '#3b82f6' },
-    { value: 'AB', label: 'AB', color: '#8b5cf6' },
-    { value: 'O', label: 'O', color: '#10b981' }
-  ];
 
   if (loading) {
     return (
@@ -66,137 +55,196 @@ const BloodInfo = () => {
     );
   }
 
+  const isVerified = !!donorData?.nhom_mau_xac_nhan;
+  const bloodType = donorData?.nhom_mau_xac_nhan || donorData?.nhom_mau || 'Chưa cập nhật';
+
   return (
     <Layout>
       <div className="page-header">
-        <h1 className="page-title">Cập nhật nhóm máu</h1>
-        <p className="page-description">
-          Cập nhật thông tin nhóm máu của bạn để chúng tôi phục vụ tốt hơn
-        </p>
+        <h1 className="page-title">Thông tin nhóm máu</h1>
+        <p className="page-description">Quản lý và cập nhật thông tin nhóm máu của bạn</p>
       </div>
 
-      {bloodInfo?.nhom_mau_xac_nhan && (
-        <div className="alert alert-success" style={{ marginBottom: 'var(--spacing-xl)', maxWidth: '600px', margin: '0 auto var(--spacing-xl)' }}>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--spacing-md)' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0, marginTop: '2px' }}>
-              <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-            <div style={{ flex: 1 }}>
-              <strong>Nhóm máu đã được xác thực</strong>
-              <p style={{ margin: '4px 0 0 0', fontSize: 'var(--font-size-sm)' }}>
-                Xác thực bởi: <strong>{bloodInfo.ten_benh_vien_xac_nhan}</strong> vào ngày {new Date(bloodInfo.ngay_xac_nhan).toLocaleDateString('vi-VN')}
-                {bloodInfo.ghi_chu_xac_nhan && (
-                  <><br />Ghi chú: {bloodInfo.ghi_chu_xac_nhan}</>
-                )}
-              </p>
+      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+
+        {/* Main Blood Type Status */}
+        <div className="card" style={{
+          marginBottom: 'var(--spacing-xl)',
+          overflow: 'hidden',
+          border: 'none',
+          boxShadow: '0 10px 30px rgba(220, 38, 38, 0.15)'
+        }}>
+          <div style={{
+            background: 'linear-gradient(135deg, #ef4444 0%, #b91c1c 100%)',
+            padding: 'var(--spacing-2xl)',
+            textAlign: 'center',
+            color: 'white',
+            position: 'relative'
+          }}>
+            {/* Decoration Circles */}
+            <div style={{ position: 'absolute', top: '-10%', left: '-5%', width: '150px', height: '150px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+            <div style={{ position: 'absolute', bottom: '-10%', right: '-5%', width: '100px', height: '100px', borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
+
+            <h3 style={{ fontSize: 'var(--font-size-lg)', opacity: 0.9, marginBottom: 'var(--spacing-lg)' }}>Nhóm Máu Của Bạn</h3>
+
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '120px',
+              height: '120px',
+              background: 'white',
+              borderRadius: '50%',
+              color: '#dc2626',
+              fontSize: '3.5rem',
+              fontWeight: '800',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+              marginBottom: 'var(--spacing-lg)'
+            }}>
+              {bloodType}
+            </div>
+
+            <div>
+              {isVerified ? (
+                <span style={{
+                  background: 'rgba(255,255,255,0.2)',
+                  backdropFilter: 'blur(4px)',
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  fontSize: 'var(--font-size-sm)',
+                  fontWeight: '500',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  ✅ Đã được xác thực y tế
+                </span>
+              ) : (
+                <span style={{
+                  background: 'rgba(0,0,0,0.2)',
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  fontSize: 'var(--font-size-sm)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  ⚠️ Chưa được xác thực
+                </span>
+              )}
+            </div>
+
+            {isVerified && (
+              <div style={{ marginTop: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)', opacity: 0.8 }}>
+                Xác thực bởi {donorData.ten_benh_vien_xac_nhan} • {new Date(donorData.ngay_xac_nhan).toLocaleDateString('vi-VN')}
+              </div>
+            )}
+          </div>
+
+          {/* Update Section (Only if unverified) */}
+          {!isVerified && (
+            <div className="card-body" style={{ padding: 'var(--spacing-xl)' }}>
+              <div style={{ textAlign: 'center', marginBottom: 'var(--spacing-lg)' }}>
+                <h4 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'bold', marginBottom: 'var(--spacing-xs)' }}>Cập nhật nhóm máu</h4>
+                <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)' }}>
+                  Hãy chọn nhóm máu của bạn để chúng tôi có thể gửi thông báo phù hợp.
+                </p>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 'var(--spacing-md)', maxWidth: '400px', margin: '0 auto var(--spacing-lg)' }}>
+                {['O', 'A', 'B', 'AB'].map(type => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setSelectedBloodType(type)}
+                    style={{
+                      height: '50px',
+                      border: selectedBloodType === type ? '2px solid #dc2626' : '1px solid var(--gray-300)',
+                      borderRadius: 'var(--radius-md)',
+                      background: selectedBloodType === type ? '#fef2f2' : 'white',
+                      color: selectedBloodType === type ? '#dc2626' : 'var(--text-secondary)',
+                      fontWeight: selectedBloodType === type ? 'bold' : 'normal',
+                      fontSize: 'var(--font-size-lg)',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                  >
+                    {type}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ textAlign: 'center' }}>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleUpdateBloodType}
+                  disabled={updating || !selectedBloodType || selectedBloodType === donorData?.nhom_mau}
+                  style={{ minWidth: '200px' }}
+                >
+                  {updating ? 'Đang lưu...' : 'Lưu thông tin'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Reference Info */}
+        <div style={{ marginTop: 'var(--spacing-2xl)' }}>
+          <h3 style={{
+            fontSize: 'var(--font-size-lg)',
+            fontWeight: 'bold',
+            marginBottom: 'var(--spacing-lg)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            color: 'var(--text-primary)'
+          }}>
+            <span style={{ fontSize: '24px' }}>💡</span> Tham khảo: Tương thích nhóm máu
+          </h3>
+
+          <div className="card">
+            <div className="card-body">
+              <div className="grid grid-cols-2" style={{ gap: 'var(--spacing-xl)' }}>
+                <div style={{ padding: 'var(--spacing-md)' }}>
+                  <h4 style={{ color: '#dc2626', fontWeight: 'bold', marginBottom: 'var(--spacing-md)' }}>Cho máu</h4>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--gray-100)', paddingBottom: '8px' }}>
+                      <span style={{ fontWeight: 'bold' }}>Nhóm O</span> <span>➔ Tất cả các nhóm</span>
+                    </li>
+                    <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--gray-100)', paddingBottom: '8px' }}>
+                      <span style={{ fontWeight: 'bold' }}>Nhóm A</span> <span>➔ Nhóm A, AB</span>
+                    </li>
+                    <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--gray-100)', paddingBottom: '8px' }}>
+                      <span style={{ fontWeight: 'bold' }}>Nhóm B</span> <span>➔ Nhóm B, AB</span>
+                    </li>
+                    <li style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontWeight: 'bold' }}>Nhóm AB</span> <span>➔ Nhóm AB</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div style={{ padding: 'var(--spacing-md)', borderLeft: '1px solid var(--gray-200)' }}>
+                  <h4 style={{ color: '#16a34a', fontWeight: 'bold', marginBottom: 'var(--spacing-md)' }}>Nhận máu</h4>
+                  <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--gray-100)', paddingBottom: '8px' }}>
+                      <span style={{ fontWeight: 'bold' }}>Nhóm O</span> <span>⬅ Nhóm O</span>
+                    </li>
+                    <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--gray-100)', paddingBottom: '8px' }}>
+                      <span style={{ fontWeight: 'bold' }}>Nhóm A</span> <span>⬅ Nhóm A, O</span>
+                    </li>
+                    <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--gray-100)', paddingBottom: '8px' }}>
+                      <span style={{ fontWeight: 'bold' }}>Nhóm B</span> <span>⬅ Nhóm B, O</span>
+                    </li>
+                    <li style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontWeight: 'bold' }}>Nhóm AB</span> <span>⬅ Tất cả các nhóm</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      )}
 
-      <div className="card" style={{ maxWidth: '600px', margin: '0 auto' }}>
-        <div className="card-body">
-          {message === 'success' && (
-            <div className="alert alert-success">
-              Cập nhật nhóm máu thành công! Đang chuyển hướng...
-            </div>
-          )}
-          {message === 'error' && (
-            <div className="alert alert-danger">
-              Có lỗi xảy ra. Vui lòng thử lại.
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label className="form-label">Chọn nhóm máu của bạn *</label>
-              <div style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(4, 1fr)', 
-                gap: 'var(--spacing-md)',
-                marginTop: 'var(--spacing-md)'
-              }}>
-                {bloodTypes.map(type => (
-                  <button
-                    key={type.value}
-                    type="button"
-                    onClick={() => !bloodInfo?.nhom_mau_xac_nhan && setNhom_mau(type.value)}
-                    disabled={bloodInfo?.nhom_mau_xac_nhan}
-                    style={{
-                      padding: 'var(--spacing-xl)',
-                      border: nhom_mau === type.value ? `3px solid ${type.color}` : '2px solid var(--gray-300)',
-                      borderRadius: 'var(--radius-lg)',
-                      background: nhom_mau === type.value ? `${type.color}15` : 'white',
-                      cursor: bloodInfo?.nhom_mau_xac_nhan ? 'not-allowed' : 'pointer',
-                      opacity: bloodInfo?.nhom_mau_xac_nhan ? 0.6 : 1,
-                      transition: 'all var(--transition-fast)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: 'var(--spacing-sm)'
-                    }}
-          >
-                    <svg width="32" height="32" viewBox="0 0 32 32" fill={nhom_mau === type.value ? type.color : 'var(--gray-400)'}>
-                      <path d="M16 4s-10 11.667-10 16.667A10 10 0 0026 20.667C26 15.667 16 4 16 4z"/>
-                    </svg>
-                    <span style={{ 
-                      fontSize: 'var(--font-size-2xl)', 
-                      fontWeight: 'var(--font-weight-bold)',
-                      color: nhom_mau === type.value ? type.color : 'var(--text-primary)'
-                    }}>
-                      {type.label}
-                    </span>
-                  </button>
-            ))}
-              </div>
-            </div>
-
-            <div style={{ 
-              marginTop: 'var(--spacing-xl)', 
-              padding: 'var(--spacing-lg)', 
-              background: bloodInfo?.nhom_mau_xac_nhan ? 'var(--success-50)' : 'var(--gray-50)', 
-              borderRadius: 'var(--radius-md)',
-              border: bloodInfo?.nhom_mau_xac_nhan ? '1px solid var(--success-200)' : 'none'
-            }}>
-              <h4 style={{ marginTop: 0, fontSize: 'var(--font-size-base)' }}>
-                {bloodInfo?.nhom_mau_xac_nhan ? '✓ Nhóm máu đã được xác thực' : 'Thông tin về nhóm máu'}
-              </h4>
-              <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', lineHeight: 'var(--line-height-relaxed)', margin: 0 }}>
-                {bloodInfo?.nhom_mau_xac_nhan ? (
-                  'Nhóm máu của bạn đã được bệnh viện xác thực chính thức và không thể thay đổi.'
-                ) : (
-                  'Việc biết chính xác nhóm máu của bạn rất quan trọng trong quá trình hiến máu. Nhóm máu sẽ được xác thực chính thức khi bạn hiến máu lần đầu tại bệnh viện.'
-                )}
-              </p>
-        </div>
-
-            <div style={{ display: 'flex', gap: 'var(--spacing-md)', marginTop: 'var(--spacing-xl)' }}>
-          {!bloodInfo?.nhom_mau_xac_nhan && (
-          <button
-            type="submit"
-                  disabled={saving || !nhom_mau}
-                  className="btn btn-primary"
-                >
-                  {saving ? (
-                    <>
-                      <LoadingSpinner size="small" />
-                      Đang cập nhật...
-                    </>
-                  ) : (
-                    'Cập nhật'
-                  )}
-          </button>
-          )}
-          <button
-            type="button"
-                onClick={() => navigate('/donor/dashboard')}
-                className="btn btn-outline"
-          >
-            {bloodInfo?.nhom_mau_xac_nhan ? 'Quay lại' : 'Hủy'}
-          </button>
-        </div>
-      </form>
-    </div>
       </div>
     </Layout>
   );

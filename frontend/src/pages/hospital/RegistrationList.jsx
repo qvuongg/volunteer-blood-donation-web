@@ -198,6 +198,7 @@ const RegistrationList = () => {
                         <tr>
                           <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>STT</th>
                           <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Họ tên</th>
+                          <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>CCCD</th>
                           <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Email</th>
                           <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Số điện thoại</th>
                           <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Nhóm máu</th>
@@ -212,6 +213,7 @@ const RegistrationList = () => {
                             <td style={{ padding: 'var(--spacing-md)', fontWeight: 'var(--font-weight-medium)' }}>
                               {reg.ho_ten}
                             </td>
+                            <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.cccd || '-'}</td>
                             <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.email}</td>
                             <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.so_dien_thoai || '-'}</td>
                             <td style={{ padding: 'var(--spacing-md)' }}>

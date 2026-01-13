@@ -79,7 +79,7 @@ export const registerForEvent = async (req, res, next) => {
     appointmentDate.setHours(0, 0, 0, 0);
     const eventStartDate = new Date(event.ngay_bat_dau);
     eventStartDate.setHours(0, 0, 0, 0);
-    
+
     if (appointmentDate < eventStartDate) {
       return res.status(400).json({
         success: false,
@@ -91,7 +91,7 @@ export const registerForEvent = async (req, res, next) => {
     if (event.ngay_ket_thuc) {
       const eventEndDate = new Date(event.ngay_ket_thuc);
       eventEndDate.setHours(0, 0, 0, 0);
-      
+
       if (appointmentDate > eventEndDate) {
         return res.status(400).json({
           success: false,
@@ -212,6 +212,7 @@ export const getMyRegistrations = async (req, res, next) => {
     const [registrations] = await pool.execute(
       `SELECT 
         dk.id_dang_ky,
+        (SELECT COUNT(*) + 1 FROM dang_ky_hien_mau d2 WHERE d2.id_su_kien = dk.id_su_kien AND d2.ngay_dang_ky < dk.ngay_dang_ky) as so_thu_tu,
         dk.id_su_kien,
         dk.ngay_dang_ky,
         dk.ngay_hen_hien,
@@ -299,7 +300,7 @@ export const getEventRegistrations = async (req, res, next) => {
     // Parse JSON phieu_kham_sang_loc (if it's still a string)
     const formattedRegistrations = registrations.map(reg => ({
       ...reg,
-      phieu_kham_sang_loc: reg.phieu_kham_sang_loc 
+      phieu_kham_sang_loc: reg.phieu_kham_sang_loc
         ? (typeof reg.phieu_kham_sang_loc === 'string' ? JSON.parse(reg.phieu_kham_sang_loc) : reg.phieu_kham_sang_loc)
         : null
     }));
@@ -433,7 +434,7 @@ export const updateRegistrationStatus = async (req, res, next) => {
         ten_dia_diem: donor.ten_dia_diem,
         dia_chi: donor.dia_chi
       };
-      
+
       // Send email asynchronously (don't wait for it)
       const qrData = trang_thai === 'da_duyet' ? {
         id_dang_ky: donor.id_dang_ky,
@@ -442,7 +443,7 @@ export const updateRegistrationStatus = async (req, res, next) => {
         ho_ten: donor.ho_ten,
         type: 'CHECKIN'
       } : null;
-      
+
       sendRegistrationApprovalEmail(
         donor.email,
         donor.ho_ten,
@@ -453,10 +454,10 @@ export const updateRegistrationStatus = async (req, res, next) => {
       ).catch(err => console.error('Email sending failed:', err));
 
       // Create in-app notification
-      const notifTitle = trang_thai === 'da_duyet' 
+      const notifTitle = trang_thai === 'da_duyet'
         ? `Đăng ký hiến máu đã được duyệt`
         : `Đăng ký hiến máu bị từ chối`;
-      
+
       const notifContent = trang_thai === 'da_duyet'
         ? `Đăng ký tham gia sự kiện "${donor.ten_su_kien}" của bạn đã được phê duyệt. Vui lòng đến đúng giờ: ${donor.khung_gio}, ngày ${new Date(donor.ngay_hen_hien).toLocaleDateString('vi-VN')}.`
         : `Đăng ký tham gia sự kiện "${donor.ten_su_kien}" của bạn bị từ chối. ${ghi_chu_duyet ? `Lý do: ${ghi_chu_duyet}` : ''}`;

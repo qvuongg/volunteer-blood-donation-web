@@ -11,8 +11,8 @@ const generateOTP = () => {
 // Register new user
 export const register = async (req, res, next) => {
   try {
-    const { 
-      ho_ten, email, mat_khau, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro,
+    const {
+      ho_ten, email, mat_khau, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro, cccd,
       // Additional fields for special roles
       ten_don_vi, dia_chi_to_chuc, chuc_vu_to_chuc,
       ten_benh_vien, dia_chi_benh_vien, chuc_vu_benh_vien,
@@ -38,6 +38,21 @@ export const register = async (req, res, next) => {
         success: false,
         message: 'Email đã được sử dụng.'
       });
+    }
+
+    // Check if CCCD already exists (if provided)
+    if (cccd) {
+      const [existingCCCD] = await pool.execute(
+        'SELECT id_nguoi_dung FROM nguoidung WHERE cccd = ?',
+        [cccd]
+      );
+
+      if (existingCCCD.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Số CCCD/CMND đã được sử dụng.'
+        });
+      }
     }
 
     // Check if phone already exists (if provided)
@@ -71,7 +86,14 @@ export const register = async (req, res, next) => {
     const roleName = roles[0]?.ten_vai_tro;
 
     // Validate additional fields based on role
-    if (roleName === 'to_chuc') {
+    if (roleName === 'nguoi_hien') {
+      if (!cccd) {
+        return res.status(400).json({
+          success: false,
+          message: 'Vui lòng nhập số CCCD/CMND.'
+        });
+      }
+    } else if (roleName === 'to_chuc') {
       if (!ten_don_vi || !dia_chi_to_chuc) {
         return res.status(400).json({
           success: false,
@@ -103,9 +125,9 @@ export const register = async (req, res, next) => {
 
     // Insert user
     const [result] = await pool.execute(
-      `INSERT INTO nguoidung (ho_ten, email, mat_khau, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro, trang_thai) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [ho_ten, email, hashedPassword, so_dien_thoai || null, gioi_tinh, ngay_sinh, id_vai_tro, trang_thai]
+      `INSERT INTO nguoidung (ho_ten, email, mat_khau, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro, trang_thai, cccd) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [ho_ten, email, hashedPassword, so_dien_thoai || null, gioi_tinh, ngay_sinh, id_vai_tro, trang_thai, cccd || null]
     );
 
     const userId = result.insertId;
@@ -123,7 +145,7 @@ export const register = async (req, res, next) => {
         [ten_don_vi, dia_chi_to_chuc]
       );
       const orgId = orgResult.insertId;
-      
+
       // Create organization coordinator
       await pool.execute(
         'INSERT INTO nguoi_phu_trach_to_chuc (id_nguoi_phu_trach, id_to_chuc, chuc_vu) VALUES (?, ?, ?)',
@@ -136,7 +158,7 @@ export const register = async (req, res, next) => {
         [ten_benh_vien, dia_chi_benh_vien]
       );
       const hospitalId = hospitalResult.insertId;
-      
+
       // Create hospital coordinator
       await pool.execute(
         'INSERT INTO nguoi_phu_trach_benh_vien (id_nguoi_phu_trach, id_benh_vien, chuc_vu) VALUES (?, ?, ?)',
@@ -171,7 +193,7 @@ export const register = async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: trang_thai 
+      message: trang_thai
         ? 'Đăng ký thành công. Bạn có thể đăng nhập ngay.'
         : 'Đăng ký thành công. Tài khoản của bạn đang chờ được duyệt bởi quản trị viên.',
       data: {
@@ -224,24 +246,24 @@ export const login = async (req, res, next) => {
     }
 
     const user = users[0];
-    console.log('✅ User found:', { 
-      id: user.id_nguoi_dung, 
+    console.log('✅ User found:', {
+      id: user.id_nguoi_dung,
       email: user.email,
       role: user.id_vai_tro,
-      active: user.trang_thai 
+      active: user.trang_thai
     });
 
     // Check if account is active
     if (!user.trang_thai) {
       console.log('❌ Account not active');
-      
+
       // Get role to determine if it's pending approval or deactivated
       const [roles] = await pool.execute(
         'SELECT ten_vai_tro FROM vaitro WHERE id_vai_tro = ?',
         [user.id_vai_tro]
       );
       const roleName = roles[0]?.ten_vai_tro;
-      
+
       // Check if user has associated records (means it's a new registration pending approval)
       let isPendingApproval = false;
       if (roleName === 'to_chuc') {
@@ -263,10 +285,10 @@ export const login = async (req, res, next) => {
         );
         isPendingApproval = group.length > 0;
       }
-      
+
       return res.status(403).json({
         success: false,
-        message: isPendingApproval 
+        message: isPendingApproval
           ? 'Tài khoản của bạn chưa được hoạt động. Vui lòng liên hệ quản trị viên.'
           : 'Tài khoản đã bị vô hiệu hóa.'
       });

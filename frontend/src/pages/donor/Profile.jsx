@@ -13,7 +13,9 @@ const Profile = () => {
     ho_ten: '',
     so_dien_thoai: '',
     gioi_tinh: 'Nam',
-    ngay_sinh: ''
+    ngay_sinh: '',
+    cccd: '',
+    nhom_mau: ''
   });
   const [passwordForm, setPasswordForm] = useState({
     mat_khau_cu: '',
@@ -37,12 +39,16 @@ const Profile = () => {
       const response = await api.get('/donors/profile');
       if (response.data.success && response.data.data.user) {
         const user = response.data.data.user;
+        const donor = response.data.data.donor || {};
+
         setProfile(response.data.data);
         setFormData({
           ho_ten: user.ho_ten || '',
           so_dien_thoai: user.so_dien_thoai || '',
           gioi_tinh: user.gioi_tinh || 'Nam',
-          ngay_sinh: user.ngay_sinh ? user.ngay_sinh.split('T')[0] : ''
+          ngay_sinh: user.ngay_sinh ? user.ngay_sinh.split('T')[0] : '',
+          cccd: user.cccd || '',
+          nhom_mau: donor.nhom_mau || ''
         });
       }
     } catch (error) {
@@ -68,7 +74,13 @@ const Profile = () => {
       if (response.data.success) {
         toast?.success('Cập nhật thông tin thành công');
         setEditing(false);
-        await fetchProfile();
+        // Update profile state directly with response data
+        if (response.data.data) {
+          const { user, donor } = response.data.data;
+          setProfile(prev => ({ ...prev, user, donor: donor || prev.donor }));
+        } else {
+          await fetchProfile(); // Fallback
+        }
       }
     } catch (error) {
       toast?.error(error.response?.data?.message || 'Lỗi khi cập nhật thông tin');
@@ -84,7 +96,9 @@ const Profile = () => {
         ho_ten: profile.user.ho_ten || '',
         so_dien_thoai: profile.user.so_dien_thoai || '',
         gioi_tinh: profile.user.gioi_tinh || 'Nam',
-        ngay_sinh: profile.user.ngay_sinh ? profile.user.ngay_sinh.split('T')[0] : ''
+        ngay_sinh: profile.user.ngay_sinh ? profile.user.ngay_sinh.split('T')[0] : '',
+        cccd: profile.user.cccd || '',
+        nhom_mau: profile.donor?.nhom_mau || ''
       });
     }
   };
@@ -98,7 +112,7 @@ const Profile = () => {
 
   const handlePasswordSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (passwordForm.mat_khau_moi !== passwordForm.xac_nhan_mat_khau) {
       toast?.error('Mật khẩu mới và xác nhận mật khẩu không khớp');
       return;
@@ -116,7 +130,7 @@ const Profile = () => {
         mat_khau_cu: passwordForm.mat_khau_cu,
         mat_khau_moi: passwordForm.mat_khau_moi
       });
-      
+
       if (response.data.success) {
         toast?.success('Đổi mật khẩu thành công. Vui lòng đăng nhập lại.');
         setPasswordForm({
@@ -124,7 +138,7 @@ const Profile = () => {
           mat_khau_moi: '',
           xac_nhan_mat_khau: ''
         });
-        
+
         // Đăng xuất và chuyển hướng đến trang đăng nhập sau 1.5 giây
         setTimeout(() => {
           logout();
@@ -155,6 +169,8 @@ const Profile = () => {
     );
   }
 
+  const isBloodTypeVerified = !!profile?.donor?.nhom_mau_xac_nhan;
+
   return (
     <Layout>
       <div className="page-header">
@@ -166,7 +182,7 @@ const Profile = () => {
 
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         {/* Profile Header Card */}
-        <div className="card" style={{ 
+        <div className="card" style={{
           background: 'linear-gradient(135deg, #FEE2E2 0%, #FCA5A5 100%)',
           color: '#374151',
           marginBottom: 'var(--spacing-md)',
@@ -199,9 +215,9 @@ const Profile = () => {
         </div>
 
         {/* Tab Navigation */}
-        <div style={{ 
-          display: 'flex', 
-          gap: 'var(--spacing-md)', 
+        <div style={{
+          display: 'flex',
+          gap: 'var(--spacing-md)',
           marginBottom: 'var(--spacing-xl)',
           borderBottom: '2px solid var(--gray-200)'
         }}>
@@ -268,6 +284,20 @@ const Profile = () => {
                   </div>
 
                   <div className="form-group">
+                    <label htmlFor="cccd" className="form-label">Số CCCD/CMND *</label>
+                    <input
+                      type="text"
+                      id="cccd"
+                      name="cccd"
+                      value={formData.cccd}
+                      onChange={handleChange}
+                      required
+                      className="form-input"
+                      placeholder="Số căn cước công dân"
+                    />
+                  </div>
+
+                  <div className="form-group">
                     <label htmlFor="so_dien_thoai" className="form-label">Số điện thoại</label>
                     <input
                       type="tel"
@@ -306,7 +336,47 @@ const Profile = () => {
                       onChange={handleChange}
                       required
                       className="form-input"
+                      style={{ width: '100%' }}
                     />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="nhom_mau" className="form-label">
+                      Nhóm máu
+                      {isBloodTypeVerified ? (
+                        <span style={{ fontSize: '0.8em', color: '#16a34a', marginLeft: '8px', fontWeight: 'bold' }}>
+                          ✓ Đã xác thực y tế (Không thể sửa)
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '0.8em', color: '#dc2626', marginLeft: '8px' }}>
+                          (Chưa xác thực)
+                        </span>
+                      )}
+                    </label>
+                    {isBloodTypeVerified ? (
+                      <div className="form-input" style={{ background: '#f3f4f6', color: '#6b7280', cursor: 'not-allowed' }}>
+                        {profile?.donor?.nhom_mau || 'Chưa có'}
+                      </div>
+                    ) : (
+                      <select
+                        id="nhom_mau"
+                        name="nhom_mau"
+                        value={formData.nhom_mau}
+                        onChange={handleChange}
+                        className="form-select"
+                      >
+                        <option value="">-- Chọn nhóm máu --</option>
+                        <option value="O">O</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="AB">AB</option>
+                      </select>
+                    )}
+                    <div style={{ fontSize: '0.85em', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                      {isBloodTypeVerified
+                        ? `Được xác thực bởi ${profile?.donor?.ten_benh_vien_xac_nhan} vào ngày ${new Date(profile?.donor?.ngay_xac_nhan).toLocaleDateString('vi-VN')}`
+                        : 'Đây là thông tin tự khai báo. Thông tin chính xác sẽ được cập nhật sau khi bạn tham gia hiến máu.'}
+                    </div>
                   </div>
 
                   <div style={{ display: 'flex', gap: 'var(--spacing-md)', justifyContent: 'flex-end', paddingTop: 'var(--spacing-lg)', borderTop: '1px solid var(--gray-200)' }}>
@@ -354,6 +424,15 @@ const Profile = () => {
 
                   <div>
                     <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                      Số CCCD/CMND
+                    </label>
+                    <p style={{ margin: 0, fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-base)' }}>
+                      {profile?.user?.cccd || 'Chưa cập nhật'}
+                    </p>
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
                       Email
                     </label>
                     <p style={{ margin: 0, fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-base)' }}>
@@ -379,7 +458,7 @@ const Profile = () => {
                     </p>
                   </div>
 
-                  <div style={{ gridColumn: 'span 2' }}>
+                  <div>
                     <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
                       Ngày sinh
                     </label>
@@ -387,6 +466,25 @@ const Profile = () => {
                       {profile?.user?.ngay_sinh ? new Date(profile.user.ngay_sinh).toLocaleDateString('vi-VN') : 'Chưa cập nhật'}
                     </p>
                   </div>
+
+                  <div>
+                    <label style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)', display: 'block', marginBottom: 'var(--spacing-xs)' }}>
+                      Nhóm máu
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ fontWeight: 'var(--font-weight-bold)', fontSize: 'var(--font-size-lg)', color: '#dc2626' }}>
+                        {profile?.donor?.nhom_mau || 'Chưa cập nhật'}
+                      </span>
+                      {profile?.donor?.nhom_mau && (
+                        isBloodTypeVerified ? (
+                          <span className="badge badge-success" style={{ fontSize: '0.75rem' }}>Đã xác thực</span>
+                        ) : (
+                          <span className="badge badge-warning" style={{ fontSize: '0.75rem', color: '#854d0e', background: '#fef9c3', border: '1px solid #fde047' }}>Tự khai báo</span>
+                        )
+                      )}
+                    </div>
+                  </div>
+
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 'var(--spacing-lg)', borderTop: '1px solid var(--gray-200)', marginTop: 'var(--spacing-xl)' }}>
@@ -402,6 +500,7 @@ const Profile = () => {
           )
         ) : (
           <div className="card">
+            {/* Same password form content ... keeping it simple for replacement */}
             <div className="card-header">
               <h3 className="card-title">Đổi mật khẩu</h3>
             </div>
@@ -451,10 +550,10 @@ const Profile = () => {
                   />
                 </div>
 
-                <div style={{ 
-                  background: 'var(--warning-50)', 
-                  border: '1px solid var(--warning-200)', 
-                  borderRadius: 'var(--radius-md)', 
+                <div style={{
+                  background: 'var(--warning-50)',
+                  border: '1px solid var(--warning-200)',
+                  borderRadius: 'var(--radius-md)',
                   padding: 'var(--spacing-md)',
                   marginBottom: 'var(--spacing-lg)'
                 }}>

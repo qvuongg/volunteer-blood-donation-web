@@ -107,7 +107,7 @@ export const createEvent = async (req, res, next) => {
     today.setHours(0, 0, 0, 0);
     const startDate = new Date(ngay_bat_dau);
     startDate.setHours(0, 0, 0, 0);
-    
+
     if (startDate < today) {
       return res.status(400).json({
         success: false,
@@ -119,7 +119,7 @@ export const createEvent = async (req, res, next) => {
     if (ngay_ket_thuc) {
       const endDate = new Date(ngay_ket_thuc);
       endDate.setHours(0, 0, 0, 0);
-      
+
       if (endDate < startDate) {
         return res.status(400).json({
           success: false,
@@ -383,7 +383,7 @@ export const deleteEvent = async (req, res, next) => {
 
     // Send notifications and emails to all registered donors
     const reason = ly_do_huy || 'Sự kiện đã bị hủy do lý do bất khả kháng.';
-    
+
     for (const reg of registrations) {
       // Send in-app notification
       await createNotification(
@@ -527,6 +527,7 @@ export const getEventRegistrations = async (req, res, next) => {
         nd.ho_ten,
         nd.email,
         nd.so_dien_thoai,
+        nd.cccd,
         nd.gioi_tinh,
         nd.ngay_sinh
       FROM dang_ky_hien_mau dk

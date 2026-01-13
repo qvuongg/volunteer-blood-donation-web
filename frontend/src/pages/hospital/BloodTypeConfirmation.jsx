@@ -134,8 +134,8 @@ const BloodTypeConfirmation = () => {
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: 'var(--spacing-3xl)' }}>
             <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="var(--gray-400)" strokeWidth="2" style={{ margin: '0 auto var(--spacing-lg)' }}>
-              <path d="M32 8s-16 14-16 20a16 16 0 0032 0c0-6-16-20-16-20z"/>
-              <path d="M22 28l4 4 8-8"/>
+              <path d="M32 8s-16 14-16 20a16 16 0 0032 0c0-6-16-20-16-20z" />
+              <path d="M22 28l4 4 8-8" />
             </svg>
             <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-lg)' }}>
               Không có người hiến máu nào
@@ -153,7 +153,7 @@ const BloodTypeConfirmation = () => {
               <thead>
                 <tr>
                   <th>Họ tên</th>
-                  <th>Email</th>
+                  <th>CCCD</th>
                   <th>Số điện thoại</th>
                   <th>Nhóm máu (tự khai)</th>
                   <th>Số lần hiến</th>
@@ -167,12 +167,12 @@ const BloodTypeConfirmation = () => {
                     <td style={{ fontWeight: 'var(--font-weight-medium)' }}>
                       {donor.ho_ten}
                     </td>
-                    <td style={{ fontSize: 'var(--font-size-sm)' }}>{donor.email}</td>
+                    <td style={{ fontSize: 'var(--font-size-sm)' }}>{donor.cccd || '-'}</td>
                     <td style={{ fontSize: 'var(--font-size-sm)' }}>{donor.so_dien_thoai || '-'}</td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-                        <span style={{ 
-                          fontSize: 'var(--font-size-lg)', 
+                        <span style={{
+                          fontSize: 'var(--font-size-lg)',
                           fontWeight: 'var(--font-weight-bold)',
                           color: 'var(--primary-600)'
                         }}>
@@ -187,7 +187,7 @@ const BloodTypeConfirmation = () => {
                     </td>
                     <td>{donor.tong_so_lan_hien}</td>
                     <td style={{ fontSize: 'var(--font-size-sm)' }}>
-                      {donor.ngay_hien_gan_nhat 
+                      {donor.ngay_hien_gan_nhat
                         ? new Date(donor.ngay_hien_gan_nhat).toLocaleDateString('vi-VN')
                         : '-'
                       }
@@ -212,7 +212,7 @@ const BloodTypeConfirmation = () => {
                             ) : (
                               <>
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                  <path d="M6 8l2 2 4-4"/>
+                                  <path d="M6 8l2 2 4-4" />
                                 </svg>
                                 Xác nhận
                               </>
