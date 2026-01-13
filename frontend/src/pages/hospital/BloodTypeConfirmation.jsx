@@ -10,7 +10,7 @@ const BloodTypeConfirmation = () => {
   const toast = useToast();
   const { user } = useAuth();
   const hospitalName = user?.ten_to_chuc || 'bệnh viện';
-  const defaultNote = `Xác thực nhóm máu qua xét nghiệm tại ${hospitalName}`;
+
   const [donors, setDonors] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirming, setConfirming] = useState(null);
@@ -21,6 +21,12 @@ const BloodTypeConfirmation = () => {
     nhom_mau: '',
     ghi_chu: ''
   });
+
+  // Helper function to generate default note based on blood type
+  const getDefaultNote = (bloodType) => {
+    const currentDate = new Date().toLocaleDateString('vi-VN');
+    return `Xét nghiệm máu tại Khoa Huyết học ngày ${currentDate} cho kết quả nhóm máu ${bloodType}. Người hiến đủ điều kiện sức khỏe để hiến máu.`;
+  };
 
   useEffect(() => {
     fetchAllDonors();
@@ -57,7 +63,7 @@ const BloodTypeConfirmation = () => {
       const response = await api.post('/hospitals/blood-types/confirm', {
         id_nguoi_hien: donor.id_nguoi_hien,
         nhom_mau: donor.nhom_mau,
-        ghi_chu: `${defaultNote}. Nhóm máu: ${donor.nhom_mau}`
+        ghi_chu: getDefaultNote(donor.nhom_mau)
       });
 
       if (response.data.success) {
@@ -75,7 +81,7 @@ const BloodTypeConfirmation = () => {
     setSelectedDonor(donor);
     setChangeFormData({
       nhom_mau: donor.nhom_mau,
-      ghi_chu: defaultNote
+      ghi_chu: getDefaultNote(donor.nhom_mau)
     });
     setShowChangeModal(true);
   };
@@ -89,15 +95,13 @@ const BloodTypeConfirmation = () => {
     setConfirming(selectedDonor.id_nguoi_hien);
 
     try {
-      const trimmedNote = (changeFormData.ghi_chu || defaultNote).trim() || defaultNote;
-      const ghiChu = changeFormData.nhom_mau === selectedDonor.nhom_mau
-        ? `${trimmedNote}. Nhóm máu: ${changeFormData.nhom_mau}`
-        : `${trimmedNote}. Nhóm máu: ${changeFormData.nhom_mau} (đã điều chỉnh từ ${selectedDonor.nhom_mau})`;
+      // Use the note from form, or generate default note for the selected blood type
+      const finalNote = changeFormData.ghi_chu?.trim() || getDefaultNote(changeFormData.nhom_mau);
 
       const response = await api.post('/hospitals/blood-types/confirm', {
         id_nguoi_hien: selectedDonor.id_nguoi_hien,
         nhom_mau: changeFormData.nhom_mau,
-        ghi_chu: ghiChu.trim()
+        ghi_chu: finalNote
       });
 
       if (response.data.success) {
@@ -306,7 +310,14 @@ const BloodTypeConfirmation = () => {
               <select
                 className="form-input"
                 value={changeFormData.nhom_mau}
-                onChange={(e) => setChangeFormData({ ...changeFormData, nhom_mau: e.target.value })}
+                onChange={(e) => {
+                  const newBloodType = e.target.value;
+                  setChangeFormData({
+                    ...changeFormData,
+                    nhom_mau: newBloodType,
+                    ghi_chu: newBloodType ? getDefaultNote(newBloodType) : ''
+                  });
+                }}
                 required
               >
                 <option value="">-- Chọn nhóm máu --</option>

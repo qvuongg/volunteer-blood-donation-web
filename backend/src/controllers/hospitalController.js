@@ -294,6 +294,10 @@ export const confirmBloodType = async (req, res, next) => {
 
     const coordinatorId = coordinator[0].id_nguoi_phu_trach;
 
+    // Generate dynamic confirmation note based on blood type
+    const currentDate = new Date().toLocaleDateString('vi-VN');
+    const defaultNote = `Xét nghiệm máu tại Khoa Huyết học ngày ${currentDate} cho kết quả nhóm máu ${nhom_mau}. Người hiến đủ điều kiện sức khỏe để hiến máu.`;
+
     // Update blood type with confirmation
     await pool.execute(
       `UPDATE nguoi_hien_mau 
@@ -303,7 +307,7 @@ export const confirmBloodType = async (req, res, next) => {
            id_nguoi_phu_trach_benh_vien = ?,
            ghi_chu_xac_nhan = ?
        WHERE id_nguoi_hien = ?`,
-      [nhom_mau, coordinatorId, ghi_chu || 'Xác thực nhóm máu qua xét nghiệm', id_nguoi_hien]
+      [nhom_mau, coordinatorId, ghi_chu || defaultNote, id_nguoi_hien]
     );
 
     // Get updated donor info

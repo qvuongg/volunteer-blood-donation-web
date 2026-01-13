@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import Layout from '../../components/Layout';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { useToast } from '../../contexts/ToastContext';
@@ -36,6 +37,9 @@ const OrganizationRegistrationList = () => {
     'Khác (ghi rõ bên dưới)'
   ];
 
+  const [searchParams] = useSearchParams();
+  const eventIdParam = searchParams.get('event');
+
   useEffect(() => {
     const init = async () => {
       setLoading(true);
@@ -46,10 +50,25 @@ const OrganizationRegistrationList = () => {
           // Chỉ lấy những sự kiện đã được duyệt
           const approvedEvents = list.filter(event => event.trang_thai === 'da_duyet');
           setEvents(approvedEvents);
+
           if (approvedEvents.length > 0) {
-            const firstId = approvedEvents[0].id_su_kien;
-            setSelectedEventId(String(firstId));
-            await fetchEventAndRegistrations(firstId);
+            let targetId = '';
+
+            // Ưu tiên lấy từ URL param
+            if (eventIdParam) {
+              const exists = approvedEvents.find(e => String(e.id_su_kien) === eventIdParam);
+              if (exists) {
+                targetId = eventIdParam;
+              }
+            }
+
+            // Nếu không có param hoặc param không hợp lệ, lấy sự kiện đầu tiên
+            if (!targetId) {
+              targetId = String(approvedEvents[0].id_su_kien);
+            }
+
+            setSelectedEventId(targetId);
+            await fetchEventAndRegistrations(targetId);
           }
         }
       } catch (error) {
@@ -62,7 +81,7 @@ const OrganizationRegistrationList = () => {
 
     init();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [eventIdParam]);
 
   const fetchEventAndRegistrations = async (eventId) => {
     if (!eventId) return;
@@ -170,18 +189,18 @@ const OrganizationRegistrationList = () => {
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>1. Anh/chị từng hiến máu chưa?</strong>
           <div>{phieu.q1?.hien_mau_chua === 'co' ? '✅ Có' : '❌ Chưa'}</div>
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>2. Hiện tại, anh/chị có mắc bệnh lý nào không?</strong>
           <div>{phieu.q2?.mac_benh === 'co' ? `⚠️ Có: ${phieu.q2?.benh_gi || ''}` : '✅ Không'}</div>
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>3. Trước đây, anh/chị có từng mắc các bệnh nghiêm trọng?</strong>
           <div>{phieu.q3?.benh_ly_truoc === 'co' ? '⚠️ Có' : '✅ Không'}</div>
           {phieu.q3?.benh_khac && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-xs)' }}>({phieu.q3.benh_khac})</div>}
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>4. Trong 12 tháng gần đây, anh/chị có:</strong>
           {phieu.q4?.items?.includes('khong') ? (
@@ -198,7 +217,7 @@ const OrganizationRegistrationList = () => {
           )}
           {phieu.q4?.vacxin && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-xs)' }}>Vacxin: {phieu.q4.vacxin}</div>}
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>5. Trong 06 tháng gần đây, anh/chị có:</strong>
           {phieu.q5?.items?.includes('khong') ? (
@@ -214,7 +233,7 @@ const OrganizationRegistrationList = () => {
             </div>
           )}
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>6. Trong 01 tháng gần đây, anh/chị có:</strong>
           {phieu.q6?.items?.includes('khong') ? (
@@ -230,13 +249,13 @@ const OrganizationRegistrationList = () => {
             </div>
           )}
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>7. Trong 14 ngày gần đây, anh/chị có mắc bệnh (cúm, cảm lạnh, sốt...)?</strong>
           <div>{phieu.q7?.mac_benh === 'khong' ? '✅ Không' : '⚠️ Có'}</div>
           {phieu.q7?.khac && <div style={{ marginTop: '4px', fontSize: 'var(--font-size-xs)' }}>({phieu.q7.khac})</div>}
         </div>
-        
+
         <div style={{ marginBottom: 'var(--spacing-md)', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
           <strong style={{ display: 'block', marginBottom: 'var(--spacing-xs)' }}>8. Trong 7 ngày gần đây, anh/chị có sử dụng thuốc?</strong>
           <div>{phieu.q8?.dung_thuoc === 'khong' ? '✅ Không' : '⚠️ Có'}</div>
@@ -334,7 +353,7 @@ const OrganizationRegistrationList = () => {
         <div className="card">
           <div className="card-body" style={{ textAlign: 'center', padding: 'var(--spacing-3xl)' }}>
             <p style={{ color: 'var(--text-secondary)', fontSize: 'var(--font-size-lg)' }}>
-              {registrations.length === 0 
+              {registrations.length === 0
                 ? 'Chưa có đăng ký nào cho sự kiện này'
                 : 'Không có đăng ký nào phù hợp với bộ lọc'}
             </p>
@@ -349,7 +368,7 @@ const OrganizationRegistrationList = () => {
                   <tr style={{ background: 'var(--gray-50)', borderBottom: '2px solid var(--gray-200)' }}>
                     <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>STT</th>
                     <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Tên</th>
-                    <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Email</th>
+                    <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>CCCD</th>
                     <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>SĐT</th>
                     <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Giới tính</th>
                     <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', fontWeight: 'var(--font-weight-semibold)', fontSize: 'var(--font-size-sm)' }}>Ngày đăng ký</th>
@@ -362,7 +381,7 @@ const OrganizationRegistrationList = () => {
                     <tr key={reg.id_dang_ky} style={{ borderBottom: '1px solid var(--gray-200)' }}>
                       <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{index + 1}</td>
                       <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)' }}>{reg.ho_ten}</td>
-                      <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.email}</td>
+                      <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.cccd || '-'}</td>
                       <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.so_dien_thoai || '-'}</td>
                       <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{reg.gioi_tinh}</td>
                       <td style={{ padding: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>{new Date(reg.ngay_dang_ky).toLocaleDateString('vi-VN')}</td>
@@ -386,7 +405,7 @@ const OrganizationRegistrationList = () => {
 
       {/* Detail Modal */}
       {showDetailModal && selectedRegistration && (
-        <div 
+        <div
           onClick={() => setShowDetailModal(false)}
           style={{
             position: 'fixed',
@@ -402,7 +421,7 @@ const OrganizationRegistrationList = () => {
             padding: 'var(--spacing-lg)'
           }}
         >
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
             style={{
               background: 'white',
@@ -450,6 +469,7 @@ const OrganizationRegistrationList = () => {
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)' }}>
                 <div><strong>Họ tên:</strong> {selectedRegistration.ho_ten}</div>
+                <div><strong>Số CCCD/CMND:</strong> {selectedRegistration.cccd || 'Chưa cập nhật'}</div>
                 <div><strong>Email:</strong> {selectedRegistration.email}</div>
                 <div><strong>Số điện thoại:</strong> {selectedRegistration.so_dien_thoai || '-'}</div>
                 <div><strong>Giới tính:</strong> {selectedRegistration.gioi_tinh}</div>
@@ -522,7 +542,7 @@ const OrganizationRegistrationList = () => {
 
       {/* Approval Modal - Đè lên Detail Modal */}
       {showApprovalModal && selectedRegistration && (
-        <div 
+        <div
           onClick={() => setShowApprovalModal(false)}
           style={{
             position: 'fixed',
@@ -538,7 +558,7 @@ const OrganizationRegistrationList = () => {
             padding: 'var(--spacing-lg)'
           }}
         >
-          <div 
+          <div
             onClick={(e) => e.stopPropagation()}
             style={{
               background: 'white',

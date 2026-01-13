@@ -24,7 +24,7 @@ import OrgEvents from './pages/organization/Events';
 import OrgApprovals from './pages/organization/Approvals';
 import EventForm from './pages/organization/EventForm';
 import EventDetail from './pages/organization/EventDetail';
-import EventRegistrations from './pages/organization/EventRegistrations';
+
 import OrgRegistrationList from './pages/organization/RegistrationList';
 import HospitalDashboard from './pages/hospital/Dashboard';
 import HospitalProfile from './pages/hospital/Profile';
@@ -52,309 +52,301 @@ function App() {
       <SocketProvider>
         <ToastProvider>
           <Router>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/events" element={<PublicEvents />} />
-          <Route path="/events/:id" element={<PublicEventDetail />} />
-          <Route path="/search" element={<SearchEvents />} />
-          
-          {/* Notifications route - accessible by all logged-in users */}
-          <Route 
-            path="/notifications" 
-            element={
-              <ProtectedRoute allowedRoles={['nguoi_hien', 'to_chuc', 'benh_vien', 'nhom_tinh_nguyen', 'admin']}>
-                <Notifications />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Donor routes */}
-          <Route 
-            path="/donor/dashboard" 
-            element={
-              <ProtectedRoute allowedRoles={['nguoi_hien']}>
-                <DonorDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/donor/profile" 
-            element={
-              <ProtectedRoute allowedRoles={['nguoi_hien']}>
-                <DonorProfile />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/donor/blood-info" 
-            element={
-              <ProtectedRoute allowedRoles={['nguoi_hien']}>
-                <DonorBloodInfo />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/donor/events" 
-            element={
-              <ProtectedRoute allowedRoles={['nguoi_hien']}>
-                <DonorEvents />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/donor/events/:id" 
-            element={
-              <ProtectedRoute allowedRoles={['nguoi_hien']}>
-                <DonorEventDetail />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/donor/events/:eventId/register" 
-            element={
-              <ProtectedRoute allowedRoles={['nguoi_hien']}>
-                <EventRegistrationForm />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/donor/registrations" 
-            element={
-              <ProtectedRoute allowedRoles={['nguoi_hien']}>
-                <DonorRegistrations />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/donor/registrations/:id" 
-            element={
-              <ProtectedRoute allowedRoles={['nguoi_hien']}>
-                <RegistrationDetail />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/donor/history" 
-            element={
-              <ProtectedRoute allowedRoles={['nguoi_hien']}>
-                <DonorHistory />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Organization routes */}
-          <Route 
-            path="/organization/dashboard" 
-            element={
-              <ProtectedRoute allowedRoles={['to_chuc']}>
-                <OrgDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/organization/profile" 
-            element={
-              <ProtectedRoute allowedRoles={['to_chuc']}>
-                <OrganizationProfile />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/organization/events" 
-            element={
-              <ProtectedRoute allowedRoles={['to_chuc']}>
-                <OrgEvents />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/organization/events/new" 
-            element={
-              <ProtectedRoute allowedRoles={['to_chuc']}>
-                <EventForm />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/organization/events/:id" 
-            element={
-              <ProtectedRoute allowedRoles={['to_chuc']}>
-                <EventDetail />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/organization/events/:id/edit" 
-            element={
-              <ProtectedRoute allowedRoles={['to_chuc']}>
-                <EventForm />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/organization/events/:id/registrations" 
-            element={
-              <ProtectedRoute allowedRoles={['to_chuc']}>
-                <EventRegistrations />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/organization/registrations" 
-            element={
-              <ProtectedRoute allowedRoles={['to_chuc']}>
-                <OrgRegistrationList />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/organization/approvals" 
-            element={
-              <ProtectedRoute allowedRoles={['to_chuc']}>
-                <OrgApprovals />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Hospital routes */}
-          <Route 
-            path="/hospital/dashboard" 
-            element={
-              <ProtectedRoute allowedRoles={['benh_vien']}>
-                <HospitalDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hospital/profile" 
-            element={
-              <ProtectedRoute allowedRoles={['benh_vien']}>
-                <HospitalProfile />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hospital/blood-type-confirmation" 
-            element={
-              <ProtectedRoute allowedRoles={['benh_vien']}>
-                <HospitalBloodTypeConfirmation />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hospital/event-approval" 
-            element={
-              <ProtectedRoute allowedRoles={['benh_vien']}>
-                <HospitalEventApproval />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hospital/registrations" 
-            element={
-              <ProtectedRoute allowedRoles={['benh_vien']}>
-                <HospitalRegistrationList />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hospital/results" 
-            element={
-              <ProtectedRoute allowedRoles={['benh_vien']}>
-                <HospitalResultUpdate />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/hospital/notifications" 
-            element={
-              <ProtectedRoute allowedRoles={['benh_vien']}>
-                <HospitalNotificationCreate />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Volunteer routes */}
-          <Route 
-            path="/volunteer/dashboard" 
-            element={
-              <ProtectedRoute allowedRoles={['nhom_tinh_nguyen']}>
-                <VolunteerDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/volunteer/profile" 
-            element={
-              <ProtectedRoute allowedRoles={['nhom_tinh_nguyen']}>
-                <VolunteerProfile />
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Admin routes */}
-          <Route 
-            path="/admin/dashboard" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/profile" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminProfile />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/users" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminUsers />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/events" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminEvents />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/registrations" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminRegistrations />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/reports" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminReports />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/settings" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <AdminSettings />
-              </ProtectedRoute>
-            } 
-          />
-          
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/events" element={<PublicEvents />} />
+              <Route path="/events/:id" element={<PublicEventDetail />} />
+              <Route path="/search" element={<SearchEvents />} />
+
+              {/* Notifications route - accessible by all logged-in users */}
+              <Route
+                path="/notifications"
+                element={
+                  <ProtectedRoute allowedRoles={['nguoi_hien', 'to_chuc', 'benh_vien', 'nhom_tinh_nguyen', 'admin']}>
+                    <Notifications />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Donor routes */}
+              <Route
+                path="/donor/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['nguoi_hien']}>
+                    <DonorDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/donor/profile"
+                element={
+                  <ProtectedRoute allowedRoles={['nguoi_hien']}>
+                    <DonorProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/donor/blood-info"
+                element={
+                  <ProtectedRoute allowedRoles={['nguoi_hien']}>
+                    <DonorBloodInfo />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/donor/events"
+                element={
+                  <ProtectedRoute allowedRoles={['nguoi_hien']}>
+                    <DonorEvents />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/donor/events/:id"
+                element={
+                  <ProtectedRoute allowedRoles={['nguoi_hien']}>
+                    <DonorEventDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/donor/events/:eventId/register"
+                element={
+                  <ProtectedRoute allowedRoles={['nguoi_hien']}>
+                    <EventRegistrationForm />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/donor/registrations"
+                element={
+                  <ProtectedRoute allowedRoles={['nguoi_hien']}>
+                    <DonorRegistrations />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/donor/registrations/:id"
+                element={
+                  <ProtectedRoute allowedRoles={['nguoi_hien']}>
+                    <RegistrationDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/donor/history"
+                element={
+                  <ProtectedRoute allowedRoles={['nguoi_hien']}>
+                    <DonorHistory />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Organization routes */}
+              <Route
+                path="/organization/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['to_chuc']}>
+                    <OrgDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/organization/profile"
+                element={
+                  <ProtectedRoute allowedRoles={['to_chuc']}>
+                    <OrganizationProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/organization/events"
+                element={
+                  <ProtectedRoute allowedRoles={['to_chuc']}>
+                    <OrgEvents />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/organization/events/new"
+                element={
+                  <ProtectedRoute allowedRoles={['to_chuc']}>
+                    <EventForm />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/organization/events/:id"
+                element={
+                  <ProtectedRoute allowedRoles={['to_chuc']}>
+                    <EventDetail />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/organization/events/:id/edit"
+                element={
+                  <ProtectedRoute allowedRoles={['to_chuc']}>
+                    <EventForm />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/organization/registrations"
+                element={
+                  <ProtectedRoute allowedRoles={['to_chuc']}>
+                    <OrgRegistrationList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/organization/approvals"
+                element={
+                  <ProtectedRoute allowedRoles={['to_chuc']}>
+                    <OrgApprovals />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Hospital routes */}
+              <Route
+                path="/hospital/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['benh_vien']}>
+                    <HospitalDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/hospital/profile"
+                element={
+                  <ProtectedRoute allowedRoles={['benh_vien']}>
+                    <HospitalProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/hospital/blood-type-confirmation"
+                element={
+                  <ProtectedRoute allowedRoles={['benh_vien']}>
+                    <HospitalBloodTypeConfirmation />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/hospital/event-approval"
+                element={
+                  <ProtectedRoute allowedRoles={['benh_vien']}>
+                    <HospitalEventApproval />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/hospital/registrations"
+                element={
+                  <ProtectedRoute allowedRoles={['benh_vien']}>
+                    <HospitalRegistrationList />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/hospital/results"
+                element={
+                  <ProtectedRoute allowedRoles={['benh_vien']}>
+                    <HospitalResultUpdate />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/hospital/notifications"
+                element={
+                  <ProtectedRoute allowedRoles={['benh_vien']}>
+                    <HospitalNotificationCreate />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Volunteer routes */}
+              <Route
+                path="/volunteer/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['nhom_tinh_nguyen']}>
+                    <VolunteerDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/volunteer/profile"
+                element={
+                  <ProtectedRoute allowedRoles={['nhom_tinh_nguyen']}>
+                    <VolunteerProfile />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Admin routes */}
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/profile"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminProfile />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminUsers />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/events"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminEvents />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/registrations"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminRegistrations />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/reports"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminReports />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/settings"
+                element={
+                  <ProtectedRoute allowedRoles={['admin']}>
+                    <AdminSettings />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
           </Router>
         </ToastProvider>
       </SocketProvider>

@@ -55,8 +55,27 @@ const BloodInfo = () => {
     );
   }
 
+  // Helper function to get blood type display value
+  const getBloodTypeDisplay = (value) => {
+    if (!value) return 'Chưa cập nhật';
+
+    // If it's already a valid blood type string, return it
+    if (['O', 'A', 'B', 'AB'].includes(value)) {
+      return value;
+    }
+
+    // If it's a number or boolean, it might need mapping
+    // In case nhom_mau_xac_nhan is just a boolean flag
+    if (typeof value === 'boolean' || value === 1 || value === '1') {
+      // Use the self-reported blood type if verification is just a flag
+      return donorData?.nhom_mau || 'Chưa cập nhật';
+    }
+
+    return value;
+  };
+
   const isVerified = !!donorData?.nhom_mau_xac_nhan;
-  const bloodType = donorData?.nhom_mau_xac_nhan || donorData?.nhom_mau || 'Chưa cập nhật';
+  const bloodType = isVerified ? getBloodTypeDisplay(donorData?.nhom_mau) : getBloodTypeDisplay(donorData?.nhom_mau);
 
   return (
     <Layout>
@@ -137,7 +156,11 @@ const BloodInfo = () => {
             {isVerified && (
               <div style={{ marginTop: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)', opacity: 0.8 }}>
                 Xác thực bởi {donorData.ten_benh_vien_xac_nhan} • {new Date(donorData.ngay_xac_nhan).toLocaleDateString('vi-VN')}
+                <div style={{ marginTop: 'var(--spacing-md)', fontSize: 'var(--font-size-sm)', opacity: 0.8 }}>
+                  Ghi chú xác nhận: {donorData.ghi_chu_xac_nhan}
+                </div>
               </div>
+
             )}
           </div>
 
@@ -190,6 +213,7 @@ const BloodInfo = () => {
 
         {/* Reference Info */}
         <div style={{ marginTop: 'var(--spacing-2xl)' }}>
+
           <h3 style={{
             fontSize: 'var(--font-size-lg)',
             fontWeight: 'bold',

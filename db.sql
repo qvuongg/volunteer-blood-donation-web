@@ -21,6 +21,7 @@ CREATE TABLE vaitro (
 CREATE TABLE nguoidung (
     id_nguoi_dung INT PRIMARY KEY AUTO_INCREMENT,
     ho_ten NVARCHAR(100) NOT NULL,
+    cccd VARCHAR(20) NOT NULL, 
     email VARCHAR(100) UNIQUE NOT NULL,
     mat_khau VARCHAR(255) NOT NULL,
     so_dien_thoai VARCHAR(15) UNIQUE,

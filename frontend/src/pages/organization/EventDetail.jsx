@@ -93,7 +93,7 @@ const EventDetail = () => {
       <div className="card">
         <div className="card-body">
           <h2 style={{ marginTop: 0, marginBottom: 'var(--spacing-lg)' }}>Thông tin sự kiện</h2>
-          
+
           <div className="grid grid-cols-2" style={{ gap: 'var(--spacing-lg)' }}>
             <div>
               <div style={{ marginBottom: 'var(--spacing-md)' }}>
@@ -128,11 +128,11 @@ const EventDetail = () => {
                   Ngày bắt đầu
                 </div>
                 <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)' }}>
-                  {new Date(event.ngay_bat_dau).toLocaleDateString('vi-VN', { 
-                    weekday: 'long', 
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric' 
+                  {new Date(event.ngay_bat_dau).toLocaleDateString('vi-VN', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
                   })}
                 </div>
               </div>
@@ -143,11 +143,11 @@ const EventDetail = () => {
                     Ngày kết thúc
                   </div>
                   <div style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)' }}>
-                    {new Date(event.ngay_ket_thuc).toLocaleDateString('vi-VN', { 
-                      weekday: 'long', 
-                      year: 'numeric', 
-                      month: 'long', 
-                      day: 'numeric' 
+                    {new Date(event.ngay_ket_thuc).toLocaleDateString('vi-VN', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
                     })}
                   </div>
                 </div>
@@ -186,9 +186,9 @@ const EventDetail = () => {
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.dia_chi)}`}
               target="_blank"
               rel="noopener noreferrer"
-              style={{ 
-                display: 'inline-block', 
-                marginTop: 'var(--spacing-sm)', 
+              style={{
+                display: 'inline-block',
+                marginTop: 'var(--spacing-sm)',
                 color: 'var(--primary-600)',
                 textDecoration: 'none'
               }}
@@ -198,7 +198,7 @@ const EventDetail = () => {
           </div>
 
           {event.trang_thai === 'tu_choi' && event.ly_do_tu_choi && (
-            <div style={{ 
+            <div style={{
               marginTop: 'var(--spacing-lg)',
               padding: 'var(--spacing-md)',
               background: '#fee2e2',
@@ -256,7 +256,7 @@ const EventDetail = () => {
         <div style={{ marginTop: 'var(--spacing-lg)', display: 'flex', gap: 'var(--spacing-md)' }}>
           <button
             className="btn btn-primary"
-            onClick={() => navigate(`/organization/events/${id}/registrations`)}
+            onClick={() => navigate(`/organization/registrations?event=${id}`)}
           >
             Xem danh sách đăng ký
           </button>

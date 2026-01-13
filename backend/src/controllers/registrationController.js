@@ -283,6 +283,7 @@ export const getEventRegistrations = async (req, res, next) => {
         nd.ho_ten,
         nd.email,
         nd.so_dien_thoai,
+        nd.cccd,
         nd.gioi_tinh,
         nd.ngay_sinh,
         nhm.nhom_mau,
