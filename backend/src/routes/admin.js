@@ -7,6 +7,7 @@ import {
   updateUserStatus,
   deleteUser,
   getStats,
+  getRecentActivities,
   getEvents,
   getRegistrations,
   getReportsOverview,
@@ -47,6 +48,7 @@ router.get('/reports/hospitals', getReportsByHospital);
 
 // Stats
 router.get('/stats', getStats);
+router.get('/activities/recent', getRecentActivities);
 
 export default router;
 

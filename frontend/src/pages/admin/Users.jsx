@@ -268,68 +268,88 @@ const Users = () => {
         </div>
         <div className="card-body" style={{ padding: 0 }}>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--font-size-sm)' }}>
               <thead style={{ background: 'var(--gray-50)' }}>
                 <tr>
-                  <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>ID</th>
-                  <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Họ tên</th>
-                  <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Email</th>
-                  <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Số điện thoại</th>
-                  <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Vai trò</th>
-                  <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Trạng thái</th>
-                  <th style={{ padding: 'var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)' }}>Ngày tạo</th>
-                  <th style={{ padding: 'var(--spacing-md)', textAlign: 'center', borderBottom: '1px solid var(--gray-200)' }}>Thao tác</th>
+                  <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)', fontSize: 'var(--font-size-sm)' }}>ID</th>
+                  <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)', fontSize: 'var(--font-size-sm)' }}>Họ tên</th>
+                  <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)', fontSize: 'var(--font-size-sm)' }}>Email</th>
+                  <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)', fontSize: 'var(--font-size-sm)' }}>Số điện thoại</th>
+                  <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)', fontSize: 'var(--font-size-sm)' }}>Vai trò</th>
+                  <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)', fontSize: 'var(--font-size-sm)' }}>Trạng thái</th>
+                  <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'left', borderBottom: '1px solid var(--gray-200)', fontSize: 'var(--font-size-sm)' }}>Ngày tạo</th>
+                  <th style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'center', borderBottom: '1px solid var(--gray-200)', fontSize: 'var(--font-size-sm)' }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map(user => (
                   <tr key={user.id_nguoi_dung} style={{ borderBottom: '1px solid var(--gray-100)' }}>
-                    <td style={{ padding: 'var(--spacing-md)' }}>{user.id_nguoi_dung}</td>
-                    <td style={{ padding: 'var(--spacing-md)' }}>{user.ho_ten}</td>
-                    <td style={{ padding: 'var(--spacing-md)' }}>{user.email}</td>
-                    <td style={{ padding: 'var(--spacing-md)' }}>{user.so_dien_thoai || '-'}</td>
-                    <td style={{ padding: 'var(--spacing-md)' }}>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>{user.id_nguoi_dung}</td>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>{user.ho_ten}</td>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>{user.email}</td>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>{user.so_dien_thoai || '-'}</td>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>
                       <span className={`badge badge-${getRoleBadgeColor(user.ten_vai_tro)}`}>
                         {getRoleLabel(user.ten_vai_tro)}
                       </span>
                     </td>
-                    <td style={{ padding: 'var(--spacing-md)' }}>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>
                       <span className={`badge badge-${user.trang_thai ? 'success' : 'secondary'}`}>
                         {user.trang_thai ? 'Hoạt động' : 'Vô hiệu hóa'}
                       </span>
                     </td>
-                    <td style={{ padding: 'var(--spacing-md)' }}>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)' }}>
                       {new Date(user.ngay_tao).toLocaleDateString('vi-VN')}
                     </td>
-                    <td style={{ padding: 'var(--spacing-md)', textAlign: 'center' }}>
-                      <div style={{ display: 'flex', gap: 'var(--spacing-xs)', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <td style={{ padding: 'var(--spacing-sm) var(--spacing-md)', textAlign: 'center' }}>
+                      <div style={{ display: 'flex', gap: 'var(--spacing-xs)', justifyContent: 'center', flexWrap: 'nowrap' }}>
                         <button
                           className="btn btn-sm btn-primary"
                           onClick={() => handleViewDetail(user.id_nguoi_dung)}
                           title="Xem chi tiết"
+                          style={{ padding: 'var(--spacing-xs)', minWidth: 'auto', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
-                          Chi tiết
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M8 3C4.5 3 1.73 5.11 1 8c.73 2.89 3.5 5 7 5s6.27-2.11 7-5c-.73-2.89-3.5-5-7-5zm0 8.5c-1.93 0-3.5-1.57-3.5-3.5S6.07 4.5 8 4.5s3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5zm0-5.5c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+                          </svg>
                         </button>
                         <button
                           className="btn btn-sm btn-outline"
                           onClick={() => handleEdit(user)}
                           title="Sửa"
+                          style={{ padding: 'var(--spacing-xs)', minWidth: 'auto', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
-                          Sửa
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5L13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175l-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
+                          </svg>
                         </button>
                         <button
                           className={`btn btn-sm ${user.trang_thai ? 'btn-warning' : 'btn-success'}`}
                           onClick={() => handleToggleStatus(user.id_nguoi_dung, user.trang_thai)}
                           title={user.trang_thai ? 'Vô hiệu hóa' : 'Kích hoạt'}
+                          style={{ padding: 'var(--spacing-xs)', minWidth: 'auto', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
-                          {user.trang_thai ? 'Tắt' : 'Bật'}
+                          {user.trang_thai ? (
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                              <path d="M10.97 4.97a.235.235 0 0 0-.02.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-1.071-1.05z" />
+                            </svg>
+                          ) : (
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z" />
+                            </svg>
+                          )}
                         </button>
                         <button
                           className="btn btn-sm btn-danger"
                           onClick={() => handleDelete(user.id_nguoi_dung)}
                           title="Xóa"
+                          style={{ padding: 'var(--spacing-xs)', minWidth: 'auto', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                         >
-                          Xóa
+                          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                            <path fillRule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4L4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+                          </svg>
                         </button>
                       </div>
                     </td>

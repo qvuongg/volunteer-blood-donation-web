@@ -10,23 +10,77 @@ const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchStats();
+    fetchData();
   }, []);
 
-  const fetchStats = async () => {
+  const fetchData = async () => {
+    setLoading(true);
     try {
-      const response = await api.get('/admin/stats');
-      if (response.data.success) {
-        setStats(response.data.data);
+      const [statsRes, activitiesRes] = await Promise.all([
+        api.get('/admin/stats'),
+        api.get('/admin/activities/recent?limit=5')
+      ]);
+
+      if (statsRes.data.success) {
+        setStats(statsRes.data.data);
+      }
+
+      if (activitiesRes.data.success) {
+        setActivities(activitiesRes.data.data.activities);
       }
     } catch (error) {
       console.error('Error:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const getTimeAgo = (timestamp) => {
+    const now = new Date();
+    const past = new Date(timestamp);
+    const diffInSeconds = Math.floor((now - past) / 1000);
+
+    if (diffInSeconds < 3600) return `${Math.max(1, Math.floor(diffInSeconds / 60))} phút trước`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} giờ trước`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} ngày trước`;
+    return past.toLocaleDateString('vi-VN');
+  };
+
+  const getActivityIcon = (type) => {
+    const configs = {
+      user_registered: {
+        icon: (
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V5h2v4z" />
+          </svg>
+        ),
+        bgColor: 'var(--primary-50)',
+        color: 'var(--primary-600)'
+      },
+      event_approved: {
+        icon: (
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M8 12l2 2 4-4M18 10a8 8 0 11-16 0 8 8 0 0116 0z" />
+          </svg>
+        ),
+        bgColor: 'var(--success-50)',
+        color: 'var(--success-600)'
+      },
+      event_rejected: {
+        icon: (
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm5 11l-1.5 1.5L10 11l-3.5 3.5L5 13l3.5-3.5L5 6l1.5-1.5L10 8l3.5-3.5L15 6l-3.5 3.5L15 13z" />
+          </svg>
+        ),
+        bgColor: 'var(--danger-50)',
+        color: 'var(--danger-600)'
+      }
+    };
+    return configs[type] || configs.user_registered;
   };
 
   if (loading) {
@@ -89,25 +143,25 @@ const Dashboard = () => {
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
                     <span className="font-medium">Người dùng mới (tháng này)</span>
                     <span className="font-bold" style={{ color: 'var(--primary-600)' }}>
-                      {Math.floor(stats.totalUsers * 0.15)}
+                      {stats.newUsersThisMonth || 0}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
                     <span className="font-medium">Sự kiện đang chờ duyệt</span>
                     <span className="font-bold" style={{ color: 'var(--warning-600)' }}>
-                      {Math.floor(stats.totalEvents * 0.1)}
+                      {stats.pendingEvents || 0}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
                     <span className="font-medium">Đăng ký chờ xử lý</span>
                     <span className="font-bold" style={{ color: 'var(--secondary-600)' }}>
-                      {Math.floor(stats.totalRegistrations * 0.2)}
+                      {stats.pendingRegistrations || 0}
                     </span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
                     <span className="font-medium">Tổng lượng máu đã hiến</span>
                     <span className="font-bold" style={{ color: 'var(--success-600)' }}>
-                      {(stats.totalRegistrations * 350).toLocaleString()} ml
+                      {(stats.totalBloodDonated || 0).toLocaleString()} ml
                     </span>
                   </div>
                 </div>
@@ -126,7 +180,7 @@ const Dashboard = () => {
                     onClick={() => navigate('/admin/users')}
                   >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M16 18v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M10 10a4 4 0 100-8 4 4 0 000 8z"/>
+                      <path d="M16 18v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2M10 10a4 4 0 100-8 4 4 0 000 8z" />
                     </svg>
                     Quản lý người dùng
                   </button>
@@ -136,8 +190,8 @@ const Dashboard = () => {
                     onClick={() => navigate('/admin/events')}
                   >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="4" width="14" height="14" rx="2"/>
-                      <path d="M3 8h14M7 2v4M13 2v4"/>
+                      <rect x="3" y="4" width="14" height="14" rx="2" />
+                      <path d="M3 8h14M7 2v4M13 2v4" />
                     </svg>
                     Quản lý sự kiện
                   </button>
@@ -147,7 +201,7 @@ const Dashboard = () => {
                     onClick={() => navigate('/admin/registrations')}
                   >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M8 12l2 2 4-4M18 10a8 8 0 11-16 0 8 8 0 0116 0z"/>
+                      <path d="M8 12l2 2 4-4M18 10a8 8 0 11-16 0 8 8 0 0116 0z" />
                     </svg>
                     Xem đăng ký hiến máu
                   </button>
@@ -157,8 +211,8 @@ const Dashboard = () => {
                     onClick={() => navigate('/admin/reports')}
                   >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M3 3h14v14H3z"/>
-                      <path d="M7 8h6M7 12h6"/>
+                      <path d="M3 3h14v14H3z" />
+                      <path d="M7 8h6M7 12h6" />
                     </svg>
                     Báo cáo thống kê
                   </button>
@@ -168,7 +222,7 @@ const Dashboard = () => {
                     onClick={() => navigate('/admin/settings')}
                   >
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M10 3v14M3 10h14"/>
+                      <path d="M10 3v14M3 10h14" />
                     </svg>
                     Cài đặt hệ thống
                   </button>
@@ -182,46 +236,55 @@ const Dashboard = () => {
               <h3 className="card-title">Hoạt động gần đây</h3>
             </div>
             <div className="card-body">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', padding: 'var(--spacing-md)', borderBottom: '1px solid var(--gray-200)' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-full)', background: 'var(--primary-50)', color: 'var(--primary-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V5h2v4z"/>
-                    </svg>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p className="font-medium" style={{ marginBottom: '4px' }}>Người dùng mới đăng ký</p>
-                    <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', margin: 0 }}>5 phút trước</p>
-                  </div>
-                  <span className="badge badge-primary">Mới</span>
+              {activities.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: 'var(--spacing-xl)', color: 'var(--text-secondary)' }}>
+                  Chưa có hoạt động nào
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', padding: 'var(--spacing-md)', borderBottom: '1px solid var(--gray-200)' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-full)', background: 'var(--success-50)', color: 'var(--success-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M8 12l2 2 4-4M18 10a8 8 0 11-16 0 8 8 0 0116 0z"/>
-                    </svg>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p className="font-medium" style={{ marginBottom: '4px' }}>Sự kiện được duyệt</p>
-                    <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', margin: 0 }}>15 phút trước</p>
-                  </div>
-                  <span className="badge badge-success">Thành công</span>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
+                  {activities.map((activity, index) => {
+                    const isLast = index === activities.length - 1;
+                    const timeAgo = getTimeAgo(activity.timestamp);
+                    const iconConfig = getActivityIcon(activity.type);
+
+                    return (
+                      <div
+                        key={activity.id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 'var(--spacing-md)',
+                          padding: 'var(--spacing-md)',
+                          borderBottom: isLast ? 'none' : '1px solid var(--gray-200)'
+                        }}
+                      >
+                        <div style={{
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: 'var(--radius-full)',
+                          background: iconConfig.bgColor,
+                          color: iconConfig.color,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          {iconConfig.icon}
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <p className="font-medium" style={{ marginBottom: '4px' }}>{activity.title}</p>
+                          <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', margin: 0 }}>
+                            {activity.description} • {timeAgo}
+                          </p>
+                        </div>
+                        <span className={`badge badge-${activity.badge}`}>{activity.badgeText}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)', padding: 'var(--spacing-md)' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: 'var(--radius-full)', background: 'var(--warning-50)', color: 'var(--warning-600)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 12H9v-2h2v2zm0-4H9V6h2v4z"/>
-                    </svg>
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <p className="font-medium" style={{ marginBottom: '4px' }}>Báo cáo thống kê tháng</p>
-                    <p className="text-secondary" style={{ fontSize: 'var(--font-size-sm)', margin: 0 }}>1 giờ trước</p>
-                  </div>
-                  <span className="badge badge-warning">Đang xử lý</span>
-                </div>
-              </div>
+              )}
             </div>
-        </div>
+          </div>
         </>
       )}
     </Layout>

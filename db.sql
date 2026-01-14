@@ -241,6 +241,7 @@ INSERT INTO nguoidung (ho_ten, email, cccd, mat_khau, so_dien_thoai, gioi_tinh, 
 ('Tran Thi B', 'tranthib@email.com', '$2b$10$wrP.9VlkgrUNPGf2xt15v.gIBmaapz2vLuUtiKOOpmM0qxZGGkz2u', '0901000002', 'Nu', '1998-08-20', 1),
 ('Le Van C', 'levanc@email.com', '$2b$10$wrP.9VlkgrUNPGf2xt15v.gIBmaapz2vLuUtiKOOpmM0qxZGGkz2u', '0901000003', 'Nam', '1992-03-10', 1),
 -- Người phụ trách tổ chức
+('Huỳnh Văn Toàn','vantoan@gmail.com'),Đoàn Thanh Niên thành phố Đà Nẵng
 ('Pham Thi D', 'phamthid@email.com', '$2b$10$wrP.9VlkgrUNPGf2xt15v.gIBmaapz2vLuUtiKOOpmM0qxZGGkz2u', '0902000001', 'Nu', '1988-11-25', 2),
 ('Hoang Van E', 'hoangvane@email.com', '$2b$10$wrP.9VlkgrUNPGf2xt15v.gIBmaapz2vLuUtiKOOpmM0qxZGGkz2u', '0902000002', 'Nam', '1985-07-12', 2),
 -- Người phụ trách bệnh viện

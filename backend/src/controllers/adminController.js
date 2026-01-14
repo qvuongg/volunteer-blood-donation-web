@@ -364,19 +364,131 @@ export const getStats = async (req, res, next) => {
     const [eventCount] = await pool.execute('SELECT COUNT(*) as count FROM sukien_hien_mau');
     const [registrationCount] = await pool.execute('SELECT COUNT(*) as count FROM dang_ky_hien_mau');
 
+    // Get new users this month
+    const [newUsersThisMonth] = await pool.execute(
+      `SELECT COUNT(*) as count FROM nguoidung 
+       WHERE MONTH(ngay_tao) = MONTH(CURRENT_DATE()) 
+       AND YEAR(ngay_tao) = YEAR(CURRENT_DATE())`
+    );
+
+    // Get pending events
+    const [pendingEvents] = await pool.execute(
+      `SELECT COUNT(*) as count FROM sukien_hien_mau WHERE trang_thai = 'cho_duyet'`
+    );
+
+    // Get pending registrations
+    const [pendingRegistrations] = await pool.execute(
+      `SELECT COUNT(*) as count FROM dang_ky_hien_mau WHERE trang_thai = 'cho_duyet'`
+    );
+
+    // Get total blood donated (sum of all successful donations)
+    const [totalBlood] = await pool.execute(
+      `SELECT COALESCE(SUM(luong_ml), 0) as total FROM ket_qua_hien_mau WHERE ket_qua = 'Dat'`
+    );
+
     res.json({
       success: true,
       data: {
         totalUsers: userCount[0].count,
         totalDonors: donorCount[0].count,
         totalEvents: eventCount[0].count,
-        totalRegistrations: registrationCount[0].count
+        totalRegistrations: registrationCount[0].count,
+        newUsersThisMonth: newUsersThisMonth[0].count,
+        pendingEvents: pendingEvents[0].count,
+        pendingRegistrations: pendingRegistrations[0].count,
+        totalBloodDonated: totalBlood[0].total
       }
     });
   } catch (error) {
     next(error);
   }
 };
+
+// Get recent activities
+export const getRecentActivities = async (req, res, next) => {
+  try {
+    const limit = parseInt(req.query.limit) || 10;
+    const halfLimit = Math.floor(limit / 2);
+
+    // Get recent user registrations
+    const [recentUsers] = await pool.execute(
+      `SELECT 
+        nd.id_nguoi_dung,
+        nd.ho_ten,
+        nd.email,
+        nd.ngay_tao,
+        vt.ten_vai_tro,
+        'user_registered' as activity_type
+      FROM nguoidung nd
+      JOIN vaitro vt ON nd.id_vai_tro = vt.id_vai_tro
+      ORDER BY nd.ngay_tao DESC
+      LIMIT ${halfLimit}`
+    );
+
+    // Get recent event status changes (approved/rejected)
+    const [recentEvents] = await pool.execute(
+      `SELECT 
+        sk.id_su_kien,
+        sk.ten_su_kien,
+        sk.trang_thai,
+        sk.ngay_bat_dau,
+        sk.ly_do_tu_choi,
+        tc.ten_don_vi,
+        CASE 
+          WHEN sk.trang_thai = 'da_duyet' THEN 'event_approved'
+          WHEN sk.trang_thai = 'tu_choi' THEN 'event_rejected'
+          ELSE 'event_created'
+        END as activity_type
+      FROM sukien_hien_mau sk
+      LEFT JOIN to_chuc tc ON sk.id_to_chuc = tc.id_to_chuc
+      WHERE sk.trang_thai IN ('da_duyet', 'tu_choi')
+      ORDER BY sk.ngay_bat_dau DESC
+      LIMIT ${halfLimit}`
+    );
+
+    // Combine and sort activities by timestamp
+    const activities = [
+      ...recentUsers.map(user => ({
+        id: `user_${user.id_nguoi_dung}`,
+        type: user.activity_type,
+        title: 'Người dùng mới đăng ký',
+        description: `${user.ho_ten} (${getRoleLabel(user.ten_vai_tro)})`,
+        timestamp: user.ngay_tao,
+        badge: 'primary',
+        badgeText: 'Mới'
+      })),
+      ...recentEvents.map(event => ({
+        id: `event_${event.id_su_kien}`,
+        type: event.activity_type,
+        title: event.activity_type === 'event_approved' ? 'Sự kiện được duyệt' : 'Sự kiện bị từ chối',
+        description: `${event.ten_su_kien} - ${event.ten_don_vi || 'N/A'}`,
+        timestamp: event.ngay_bat_dau,
+        badge: event.activity_type === 'event_approved' ? 'success' : 'danger',
+        badgeText: event.activity_type === 'event_approved' ? 'Đã duyệt' : 'Từ chối'
+      }))
+    ].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+      .slice(0, limit);
+
+    res.json({
+      success: true,
+      data: { activities }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Helper function for role labels
+function getRoleLabel(role) {
+  const labels = {
+    'admin': 'Quản trị viên',
+    'nguoi_hien': 'Người hiến máu',
+    'to_chuc': 'Tổ chức',
+    'benh_vien': 'Bệnh viện',
+    'nhom_tinh_nguyen': 'Tình nguyện viên'
+  };
+  return labels[role] || role;
+}
 
 // Get all events with pagination and filters
 export const getEvents = async (req, res, next) => {
