@@ -52,6 +52,27 @@ const Dashboard = () => {
     return nextDate.toLocaleDateString('vi-VN');
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Chưa cập nhật';
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        // Try parsing 'YYYY-MM-DD HH:mm:ss' which might fail in some browsers
+        if (typeof dateString === 'string') {
+          const standardized = dateString.replace(' ', 'T');
+          const retryDate = new Date(standardized);
+          if (!isNaN(retryDate.getTime())) {
+            return retryDate.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+          }
+        }
+        return 'Ngày không hợp lệ';
+      }
+      return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch (e) {
+      return 'Lỗi hiển thị';
+    }
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -88,8 +109,8 @@ const Dashboard = () => {
             />
             <StatCard
               title="Lần hiến gần nhất"
-              value={profile.donor?.lan_hien_gan_nhat 
-                ? new Date(profile.donor.lan_hien_gan_nhat).toLocaleDateString('vi-VN')
+              value={profile.donor?.lan_hien_gan_nhat
+                ? formatDate(profile.donor.lan_hien_gan_nhat)
                 : 'Chưa có'}
               icon="clock"
               color="success"
@@ -110,17 +131,17 @@ const Dashboard = () => {
                 <h3 className="card-title">Thông tin cá nhân</h3>
                 <button className="btn btn-sm btn-outline" onClick={() => navigate('/donor/profile')}>
                   Chỉnh sửa
-              </button>
+                </button>
               </div>
               <div className="card-body">
                 {profile.user && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-md)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-md)' }}>
-                      <div style={{ 
-                        width: '80px', 
-                        height: '80px', 
-                        borderRadius: 'var(--radius-full)', 
-                        background: 'var(--primary-gradient)', 
+                      <div style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: 'var(--radius-full)',
+                        background: 'var(--primary-gradient)',
                         color: 'white',
                         display: 'flex',
                         alignItems: 'center',
@@ -152,34 +173,34 @@ const Dashboard = () => {
                       <div>
                         <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-tertiary)', margin: '0 0 4px' }}>Ngày sinh</p>
                         <p style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)', margin: 0 }}>
-                          {new Date(profile.user.ngay_sinh).toLocaleDateString('vi-VN')}
+                          {formatDate(profile.user.ngay_sinh)}
                         </p>
                       </div>
                       <div>
                         <p style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-tertiary)', margin: '0 0 4px' }}>Tham gia</p>
                         <p style={{ fontSize: 'var(--font-size-base)', fontWeight: 'var(--font-weight-medium)', margin: 0 }}>
-                          {new Date(profile.user.ngay_tao).toLocaleDateString('vi-VN')}
+                          {formatDate(profile.user.ngay_tao)}
                         </p>
                       </div>
                     </div>
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
-        </div>
 
             <div className="card">
               <div className="card-header">
                 <h3 className="card-title">Thông tin hiến máu</h3>
                 <button className="btn btn-sm btn-outline" onClick={() => navigate('/donor/blood-info')}>
                   Cập nhật
-              </button>
+                </button>
               </div>
               <div className="card-body">
                 {profile.donor ? (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
-                    <div style={{ 
-                      textAlign: 'center', 
-                      padding: 'var(--spacing-xl)', 
+                    <div style={{
+                      textAlign: 'center',
+                      padding: 'var(--spacing-xl)',
                       background: 'var(--primary-gradient)',
                       borderRadius: 'var(--radius-lg)',
                       color: 'white',
@@ -190,9 +211,9 @@ const Dashboard = () => {
                         {profile.donor.nhom_mau || '?'}
                       </h2>
                       {profile.donor.nhom_mau_xac_nhan ? (
-                        <div style={{ 
-                          position: 'absolute', 
-                          top: '12px', 
+                        <div style={{
+                          position: 'absolute',
+                          top: '12px',
                           right: '12px',
                           background: 'rgba(255, 255, 255, 0.3)',
                           padding: '4px 12px',
@@ -204,14 +225,14 @@ const Dashboard = () => {
                           gap: '4px'
                         }}>
                           <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-                            <path d="M5 7l2 2 4-4M13 7A6 6 0 111 7a6 6 0 0112 0z"/>
+                            <path d="M5 7l2 2 4-4M13 7A6 6 0 111 7a6 6 0 0112 0z" />
                           </svg>
                           Đã xác thực
                         </div>
                       ) : (
-                        <div style={{ 
-                          position: 'absolute', 
-                          top: '12px', 
+                        <div style={{
+                          position: 'absolute',
+                          top: '12px',
                           right: '12px',
                           background: 'rgba(255, 255, 255, 0.3)',
                           padding: '4px 12px',
@@ -223,7 +244,7 @@ const Dashboard = () => {
                           gap: '4px'
                         }}>
                           <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-                            <path d="M7 1a6 6 0 100 12A6 6 0 007 1zm0 9V7M7 5h.01"/>
+                            <path d="M7 1a6 6 0 100 12A6 6 0 007 1zm0 9V7M7 5h.01" />
                           </svg>
                           Chưa xác thực
                         </div>
@@ -244,12 +265,12 @@ const Dashboard = () => {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 'var(--spacing-md)', background: 'var(--gray-50)', borderRadius: 'var(--radius-md)' }}>
                         <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>Tổng lượng máu</span>
                         <span style={{ fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-bold)', color: 'var(--primary-600)' }}>
-                          {(profile.donor.tong_so_lan_hien * 350).toLocaleString()} ml
+                          {(profile.donor.tong_luong_mau || 0).toLocaleString()} ml
                         </span>
                       </div>
                     </div>
-            </div>
-          ) : (
+                  </div>
+                ) : (
                   <div style={{ textAlign: 'center', padding: 'var(--spacing-2xl)' }}>
                     <p style={{ color: 'var(--text-secondary)', marginBottom: 'var(--spacing-md)' }}>
                       Chưa có thông tin hiến máu
@@ -258,10 +279,10 @@ const Dashboard = () => {
                       Cập nhật ngay
                     </button>
                   </div>
-          )}
+                )}
               </div>
-        </div>
-      </div>
+            </div>
+          </div>
 
           <div className="card" style={{ marginTop: 'var(--spacing-xl)' }}>
             <div className="card-header">
@@ -275,52 +296,52 @@ const Dashboard = () => {
                   onClick={() => navigate('/donor/events')}
                 >
                   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2">
-                    <rect x="4" y="6" width="24" height="22" rx="2"/>
-                    <path d="M4 12h24M10 4v6M22 4v6"/>
+                    <rect x="4" y="6" width="24" height="22" rx="2" />
+                    <path d="M4 12h24M10 4v6M22 4v6" />
                   </svg>
                   <span>Sự kiện hiến máu</span>
-        </button>
+                </button>
                 <button
                   className="btn btn-outline"
                   style={{ flexDirection: 'column', height: '120px', gap: 'var(--spacing-md)' }}
                   onClick={() => navigate('/donor/registrations')}
                 >
                   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M8 16h8M8 20h6M8 12h10M6 28h20a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v20a2 2 0 002 2z"/>
+                    <path d="M8 16h8M8 20h6M8 12h10M6 28h20a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v20a2 2 0 002 2z" />
                   </svg>
                   <span>Lịch đăng ký</span>
-        </button>
+                </button>
                 <button
                   className="btn btn-outline"
                   style={{ flexDirection: 'column', height: '120px', gap: 'var(--spacing-md)' }}
                   onClick={() => navigate('/donor/history')}
                 >
                   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="16" cy="16" r="12"/>
-                    <path d="M16 8v8l4 4"/>
+                    <circle cx="16" cy="16" r="12" />
+                    <path d="M16 8v8l4 4" />
                   </svg>
                   <span>Lịch sử hiến máu</span>
-        </button>
+                </button>
                 <button
                   className="btn btn-outline"
                   style={{ flexDirection: 'column', height: '120px', gap: 'var(--spacing-md)' }}
                   onClick={() => navigate('/donor/profile')}
                 >
                   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M16 16a6 6 0 100-12 6 6 0 000 12zM6 28c0-5 4.5-9 10-9s10 4 10 9"/>
+                    <path d="M16 16a6 6 0 100-12 6 6 0 000 12zM6 28c0-5 4.5-9 10-9s10 4 10 9" />
                   </svg>
                   <span>Thông tin cá nhân</span>
-        </button>
-      </div>
-    </div>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Upcoming Events Section */}
           <div className="card" style={{ marginTop: 'var(--spacing-xl)' }}>
             <div className="card-header">
               <h3 className="card-title">Sự Kiện Sắp Diễn Ra</h3>
-              <button 
-                className="btn btn-sm btn-outline" 
+              <button
+                className="btn btn-sm btn-outline"
                 onClick={() => navigate('/donor/events')}
               >
                 Xem tất cả
@@ -334,7 +355,7 @@ const Dashboard = () => {
                     const endDate = new Date(event.ngay_ket_thuc);
                     const today = new Date();
                     today.setHours(0, 0, 0, 0);
-                    
+
                     let status = 'Sắp diễn ra';
                     let statusColor = '#2563eb';
                     if (startDate <= today && endDate >= today) {
@@ -343,7 +364,7 @@ const Dashboard = () => {
                     }
 
                     return (
-                      <div 
+                      <div
                         key={event.id_su_kien}
                         style={{
                           border: '1px solid var(--gray-200)',
@@ -363,9 +384,9 @@ const Dashboard = () => {
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: 'var(--spacing-sm)' }}>
-                          <h4 style={{ 
-                            margin: 0, 
-                            fontSize: 'var(--font-size-lg)', 
+                          <h4 style={{
+                            margin: 0,
+                            fontSize: 'var(--font-size-lg)',
                             fontWeight: 'var(--font-weight-semibold)',
                             color: '#dc2626'
                           }}>
@@ -382,37 +403,37 @@ const Dashboard = () => {
                             {status}
                           </span>
                         </div>
-                        
+
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-xs)', marginTop: 'var(--spacing-md)' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-                              <rect x="2" y="3" width="12" height="11" rx="1"/>
-                              <path d="M2 6h12M5 2v3M11 2v3"/>
+                              <rect x="2" y="3" width="12" height="11" rx="1" />
+                              <path d="M2 6h12M5 2v3M11 2v3" />
                             </svg>
                             <span>
                               {startDate.toLocaleDateString('vi-VN')} - {endDate.toLocaleDateString('vi-VN')}
                             </span>
                           </div>
-                          
+
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M8 2a4 4 0 00-4 4c0 3 4 6.67 4 6.67S12 9 12 6a4 4 0 00-4-4z"/>
-                              <circle cx="8" cy="6" r="1.5"/>
+                              <path d="M8 2a4 4 0 00-4 4c0 3 4 6.67 4 6.67S12 9 12 6a4 4 0 00-4-4z" />
+                              <circle cx="8" cy="6" r="1.5" />
                             </svg>
                             <span>{event.dia_chi}</span>
                           </div>
-                          
+
                           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-                              <path d="M2 8h4M2 12h3M2 4h5M1 14h7a1 1 0 001-1V3a1 1 0 00-1-1H1v12z"/>
-                              <path d="M14 8a6 6 0 11-12 0"/>
+                              <path d="M2 8h4M2 12h3M2 4h5M1 14h7a1 1 0 001-1V3a1 1 0 00-1-1H1v12z" />
+                              <path d="M14 8a6 6 0 11-12 0" />
                             </svg>
                             <span>{event.ten_benh_vien} • {event.ten_don_vi}</span>
                           </div>
 
-                          <div style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
+                          <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
                             alignItems: 'center',
                             marginTop: 'var(--spacing-sm)',
                             paddingTop: 'var(--spacing-sm)',
@@ -433,13 +454,13 @@ const Dashboard = () => {
               ) : (
                 <div style={{ textAlign: 'center', padding: 'var(--spacing-3xl)', color: 'var(--text-secondary)' }}>
                   <svg width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="currentColor" strokeWidth="2" style={{ margin: '0 auto var(--spacing-md)' }}>
-                    <rect x="8" y="12" width="48" height="44" rx="4"/>
-                    <path d="M8 24h48M20 8v12M44 8v12"/>
+                    <rect x="8" y="12" width="48" height="44" rx="4" />
+                    <path d="M8 24h48M20 8v12M44 8v12" />
                   </svg>
                   <p style={{ margin: '0 0 var(--spacing-md)', fontSize: 'var(--font-size-lg)', fontWeight: 'var(--font-weight-medium)' }}>
                     Chưa có sự kiện sắp diễn ra
                   </p>
-                  <button 
+                  <button
                     className="btn btn-primary"
                     onClick={() => navigate('/donor/events')}
                   >

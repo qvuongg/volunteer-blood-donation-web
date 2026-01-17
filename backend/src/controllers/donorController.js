@@ -8,7 +8,7 @@ export const getProfile = async (req, res, next) => {
 
     // Get user info
     const [users] = await pool.execute(
-      `SELECT id_nguoi_dung, ho_ten, email, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro, trang_thai 
+      `SELECT id_nguoi_dung, ho_ten, email, so_dien_thoai, gioi_tinh, ngay_sinh, id_vai_tro, trang_thai, ngay_tao
        FROM nguoidung WHERE id_nguoi_dung = ?`,
       [userId]
     );
@@ -20,11 +20,13 @@ export const getProfile = async (req, res, next) => {
       });
     }
 
-    // Get donor info with blood type confirmation status
+    // Get donor info with blood type confirmation status and total blood volume
     const [donors] = await pool.execute(
-      `SELECT nh.id_nguoi_hien, nh.nhom_mau, nh.lan_hien_gan_nhat, nh.tong_so_lan_hien,
+      `SELECT nh.id_nguoi_hien, nh.nhom_mau, nh.lan_hien_gan_nhat,
+              (SELECT COUNT(*) FROM ket_qua_hien_mau kq WHERE kq.id_nguoi_hien = nh.id_nguoi_hien AND kq.ket_qua = 'Dat') as tong_so_lan_hien,
               nh.nhom_mau_xac_nhan, nh.ngay_xac_nhan, nh.id_nguoi_phu_trach_benh_vien, nh.ghi_chu_xac_nhan,
-              bv.ten_benh_vien as ten_benh_vien_xac_nhan
+              bv.ten_benh_vien as ten_benh_vien_xac_nhan,
+              (SELECT COALESCE(SUM(luong_ml), 0) FROM ket_qua_hien_mau kq WHERE kq.id_nguoi_hien = nh.id_nguoi_hien AND kq.ket_qua = 'Dat') as tong_luong_mau
        FROM nguoi_hien_mau nh
        LEFT JOIN nguoi_phu_trach_benh_vien nptbv ON nh.id_nguoi_phu_trach_benh_vien = nptbv.id_nguoi_phu_trach
        LEFT JOIN benh_vien bv ON nptbv.id_benh_vien = bv.id_benh_vien
@@ -370,7 +372,7 @@ export const getHistory = async (req, res, next) => {
        JOIN sukien_hien_mau sk ON kq.id_su_kien = sk.id_su_kien
        JOIN benh_vien bv ON kq.id_benh_vien = bv.id_benh_vien
        WHERE kq.id_nguoi_hien = ?
-       ORDER BY kq.ngay_hien DESC`,
+       ORDER BY kq.ngay_hien ASC`,
       [donorId]
     );
 
