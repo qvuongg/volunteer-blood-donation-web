@@ -497,3 +497,46 @@ export const updateRegistrationStatus = async (req, res, next) => {
   }
 };
 
+// Get booked time slots for a specific event and date
+export const getBookedTimeSlots = async (req, res, next) => {
+  try {
+    const { eventId } = req.params;
+    const { date } = req.query;
+
+    // Validation
+    if (!eventId || isNaN(parseInt(eventId))) {
+      return res.status(400).json({
+        success: false,
+        message: 'ID sự kiện không hợp lệ.'
+      });
+    }
+
+    if (!date) {
+      return res.status(400).json({
+        success: false,
+        message: 'Vui lòng cung cấp ngày để kiểm tra khung giờ.'
+      });
+    }
+
+    // Get all booked time slots for this event and date
+    const [bookedSlots] = await pool.execute(
+      `SELECT DISTINCT khung_gio 
+       FROM dang_ky_hien_mau 
+       WHERE id_su_kien = ? AND ngay_hen_hien = ?`,
+      [eventId, date]
+    );
+
+    // Extract just the time slot strings
+    const bookedTimeSlots = bookedSlots.map(slot => slot.khung_gio);
+
+    res.json({
+      success: true,
+      data: {
+        bookedSlots: bookedTimeSlots
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
